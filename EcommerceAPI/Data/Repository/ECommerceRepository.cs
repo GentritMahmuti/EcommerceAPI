@@ -76,21 +76,21 @@ namespace EcommerceAPI.Data.Repository
             _dbContext.Set<Tentity>().UpdateRange(entities);
         }
 
-        public IQueryable<Tentity> GetByConditionWithIncludes(Expression<Func<Tentity, bool>> expression, string? includeRelations = null)
-        {
-            var query = _dbContext.Set<Tentity>().Where(expression);
+        //public IQueryable<Tentity> GetByConditionWithIncludes(Expression<Func<Tentity, bool>> expression, string? includeRelations = null)
+        //{
+        //    var query = _dbContext.Set<Tentity>().Where(expression);
 
-            if (!string.IsNullOrEmpty(includeRelations))
-            {
-                var relations = includeRelations.Split(", ");
+        //    if (!string.IsNullOrEmpty(includeRelations))
+        //    {
+        //        var relations = includeRelations.Split(", ");
 
-                foreach (var relation in relations)
-                {
-                    query = query.Include(relation);
-                }
-            }
+        //        foreach (var relation in relations)
+        //        {
+        //            query = query.Include(relation);
+        //        }
+        //    }
 
-            return query;
-        }
+        //    return query;
+        //}
     }
 }
