@@ -9,6 +9,9 @@ namespace EcommerceAPI.Models.Entities
         [ForeignKey("User")]
         public int UserId { get; set; }
         public User? User { get; set; }
+        [ForeignKey("Book")]
+        public int BookId { get; set; }
+        public Book? Book { get; set; }
         public int Rating { get; set; }
         public string ReviewComment { get; set; }
         public DateTime ReviewPostedDate { get; set; }
