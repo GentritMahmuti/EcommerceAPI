@@ -10,9 +10,12 @@ namespace EcommerceAPI.Data
 
         }
 
-        public DbSet<Book> Books { get; set; }
+        public DbSet<Product> Products { get; set; }
         public DbSet<User> Users { get; set; }
-        public DbSet<Review> Reviews { get; set; }
+        public DbSet<OrderData> OrderData { get; set; } 
+        public DbSet<OrderDetails> OrderDetails { get; set; }
+        public DbSet<ShoppingCard> ShoppingCards { get; set; }
+        //public DbSet<Review> Reviews { get; set; }
         public DbSet<Category> Categories { get; set; }
 
     }

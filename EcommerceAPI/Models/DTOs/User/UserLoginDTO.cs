@@ -1,4 +1,4 @@
-﻿namespace EcommerceAPI.Models.DTOs
+﻿namespace EcommerceAPI.Models.DTOs.User
 {
     public class UserLoginDTO
     {

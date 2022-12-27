@@ -1,8 +1,14 @@
 ﻿using AutoMapper;
+using EcommerceAPI.Data.UnitOfWork;
+using EcommerceAPI.Models.DTOs.Product;
+using EcommerceAPI.Models.Entities;
+using EcommerceAPI.Services.IServices;
+using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace EcommerceAPI.Services
 {
-    public class ProductService
+    public class ProductService : IProductService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -21,7 +27,7 @@ namespace EcommerceAPI.Services
 
         public async Task<Product> GetProduct(int id)
         {
-            Expression<Func<Product, bool>> expression = x => x.ProductId == id;
+            Expression<Func<Product, bool>> expression = x => x.Id == id;
             var product = await _unitOfWork.Repository<Product>().GetById(expression).FirstOrDefaultAsync();
 
             return product;
@@ -67,7 +73,20 @@ namespace EcommerceAPI.Services
             _logger.LogInformation("Deleted product successfully!");
 
         }
-        
+
+        public async Task UpdateProduct(Product productToUpdate)
+        {
+            var product = await GetProduct(productToUpdate.Id);
+            if (product == null)
+            {
+                throw new NullReferenceException("The product you're trying to update doesn't exist!");
+            }
+            product.Title = productToUpdate.Title;
+
+            _unitOfWork.Repository<Product>().Update(product);
+
+            _unitOfWork.Complete();
+        }
     }
     
 }

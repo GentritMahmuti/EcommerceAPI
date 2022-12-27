@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Xml.Linq;
 
 namespace EcommerceAPI.Models.Entities
@@ -11,5 +12,9 @@ namespace EcommerceAPI.Models.Entities
         [Required]
         [MaxLength(100)]
         public string Name { get; set; }
+
+        [DisplayName("Display Order")]
+        public int DisplayOrder { get; set; }
+        public DateTime CreatedDateTime { get; set; } = DateTime.Now;
     }
 }
