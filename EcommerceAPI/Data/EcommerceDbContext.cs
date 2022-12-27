@@ -16,6 +16,7 @@ namespace EcommerceAPI.Data
         public DbSet<OrderDetails> OrderDetails { get; set; }
         public DbSet<ShoppingCard> ShoppingCards { get; set; }
         //public DbSet<Review> Reviews { get; set; }
+        public DbSet<CoverType> CoverTypes { get; set; }
         public DbSet<Category> Categories { get; set; }
 
     }
