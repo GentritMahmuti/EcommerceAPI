@@ -8,7 +8,7 @@ namespace EcommerceAPI.Services.IServices
         Task CreateCover(CoverTypeCreateDTO coverToCreate);
         Task<List<CoverType>> GetAllCovers();
         Task<CoverType> GetCover(int id);
-        Task UpdateCover(CoverTypeCreateDTO coverToUpdate);
+        Task UpdateCover(CoverTypeDTO coverToUpdate);
         Task DeleteCover(int id);
     }
 }

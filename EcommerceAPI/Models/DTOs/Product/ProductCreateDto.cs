@@ -25,8 +25,6 @@ namespace EcommerceAPI.Models.DTOs.Product
         public double Price100 { get; set; }
         public string ImageUrl { get; set; }
         public int CategoryId { get; set; }
-        public Category Category { get; set; }
         public int CoverTypeId { get; set; }
-        public CoverType CoverType { get; set; }
     }
 }

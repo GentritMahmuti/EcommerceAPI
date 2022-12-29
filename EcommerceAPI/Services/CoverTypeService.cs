@@ -2,6 +2,7 @@
 using EcommerceAPI.Models.DTOs.CoverType;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
+using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 namespace EcommerceAPI.Services
