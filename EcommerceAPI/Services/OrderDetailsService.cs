@@ -39,7 +39,7 @@ namespace EcommerceAPI.Services
         }
 
 
-        public async Task CreateOrderDetails(OrderDetails orderDetailsToCreate)
+        public async Task CreateOrderDetails(OrderDetailsCreateDto orderDetailsToCreate)
         {
             var orderDetails = _mapper.Map<OrderDetails>(orderDetailsToCreate);
 
@@ -90,5 +90,7 @@ namespace EcommerceAPI.Services
 
             _unitOfWork.Complete();
         }
+
+       
     }
 }
