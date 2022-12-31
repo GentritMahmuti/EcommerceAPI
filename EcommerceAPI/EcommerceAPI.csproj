@@ -21,7 +21,6 @@
     <Folder Include="Common\Constants\" />
     <Folder Include="Infrastructure\" />
     <Folder Include="Models\DTOs\OrderData\" />
-    <Folder Include="Models\DTOs\OrderDetails\" />
     <Folder Include="Models\DTOs\ShoppingCard\" />
   </ItemGroup>
 
