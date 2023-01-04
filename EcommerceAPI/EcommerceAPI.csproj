@@ -15,6 +15,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+    <PackageReference Include="Serilog.AspNetCore" Version="6.1.0" />
+    <PackageReference Include="Serilog.Sinks.MSSqlServer" Version="6.1.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
   </ItemGroup>
 
@@ -22,6 +24,7 @@
     <Folder Include="Common\Constants\" />
     <Folder Include="Infrastructure\" />
     <Folder Include="Models\DTOs\ShoppingCard\" />
+    <Folder Include="Template\" />
   </ItemGroup>
 
 </Project>
