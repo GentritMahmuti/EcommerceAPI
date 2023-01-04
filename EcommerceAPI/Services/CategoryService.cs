@@ -39,7 +39,7 @@ namespace EcommerceAPI.Services
             return categorys.ToList();
         }
 
-
+        //test
         public async Task CreateCategory(CategoryCreateDto categoryToCreate)
         {
             var category = _mapper.Map<Category>(categoryToCreate);
