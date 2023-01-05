@@ -1,7 +1,9 @@
 ﻿using EcommerceAPI.Models.DTOs.Category;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Data;
 
 namespace EcommerceAPI.Controllers
 {
@@ -16,7 +18,7 @@ namespace EcommerceAPI.Controllers
             _configuration = configuration;
         }
 
-
+        [Authorize(Roles = "LifeAdmin")]
         [HttpGet("GetCategory")]
         public async Task<IActionResult> Get(int id)
         {
