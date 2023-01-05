@@ -5,6 +5,7 @@ using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using System.Linq.Dynamic.Core;
 
 namespace EcommerceAPI.Services
 {
@@ -22,6 +23,39 @@ namespace EcommerceAPI.Services
             _mapper = mapper;
             _configuration = configuration;
             _logger = logger;
+        }
+
+        public async Task<List<Product>> GetFilterProducts(ProductFilter filter, ProductSort sort)
+        {
+            var query = _unitOfWork.Repository<Product>().GetAll().AsQueryable();
+
+            // Apply the filters
+            if (filter.MinPrice.HasValue)
+            {
+                query = query.Where(p => p.Price >= filter.MinPrice.Value);
+            }
+            if (filter.MaxPrice.HasValue)
+            {
+                query = query.Where(p => p.Price <= filter.MaxPrice.Value);
+            }
+            if (filter.CategoryId.HasValue)
+            {
+                query = query.Where(p => p.CategoryId == filter.CategoryId.Value);
+            }
+
+            // Apply the sorting
+            if (!string.IsNullOrEmpty(sort.SortBy))
+            {
+                string sortExpression = sort.SortBy;
+                if (!sort.Ascending)
+                {
+                    sortExpression += " descending";
+                }
+                query = query.OrderBy(sortExpression);
+            }
+
+            // Execute the query and return the results
+            return await query.ToListAsync();
         }
 
 
