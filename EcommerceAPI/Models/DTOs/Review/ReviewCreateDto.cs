@@ -1,10 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using EcommerceAPI.Models.Entities;
 
-namespace EcommerceAPI.Models.Entities
+namespace EcommerceAPI.Models.DTOs.Review
 {
-    public class Review
+    public class ReviewCreateDto
     {
-        public int Id { get; set; }
+
         [ForeignKey("User")]
         public string UserId { get; set; }
         public Entities.User User { get; set; }

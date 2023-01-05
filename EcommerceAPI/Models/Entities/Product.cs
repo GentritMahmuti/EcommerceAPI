@@ -9,6 +9,8 @@ namespace EcommerceAPI.Models.Entities
         public string Title { get; set; }
         public string Description { get; set; }
         [Required]
+        public string Seller { get; set; }
+        [Required]
         public string ISBN { get; set; }
         [Required]
         public string Author { get; set; }
@@ -31,5 +33,6 @@ namespace EcommerceAPI.Models.Entities
         [Required]
         public int CoverTypeId { get; set; }
         public CoverType CoverType { get; set; }
+        public ICollection<Review> SubmittedReviews { get; set; }
     }
 }
