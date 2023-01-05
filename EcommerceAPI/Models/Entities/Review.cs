@@ -15,6 +15,7 @@ namespace EcommerceAPI.Models.Entities
         public Product? Product { get; set; }
         public int Rating { get; set; }
         public string ReviewComment { get; set; }
+        //Test
         public DateTime ReviewPostedDate { get; set; }
     }
 }
