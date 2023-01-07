@@ -2,6 +2,7 @@
 using EcommerceAPI.Models.DTOs.Category;
 using EcommerceAPI.Models.DTOs.OrderDetails;
 using EcommerceAPI.Models.DTOs.Product;
+using EcommerceAPI.Models.DTOs.Review;
 using EcommerceAPI.Models.Entities;
 
 namespace EcommerceAPI.Helpers
@@ -13,6 +14,7 @@ namespace EcommerceAPI.Helpers
             CreateMap<Product, ProductCreateDto>().ReverseMap();
             CreateMap<Category, CategoryCreateDto>().ReverseMap();
             CreateMap<OrderDetails, OrderDetailsCreateDto>().ReverseMap();
+            CreateMap<Review, ReviewCreateDto>().ReverseMap();
         }
     }
 }

@@ -18,6 +18,7 @@ namespace EcommerceAPI.Data
         //public DbSet<Review> Reviews { get; set; }
         public DbSet<CoverType> CoverTypes { get; set; }
         public DbSet<Category> Categories { get; set; }
+        public DbSet<Review> Reviews { get; set; }
 
     }
 }

@@ -14,6 +14,7 @@ namespace EcommerceAPI.Helpers
             services.AddTransient<IOrderDataService, OrderDataService>();
             services.AddTransient<IOrderDetailsService, OrderDetailsService>();
             services.AddTransient<ICoverTypeService, CoverTypeService>();
+            services.AddTransient<IReviewService, ReviewService>();
         }
        
     }

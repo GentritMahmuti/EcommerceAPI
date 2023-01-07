@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="12.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.12" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.1">
@@ -18,11 +19,13 @@
     <PackageReference Include="Serilog.AspNetCore" Version="6.1.0" />
     <PackageReference Include="Serilog.Sinks.MSSqlServer" Version="6.1.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+    <PackageReference Include="System.Linq.Dynamic.Core" Version="1.2.24" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Common\Constants\" />
     <Folder Include="Infrastructure\" />
+    <Folder Include="Migrations\" />
     <Folder Include="Models\DTOs\ShoppingCard\" />
     <Folder Include="Template\" />
   </ItemGroup>
