@@ -18,6 +18,14 @@ namespace EcommerceAPI.Controllers
             _configuration = configuration;
         }
 
+        // GET: api/products
+        [HttpGet("GetFilterProducts")]
+        public async Task<ActionResult<IEnumerable<Product>>> GetProducts(
+            [FromQuery] ProductFilter filter,
+            [FromQuery] ProductSort sort)
+        {
+            return await _productService.GetFilterProducts(filter, sort);
+        }
 
         [HttpGet("GetProduct")]
         public async Task<IActionResult> Get(int id)
