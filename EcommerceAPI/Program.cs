@@ -74,7 +74,7 @@ builder.Services.AddAuthentication(options =>
                               };
 
                               userService.Repository<User>().Create(userToBeAdded);
-
+                              
                               //var emailService = context.HttpContext.RequestServices.GetService<IEmailSender>();
                               //if(emailService != null) 
                               //{
