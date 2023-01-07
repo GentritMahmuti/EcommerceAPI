@@ -2,8 +2,10 @@ using AutoMapper;
 using EcommerceAPI.Data;
 using EcommerceAPI.Data.UnitOfWork;
 using EcommerceAPI.Helpers;
+using EcommerceAPI.Helpers.EmailSender;
 using EcommerceAPI.Models.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -139,6 +141,17 @@ builder.Logging.AddSerilog(logger);
 
 builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(logger);
+
+
+
+
+builder.Services.AddEmailSenders(builder.Configuration);
+
+var smtpConfigurations = builder.Configuration.GetSection(nameof(SmtpConfiguration)).Get<SmtpConfiguration>();
+builder.Services.AddSingleton(smtpConfigurations);
+builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
+
+
 
 
 var mapperConfiguration = new MapperConfiguration(
