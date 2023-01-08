@@ -4,11 +4,13 @@ using EcommerceAPI.Data.UnitOfWork;
 using EcommerceAPI.Helpers;
 using EcommerceAPI.Helpers.EmailSender;
 using EcommerceAPI.Models.Entities;
+using Elasticsearch.Net;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Nest;
 using Serilog;
 using System.Security.Claims;
 using System.Text;
@@ -166,6 +168,17 @@ builder.Services.AddDbContext<EcommerceDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddServices();
+
+
+var pool = new SingleNodeConnectionPool(new Uri("https://localhost:9200"));
+
+var connectionSettings = new ConnectionSettings(pool)
+                .BasicAuthentication("elastic", "pfEzK09bAv3=ie56=DFX")
+                .CertificateFingerprint("e607c5b0f141794f57bed41248bf36bb3711bed76fa9e526719cf1aeff4968c8");
+
+var client = new ElasticClient(connectionSettings);
+
+builder.Services.AddSingleton(client);
 
 var app = builder.Build();
 

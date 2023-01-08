@@ -92,5 +92,86 @@ namespace EcommerceAPI.Controllers
 
             return Ok("Product deleted successfully!");
         }
+
+        [HttpGet("SearchElastic")]
+        public async Task<IActionResult> SearchElastic([FromQuery] SearchInputDto input, int pageSize)
+        {
+            var response = await _productService.SearchElastic(input, pageSize);
+
+            return Ok(response);
+        }
+
+        [HttpPost("AddProductElastic")]
+        public async Task<IActionResult> AddProductElastic([FromBody]ProductCreateElasticDto productToAdd)
+        {
+            var result = await _productService.AddProductElastic(productToAdd);
+            return Ok(result.Result);
+        }
+
+        [HttpGet("GetByIdElastic")]
+        public async Task<IActionResult> GetByIdElastic(int id, string index)
+        {
+            if (index == null)
+            {
+                index = "products";
+            }
+            var product = await _productService.GetByIdElastic(id, index);
+            if (product == null)
+            {
+                return NotFound();
+            }
+            return Ok(product);
+        }
+
+        [HttpGet("GetAllElastic")]
+        public async Task<IActionResult> GetAllElastic()
+        {
+            var products = await _productService.GetAllElastic();
+            return Ok(products);
+        }
+
+        [HttpPost("AddBulkElastic")]
+        public async Task<IActionResult> AddBulkElastic([FromBody] List<ProductCreateElasticDto> productsToCreate)
+        {
+            try
+            {
+                await _productService.AddBulkElastic(productsToCreate);
+                return Ok("Products are added successfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"An error happened: '{ex.Message}'");
+            }
+        }
+
+
+
+        [HttpPut("UpdateElastic")]
+        public async Task<IActionResult> UpdateElastic([FromBody] ProductCreateElasticDto product)
+        {
+            try
+            {
+                await _productService.UpdateElastic(product);
+                return Ok("Products are updated successfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"An error happened: '{ex.Message}'");
+            }
+        }
+
+        [HttpDelete("DeleteAllElastic")]
+        public async Task<IActionResult> DeleteAllElastic()
+        {
+            try
+            {
+                await _productService.DeleteAllElastic();
+                return Ok("Products are deleted successfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"An error happened: '{ex.Message}'");
+            }
+        }
     }
 }

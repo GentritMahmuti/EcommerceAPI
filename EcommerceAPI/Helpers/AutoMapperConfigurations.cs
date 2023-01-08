@@ -12,6 +12,7 @@ namespace EcommerceAPI.Helpers
         public AutoMapperConfigurations()
         {
             CreateMap<Product, ProductCreateDto>().ReverseMap();
+            CreateMap<Product, ProductCreateElasticDto>().ReverseMap();
             CreateMap<Category, CategoryCreateDto>().ReverseMap();
             CreateMap<OrderDetails, OrderDetailsCreateDto>().ReverseMap();
             CreateMap<Review, ReviewCreateDto>().ReverseMap();
