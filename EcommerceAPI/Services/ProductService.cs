@@ -6,6 +6,7 @@ using EcommerceAPI.Services.IServices;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using System.Linq.Dynamic.Core;
+using Nest;
 
 namespace EcommerceAPI.Services
 {
@@ -15,14 +16,16 @@ namespace EcommerceAPI.Services
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
         private readonly ILogger<ProductService> _logger;
+        private readonly ElasticClient _elasticClient;
 
 
-        public ProductService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, ILogger<ProductService> logger)
+        public ProductService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, ILogger<ProductService> logger, ElasticClient elasticClient)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _configuration = configuration;
             _logger = logger;
+            _elasticClient = elasticClient;
         }
 
         public async Task<List<Product>> GetFilterProducts(ProductFilter filter, ProductSort sort)
@@ -121,6 +124,99 @@ namespace EcommerceAPI.Services
 
             _unitOfWork.Complete();
         }
+
+
+        // Elastic
+        public async Task<List<Product>> SearchElastic(SearchInputDto input, int pageSize)
+        {
+            int pageNumber = 1;
+            var response = await _elasticClient.SearchAsync<Product>(s => s
+               .Index("products")
+               .From((pageNumber - 1) * pageSize)
+               .Size(pageSize)
+               .Query(q => q
+                    .Match(m => m
+                        .Field(f => f.Title)
+                            .Query(input.Title)
+                 ) && q
+                 .Range(r => r
+                    .Field(f => f.Price)
+                        .GreaterThanOrEquals(input.MinPrice)
+                        .LessThanOrEquals(input.MaxPrice))
+                 )
+            );
+            _logger.LogInformation("Searched for products using elastic successfully!");
+            return response.Documents.ToList();
+        }
+
+        public async Task<IndexResponse> AddProductElastic(ProductCreateElasticDto productToCreate)
+        {
+            var product = _mapper.Map<Product>(productToCreate);
+            var result = await _elasticClient.IndexAsync
+              (product, x => x.Index("products").Id(product.Id));
+
+            if (result.IsValid)
+            {
+                _logger.LogInformation("Added product using elastic successfully!");
+            }
+            return result;
+        }
+
+        public async Task<Product> GetByIdElastic(int id, string index)
+        {
+            var response = await _elasticClient.GetAsync<Product>(id, x => x.Index(index));
+            if (response.Source != null)
+            {
+                _logger.LogInformation("Found product by id using elastic successfully!");
+            }
+            return response.Source;
+        }
+
+        public async Task<List<Product>> GetAllElastic()
+        {
+            var response = await _elasticClient.SearchAsync<Product>(s =>
+            s.Index("products")
+               .Query(q => q
+                  .MatchAll())
+               );
+            return response.Documents.ToList();
+        }
+
+        public async Task AddBulkElastic(List<ProductCreateElasticDto> products)
+        {
+            var productsToCreate = _mapper.Map<List<ProductCreateElasticDto>, List<Product>>(products);
+            var result = await _elasticClient.BulkAsync(x =>
+                x.Index("products").IndexMany(productsToCreate));
+            _logger.LogInformation("Added bulk of products in elastic successfully!");
+        }
+
+        public async Task UpdateElastic(ProductCreateElasticDto productToCreate)
+        {
+            var product = _mapper.Map<Product>(productToCreate);
+
+            var response = await _elasticClient.GetAsync<Product>(product.Id, x => x.Index("products"));
+            var existingProduct = response.Source;
+
+            existingProduct.Title = product.Title;
+            existingProduct.Description = product.Description;
+            existingProduct.Price = product.Price;
+            existingProduct.Category = product.Category;
+
+            var updatedResponse = _elasticClient.Update<Product>(product.Id, x => x
+                        .Index("products")
+                        .Doc(existingProduct));
+            _logger.LogInformation("Updated product from elastic successfully!");
+
+        }
+
+        public async Task DeleteAllElastic()
+        {
+            var deleteResponse = _elasticClient.DeleteByQuery<Product>(del => del
+                   .Index("products")
+                   .Query(q => q.MatchAll())
+               );
+            _logger.LogInformation("Deleted all products from elastic successfully!");
+        }
     }
-    
+
 }

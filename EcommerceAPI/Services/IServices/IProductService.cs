@@ -1,5 +1,6 @@
 ﻿using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Models.Entities;
+using Nest;
 
 namespace EcommerceAPI.Services.IServices
 {
@@ -13,5 +14,14 @@ namespace EcommerceAPI.Services.IServices
         Task<Product> GetProduct(int id);
         Task UpdateProduct(Product productToUpdate);
         //Task<Product> GetWithIncludes(int id);
+
+        //Elastic
+        Task<List<Product>> SearchElastic(SearchInputDto input, int pageSize);
+        Task<IndexResponse> AddProductElastic(ProductCreateElasticDto product);
+        Task<Product> GetByIdElastic(int id, string index);
+        Task<List<Product>> GetAllElastic();
+        Task AddBulkElastic(List<ProductCreateElasticDto> productsToCreate);
+        Task UpdateElastic(ProductCreateElasticDto productToCreate);
+        Task DeleteAllElastic();
     }
 }
