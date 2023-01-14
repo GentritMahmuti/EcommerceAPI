@@ -3,7 +3,10 @@ using EcommerceAPI.Models.DTOs.Review;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services;
 using EcommerceAPI.Services.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Data;
+using System.Security.Claims;
 
 namespace EcommerceAPI.Controllers
 {
@@ -15,10 +18,10 @@ namespace EcommerceAPI.Controllers
             _reviewService = reviewService;
         }
 
-        [HttpGet("GetReview")]
-        public async Task<IActionResult> Get(int id)
+        [HttpGet("GetProductReviews")]
+        public async Task<IActionResult> GetProductReviews(int productId)
         {
-            var review = await _reviewService.GetReview(id);
+            var review = await _reviewService.GetProductReviews(productId);
 
             if (review == null)
             {
@@ -28,9 +31,9 @@ namespace EcommerceAPI.Controllers
             return Ok(review);
         }
 
-       
 
-        [HttpGet("GetReviews")]
+        [Authorize(Roles = "LifeAdmin")]
+        [HttpGet("GetAllReviews")]
         public async Task<IActionResult> GetReviews()
         {
             var reviews = await _reviewService.GetAllReviews();
@@ -38,7 +41,7 @@ namespace EcommerceAPI.Controllers
             return Ok(reviews);
         }
 
-
+        [Authorize(Roles = "LifeUser")]
         [HttpPost("PostReview")]
         public async Task<IActionResult> Post([FromForm] ReviewCreateDto ReviewToCreate)
         {
@@ -46,21 +49,39 @@ namespace EcommerceAPI.Controllers
 
             return Ok("Review created successfully!");
         }
-
+        [Authorize(Roles = "LifeUser")]
         [HttpPut("UpdateReview")]
         public async Task<IActionResult> Update(Review ReviewToUpdate)
         {
-            await _reviewService.UpdateReview(ReviewToUpdate);
-
-            return Ok("Review updated successfully!");
+            try
+            {
+                var userData = (ClaimsIdentity)User.Identity;
+                var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _reviewService.UpdateReview(ReviewToUpdate, userId);
+                return Ok("Review updated successfully!");
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
+            
         }
 
+        [Authorize(Roles = "LifeUser")]
         [HttpDelete("DeleteReview")]
         public async Task<IActionResult> Delete(int id)
         {
-            await _reviewService.DeleteReview(id);
-
-            return Ok("Review deleted successfully!");
+            try
+            {
+                var userData = (ClaimsIdentity)User.Identity;
+                var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _reviewService.DeleteReview(id, userId);
+                return Ok("Review deleted successfully!");
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
         }
     }
 }

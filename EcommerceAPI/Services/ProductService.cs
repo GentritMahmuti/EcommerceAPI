@@ -251,6 +251,16 @@ namespace EcommerceAPI.Services
                );
             _logger.LogInformation("Deleted all products from elastic successfully!");
         }
+        public async Task DeleteProductByIdInElastic(int id)
+        {
+            var deleteResponse = _elasticClient.Delete<Product>(id, d => d
+            .Index("products")
+            );
+            if (!deleteResponse.IsValid)
+            {
+                throw new Exception("There isn't a product with that ID");
+            }
+        }
     }
 
 }
