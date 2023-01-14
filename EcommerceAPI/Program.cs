@@ -6,7 +6,10 @@ using EcommerceAPI.Helpers.EmailSender;
 using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Models.DTOs.Review;
 using EcommerceAPI.Models.Entities;
-using EcommerceAPI.Validators;
+
+using EcommerceAPI.Services.IServices;
+using EcommerceAPI.Services;
+
 using Elasticsearch.Net;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -185,6 +188,8 @@ var connectionSettings = new ConnectionSettings(pool)
 var client = new ElasticClient(connectionSettings);
 
 builder.Services.AddSingleton(client);
+
+builder.Services.AddScoped<ICacheService, CacheService>();
 
 var app = builder.Build();
 
