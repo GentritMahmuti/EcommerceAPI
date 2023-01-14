@@ -20,10 +20,17 @@ namespace EcommerceAPI.Services
             _mapper = mapper;
         }
 
-        public async Task<Review> GetReview(int id)
+        private async Task<Review> GetReview(int id)
         {
             Expression<Func<Review, bool>> expression = x => x.Id == id;
             var review = await _unitOfWork.Repository<Review>().GetById(expression).FirstOrDefaultAsync();
+
+            return review;
+        }
+        public async Task<Review> GetProductReviews(int productId)
+        {
+            Expression<Func<Review, bool>> expression = x => x.ProductId == productId;
+            var review = await _unitOfWork.Repository<Review>().GetByCondition(expression).FirstOrDefaultAsync();
 
             return review;
         }
@@ -43,33 +50,56 @@ namespace EcommerceAPI.Services
             _unitOfWork.Complete();
 
         }
-        public async Task UpdateReview(Review reviewToUpdate)
+        public async Task UpdateReview(Review reviewToUpdate, string userId)
         {
             var review = await GetReview(reviewToUpdate.Id);
             if (review == null)
             {
                 throw new NullReferenceException("The review you're trying to update doesn't exist!");
             }
-            review.Rating = reviewToUpdate.Rating;
-            review.ReviewComment = reviewToUpdate.ReviewComment;
+            if (userId.Equals(review.UserId))
+            {
+                review.Rating = reviewToUpdate.Rating;
+                review.ReviewComment = reviewToUpdate.ReviewComment;
 
-            _unitOfWork.Repository<Review>().Update(review);
+                _unitOfWork.Repository<Review>().Update(review);
 
-            _unitOfWork.Complete();
+                _unitOfWork.Complete();
+            }
+            else
+            {
+                throw new Exception("You cannot update this review.");
+            }
         }
 
-        public async Task DeleteReview(int id)
+        public async Task DeleteReview(int id, string userId)
         {
             var review = await GetReview(id);
             if (review == null)
             {
                 throw new NullReferenceException("The review you're trying to delete doesn't exist.");
             }
-
-            _unitOfWork.Repository<Review>().Delete(review);
-            _unitOfWork.Complete();
-
+            if (userId.Equals(review.UserId))
+            {
+                _unitOfWork.Repository<Review>().Delete(review);
+                _unitOfWork.Complete();
+            }
+            else
+            {
+                throw new Exception("You cannot delete this review.");
+            }
+            
         }
+        private async Task<string> GetUserIdFromReview(int id)
+        {
+            var review = await GetReview(id);
+            if (review == null)
+            {
+                throw new NullReferenceException("The review you're trying to delete doesn't exist.");
+            }
+            return review.UserId; 
+        }
+
 
        
     }

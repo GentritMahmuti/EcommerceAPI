@@ -23,5 +23,6 @@ namespace EcommerceAPI.Services.IServices
         Task AddBulkElastic(List<ProductCreateElasticDto> productsToCreate);
         Task UpdateElastic(ProductCreateElasticDto productToCreate);
         Task DeleteAllElastic();
+        Task DeleteProductByIdInElastic(int id);
     }
 }

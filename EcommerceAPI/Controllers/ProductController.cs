@@ -173,5 +173,11 @@ namespace EcommerceAPI.Controllers
                 return BadRequest($"An error happened: '{ex.Message}'");
             }
         }
+        [HttpDelete("DeleteByIdElastic")]
+        public async Task<IActionResult> DeleteProductByIdInElastic(int id)
+        {
+            await _productService.DeleteProductByIdInElastic(id);
+            return Ok("Product deleted successfully!");
+        }
     }
 }
