@@ -6,10 +6,8 @@ using EcommerceAPI.Helpers.EmailSender;
 using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Models.DTOs.Review;
 using EcommerceAPI.Models.Entities;
-
 using EcommerceAPI.Services.IServices;
 using EcommerceAPI.Services;
-
 using Elasticsearch.Net;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -22,6 +20,7 @@ using Serilog;
 using System.Security.Claims;
 using System.Text;
 using claims = System.Security.Claims;
+using EcommerceAPI.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
