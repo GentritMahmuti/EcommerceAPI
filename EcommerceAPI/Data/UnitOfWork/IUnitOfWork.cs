@@ -6,5 +6,6 @@ namespace EcommerceAPI.Data.UnitOfWork
     {
         public IECommerceRepository<TEntity> Repository<TEntity>() where TEntity : class;
         bool Complete();
+        Task<bool> CompleteAsync();
     }
 }

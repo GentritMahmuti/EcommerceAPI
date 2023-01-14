@@ -5,7 +5,7 @@ namespace EcommerceAPI.Services.IServices
 {
     public interface IOrderDetailsService
     {
-        Task CreateOrderDetails(OrderDetailsCreateDto orderDetailsToCreate);
+        Task<OrderDetails> CreateOrderDetails(OrderDetailsCreateDto orderDetailsToCreate);
         Task DeleteOrderDetails(int id);
         Task<List<OrderDetails>> GetAllOrderDetails();
        
