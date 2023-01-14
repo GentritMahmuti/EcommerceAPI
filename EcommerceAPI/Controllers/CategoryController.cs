@@ -18,7 +18,6 @@ namespace EcommerceAPI.Controllers
             _configuration = configuration;
         }
 
-        [Authorize(Roles = "LifeAdmin")]
         [HttpGet("GetCategory")]
         public async Task<IActionResult> Get(int id)
         {
@@ -44,7 +43,7 @@ namespace EcommerceAPI.Controllers
 
         //    return Ok(category);
         //}
-
+        [Authorize(Roles = "LifeAdmin")]
         [HttpGet("GetCategories")]
         public async Task<IActionResult> GetCategories()
         {

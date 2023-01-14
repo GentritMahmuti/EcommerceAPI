@@ -1,7 +1,9 @@
 ﻿using EcommerceAPI.Models.DTOs.CoverType;
 using EcommerceAPI.Services.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Data;
 
 namespace EcommerceAPI.Controllers
 {
