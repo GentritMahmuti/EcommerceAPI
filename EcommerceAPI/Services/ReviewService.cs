@@ -4,20 +4,24 @@ using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Models.DTOs.Review;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Nest;
 using System.Linq.Expressions;
 
 namespace EcommerceAPI.Services
 {
     public class ReviewService : IReviewService
     {
+        private readonly IValidator<ReviewCreateDto> _reviewValidator;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public ReviewService(IUnitOfWork unitOfWork, IMapper mapper)
+        public ReviewService(IUnitOfWork unitOfWork, IMapper mapper, IValidator<ReviewCreateDto> reviewValidator)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _reviewValidator = reviewValidator;
         }
 
         private async Task<Review> GetReview(int id)
@@ -27,12 +31,12 @@ namespace EcommerceAPI.Services
 
             return review;
         }
-        public async Task<Review> GetProductReviews(int productId)
+        public async Task<List<Review>> GetProductReviews(int productId)
         {
             Expression<Func<Review, bool>> expression = x => x.ProductId == productId;
-            var review = await _unitOfWork.Repository<Review>().GetByCondition(expression).FirstOrDefaultAsync();
+            var reviews = _unitOfWork.Repository<Review>().GetByCondition(expression).ToList();
 
-            return review;
+            return reviews;
         }
 
         public async Task<List<Review>> GetAllReviews()
@@ -44,6 +48,7 @@ namespace EcommerceAPI.Services
 
         public async Task CreateReview(ReviewCreateDto reviewToCreate)
         {
+            await _reviewValidator.ValidateAndThrowAsync(reviewToCreate);
             var review = _mapper.Map<Review>(reviewToCreate);
 
             _unitOfWork.Repository<Review>().Create(review);
@@ -89,18 +94,6 @@ namespace EcommerceAPI.Services
                 throw new Exception("You cannot delete this review.");
             }
             
-        }
-        private async Task<string> GetUserIdFromReview(int id)
-        {
-            var review = await GetReview(id);
-            if (review == null)
-            {
-                throw new NullReferenceException("The review you're trying to delete doesn't exist.");
-            }
-            return review.UserId; 
-        }
-
-
-       
+        } 
     }
 }

@@ -2,6 +2,8 @@
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using RabbitMQ.Client;
 
 namespace EcommerceAPI.Controllers
 {
@@ -15,7 +17,6 @@ namespace EcommerceAPI.Controllers
             _orderDetailsService = orderDetailsService;
             _configuration = configuration;
         }
-
 
         [HttpGet("GetOrderDetails")]
         public async Task<IActionResult> Get(int id)

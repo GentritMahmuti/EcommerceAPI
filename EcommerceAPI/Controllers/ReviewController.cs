@@ -1,8 +1,10 @@
 ﻿using EcommerceAPI.Models.DTOs.Category;
+using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Models.DTOs.Review;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services;
 using EcommerceAPI.Services.IServices;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
@@ -21,14 +23,14 @@ namespace EcommerceAPI.Controllers
         [HttpGet("GetProductReviews")]
         public async Task<IActionResult> GetProductReviews(int productId)
         {
-            var review = await _reviewService.GetProductReviews(productId);
+            var reviews = await _reviewService.GetProductReviews(productId);
 
-            if (review == null)
+            if (reviews == null)
             {
                 return NotFound();
             }
 
-            return Ok(review);
+            return Ok(reviews);
         }
 
 

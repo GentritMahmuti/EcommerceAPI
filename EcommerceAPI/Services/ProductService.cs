@@ -161,12 +161,12 @@ namespace EcommerceAPI.Services
 
 
         // Elastic
-        public async Task<List<Product>> SearchElastic(SearchInputDto input, int pageSize)
+        public async Task<List<Product>> SearchElastic(SearchInputDto input, int pageIndex, int pageSize)
         {
-            int pageNumber = 1;
+            
             var response = await _elasticClient.SearchAsync<Product>(s => s
                .Index("products")
-               .From((pageNumber - 1) * pageSize)
+               .From((pageIndex - 1) * pageSize)
                .Size(pageSize)
                .Query(q => q
                     .Match(m => m
