@@ -80,7 +80,7 @@ namespace EcommerceAPI.Services
             {
                 throw new NullReferenceException("The orderDetails you're trying to update doesn't exist!");
             }
-            orderDetails.OrderId = orderDetailsToUpdate.OrderId;
+            orderDetails.Id = orderDetailsToUpdate.Id;
             orderDetails.OrderData = orderDetailsToUpdate.OrderData;
             orderDetails.ProductId = orderDetailsToUpdate.ProductId;
             orderDetails.Count = orderDetailsToUpdate.Count;

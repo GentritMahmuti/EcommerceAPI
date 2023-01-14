@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using System.Linq.Dynamic.Core;
 using Nest;
+using EcommerceAPI.Helpers;
 
 namespace EcommerceAPI.Services
 {
@@ -123,6 +124,39 @@ namespace EcommerceAPI.Services
             _unitOfWork.Repository<Product>().Update(product);
 
             _unitOfWork.Complete();
+        }
+
+        public async Task<PagedInfo<Product>> ProductsListView(string search, int page, int pageSize, int categoryId = 0)
+        {
+            Expression<Func<Product, bool>> condition = x => x.Title.Contains(search);
+
+            IQueryable<Product> products;
+
+
+            if (categoryId is not 0)
+            {
+                Expression<Func<Product, bool>> conditionByCategory = x => x.CategoryId == categoryId;
+                products = _unitOfWork.Repository<Product>()
+                                             .GetByCondition(conditionByCategory).WhereIf(!string.IsNullOrEmpty(search), condition);
+            }
+            else // dismiss category
+            {
+                products = _unitOfWork.Repository<Product>().GetAll().WhereIf(!string.IsNullOrEmpty(search), condition);
+            }
+
+            var count = await products.CountAsync();
+
+            var categoriesPaged = new PagedInfo<Product>()
+            {
+                TotalCount = count,
+                Page = page,
+                PageSize = pageSize,
+                Data = await products
+                            .Skip((page - 1) * pageSize)
+                            .Take(pageSize).ToListAsync()
+            };
+
+            return categoriesPaged;
         }
 
 

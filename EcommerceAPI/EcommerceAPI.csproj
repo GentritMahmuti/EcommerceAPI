@@ -30,7 +30,6 @@
     <Folder Include="Common\Constants\" />
     <Folder Include="Infrastructure\" />
     <Folder Include="Migrations\" />
-    <Folder Include="Models\DTOs\ShoppingCard\" />
     <Folder Include="Template\" />
   </ItemGroup>
 
