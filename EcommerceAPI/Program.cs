@@ -4,6 +4,8 @@ using EcommerceAPI.Data.UnitOfWork;
 using EcommerceAPI.Helpers;
 using EcommerceAPI.Helpers.EmailSender;
 using EcommerceAPI.Models.Entities;
+using EcommerceAPI.Services.IServices;
+using EcommerceAPI.Services;
 using Elasticsearch.Net;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -179,6 +181,8 @@ var connectionSettings = new ConnectionSettings(pool)
 var client = new ElasticClient(connectionSettings);
 
 builder.Services.AddSingleton(client);
+
+builder.Services.AddScoped<ICacheService, CacheService>();
 
 var app = builder.Build();
 

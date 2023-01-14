@@ -39,15 +39,15 @@ namespace EcommerceAPI.Services
         }
 
 
-        public async Task CreateOrderDetails(OrderDetailsCreateDto orderDetailsToCreate)
+        public async Task<OrderDetails> CreateOrderDetails(OrderDetailsCreateDto orderDetailsToCreate)
         {
             var orderDetails = _mapper.Map<OrderDetails>(orderDetailsToCreate);
-
             _unitOfWork.Repository<OrderDetails>().Create(orderDetails);
-            _unitOfWork.Complete();
+            await _unitOfWork.CompleteAsync();
             _logger.LogInformation("Created orderDetails successfully!");
-
+            return orderDetails;
         }
+
 
 
         public async Task CreateAllOrderDetails(List<OrderDetailsCreateDto> orderDetailssToCreate)
