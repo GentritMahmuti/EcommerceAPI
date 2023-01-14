@@ -7,10 +7,11 @@ namespace EcommerceAPI.Models.Entities
     public class OrderData
     {
         [Key]
-        public int Id { get; set; }
+        public int OrderId { get; set; }
 
         [Required]
         public DateTime OrderDate { get; set; }
+       
         [Required]
         public DateTime ShippingDate { get; set; }
         public double OrderTotal { get; set; }

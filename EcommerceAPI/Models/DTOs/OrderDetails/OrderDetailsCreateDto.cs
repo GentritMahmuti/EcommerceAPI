@@ -7,7 +7,7 @@ namespace EcommerceAPI.Models.DTOs.OrderDetails
 {
     public class OrderDetailsCreateDto
     {
-        public int OrderId { get; set; }
+        public string Id { get; set; }
         [ForeignKey("OrderId")]
         [ValidateNever]
         public OrderData OrderData { get; set; }
