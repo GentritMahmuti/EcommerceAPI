@@ -16,7 +16,7 @@ namespace EcommerceAPI.Services.IServices
         //Task<Product> GetWithIncludes(int id);
 
         //Elastic
-        Task<List<Product>> SearchElastic(SearchInputDto input, int pageSize);
+        Task<List<Product>> SearchElastic(SearchInputDto input, int pageIndex, int pageSize);
         Task<IndexResponse> AddProductElastic(ProductCreateElasticDto product);
         Task<Product> GetByIdElastic(int id, string index);
         Task<List<Product>> GetAllElastic();

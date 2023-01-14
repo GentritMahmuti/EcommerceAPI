@@ -4,6 +4,7 @@ using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services;
 using EcommerceAPI.Services.IServices;
 using Microsoft.AspNetCore.Mvc;
+
 using Microsoft.EntityFrameworkCore;
 using Nest;
 using StackExchange.Redis;
@@ -25,6 +26,7 @@ namespace EcommerceAPI.Controllers
         }
 
 
+
         //[HttpGet("GetOrderDetails")]
         //public async Task<IActionResult> Get(int id)
         //{
@@ -39,6 +41,7 @@ namespace EcommerceAPI.Controllers
         //}
 
         [HttpGet("GetOrderDetails/{id}")]
+
         public async Task<IActionResult> Get(int id)
         {
             var cacheData = _cacheService.GetData<OrderDetails>($"orderData-{id}");

@@ -94,9 +94,9 @@ namespace EcommerceAPI.Controllers
         }
 
         [HttpGet("SearchElastic")]
-        public async Task<IActionResult> SearchElastic([FromQuery] SearchInputDto input, int pageSize)
+        public async Task<IActionResult> SearchElastic([FromQuery] SearchInputDto input, int pageIndex, int pageSize)
         {
-            var response = await _productService.SearchElastic(input, pageSize);
+            var response = await _productService.SearchElastic(input, pageIndex, pageSize);
 
             return Ok(response);
         }
