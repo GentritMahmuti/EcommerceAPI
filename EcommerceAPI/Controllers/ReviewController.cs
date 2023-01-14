@@ -4,6 +4,7 @@ using EcommerceAPI.Models.DTOs.Review;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services;
 using EcommerceAPI.Services.IServices;
+using EcommerceAPI.Validators;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,9 +16,11 @@ namespace EcommerceAPI.Controllers
     public class ReviewController : Controller
     {
         private readonly IReviewService _reviewService;
-        public ReviewController(IReviewService reviewService)
+        private readonly IValidator<ReviewCreateDto> _reviewValidator;
+        public ReviewController(IReviewService reviewService, IValidator<ReviewCreateDto> reviewValidator)
         {
             _reviewService = reviewService;
+            _reviewValidator = reviewValidator;
         }
 
         [HttpGet("GetProductReviews")]
@@ -47,6 +50,7 @@ namespace EcommerceAPI.Controllers
         [HttpPost("PostReview")]
         public async Task<IActionResult> Post([FromForm] ReviewCreateDto ReviewToCreate)
         {
+            await _reviewValidator.ValidateAndThrowAsync(ReviewToCreate);
             await _reviewService.CreateReview(ReviewToCreate);
 
             return Ok("Review created successfully!");

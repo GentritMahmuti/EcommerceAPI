@@ -13,15 +13,14 @@ namespace EcommerceAPI.Services
 {
     public class ReviewService : IReviewService
     {
-        private readonly IValidator<ReviewCreateDto> _reviewValidator;
+        
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public ReviewService(IUnitOfWork unitOfWork, IMapper mapper, IValidator<ReviewCreateDto> reviewValidator)
+        public ReviewService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _reviewValidator = reviewValidator;
         }
 
         private async Task<Review> GetReview(int id)
@@ -48,7 +47,6 @@ namespace EcommerceAPI.Services
 
         public async Task CreateReview(ReviewCreateDto reviewToCreate)
         {
-            await _reviewValidator.ValidateAndThrowAsync(reviewToCreate);
             var review = _mapper.Map<Review>(reviewToCreate);
 
             _unitOfWork.Repository<Review>().Create(review);
