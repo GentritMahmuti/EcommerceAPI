@@ -14,6 +14,8 @@ namespace EcommerceAPI.Services.IServices
         Task<Product> GetProduct(int id);
         Task UpdateProduct(Product productToUpdate);
         //Task<Product> GetWithIncludes(int id);
+        Task<string> UploadImage(IFormFile? file, int productId);
+
 
         //Elastic
         Task<List<Product>> SearchElastic(SearchInputDto input, int pageIndex, int pageSize);

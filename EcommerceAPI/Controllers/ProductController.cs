@@ -1,9 +1,11 @@
 ﻿using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
+using Microsoft.AspNetCore.Authorization;
 using EcommerceAPI.Validators;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using System.Data;
 
 namespace EcommerceAPI.Controllers
 {
@@ -13,13 +15,15 @@ namespace EcommerceAPI.Controllers
     {
         private readonly IProductService _productService;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<ProductController> _logger;
         private readonly IValidator<Product> _productValidator;
 
-        public ProductController(IProductService productService, IConfiguration configuration, IValidator<Product> productValidator)
+        public ProductController(IProductService productService, IConfiguration configuration, IValidator<Product> productValidator, ILogger<ProductController> logger)
         {
             _productService = productService;
             _configuration = configuration;
             _productValidator = productValidator;
+            _logger - logger;
         }
 
         // GET: api/products
@@ -104,6 +108,21 @@ namespace EcommerceAPI.Controllers
             return Ok("Product deleted successfully!");
         }
 
+        [HttpPost("UploadImage")]
+        public async Task<IActionResult> UploadImage(IFormFile file, int productId)
+        {
+            try
+            {
+                var url = await _productService.UploadImage(file, productId);
+                return Ok($"Picture was uploaded sucessfully at the url: {url}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in uploading the image.");
+                return BadRequest(ex.Message);
+            }
+
+        }
         [HttpGet("SearchElastic")]
         public async Task<IActionResult> SearchElastic([FromQuery] SearchInputDto input, int pageIndex, int pageSize)
         {
