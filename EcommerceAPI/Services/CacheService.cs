@@ -34,8 +34,6 @@ namespace EcommerceAPI.Services
             return default;
         }
 
-
-
         public object RemoveData(string key)
         {
             var _exist = _cacheDb.KeyExists(key);

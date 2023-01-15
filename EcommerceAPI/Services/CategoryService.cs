@@ -40,7 +40,7 @@ namespace EcommerceAPI.Services
         }
 
         //test
-        public async Task CreateCategory(CategoryCreateDto categoryToCreate)
+        public async Task CreateCategory(CategoryDto categoryToCreate)
         {
             var category = _mapper.Map<Category>(categoryToCreate);
 
@@ -51,9 +51,9 @@ namespace EcommerceAPI.Services
         }
 
 
-        public async Task CreateCategories(List<CategoryCreateDto> categorysToCreate)
+        public async Task CreateCategories(List<CategoryDto> categorysToCreate)
         {
-            var categorys = _mapper.Map<List<CategoryCreateDto>, List<Category>>(categorysToCreate);
+            var categorys = _mapper.Map<List<CategoryDto>, List<Category>>(categorysToCreate);
             _unitOfWork.Repository<Category>().CreateRange(categorys);
             _unitOfWork.Complete();
             _logger.LogInformation("Created categorys successfully!");

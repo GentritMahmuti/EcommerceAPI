@@ -13,7 +13,7 @@ namespace EcommerceAPI.Helpers
         {
             CreateMap<Product, ProductCreateDto>().ReverseMap();
             CreateMap<Product, ProductCreateElasticDto>().ReverseMap();
-            CreateMap<Category, CategoryCreateDto>().ReverseMap();
+            CreateMap<Category, CategoryDto>().ReverseMap();
             CreateMap<OrderDetails, OrderDetailsCreateDto>().ReverseMap();
             CreateMap<Review, ReviewCreateDto>().ReverseMap();
         }

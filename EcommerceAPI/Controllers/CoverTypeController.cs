@@ -46,7 +46,7 @@ namespace EcommerceAPI.Controllers
         }
 
         [HttpPost("CreateCoverType")]
-        public async Task<IActionResult> CreateCoverType(CoverTypeCreateDTO coverToCreate)
+        public async Task<IActionResult> CreateCoverType(CoverTypeDTO coverToCreate)
         {
             await _coverTypeService.CreateCover(coverToCreate);
 
@@ -54,19 +54,33 @@ namespace EcommerceAPI.Controllers
         }
 
         [HttpPut("UpdateCoverType")]
-        public async Task<IActionResult> UpdateCoverType(CoverTypeDTO coverToUpdate)
+        public async Task<IActionResult> UpdateCoverType(int id, CoverTypeDTO coverToUpdate)
         {
-            await _coverTypeService.UpdateCover(coverToUpdate);
+            try
+            {
+                await _coverTypeService.UpdateCover(id, coverToUpdate);
 
-            return Ok("Cover Type Updated");
+                return Ok("Cover Type Updated");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
         }
 
         [HttpDelete("DeleteCoverType")]
         public async Task<IActionResult> DeleteCoverType(int id)
         {
-            await _coverTypeService.DeleteCover(id);
+            try
+            {
+                await _coverTypeService.DeleteCover(id);
 
-            return Ok("Cover Type Deleted");
+                return Ok("Cover Type Deleted");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
         }
     }
     
