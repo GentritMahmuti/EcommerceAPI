@@ -26,6 +26,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+builder.Services.AddScoped<IValidator<Category>, CategoryValidator>();
+builder.Services.AddScoped<IValidator<CoverType>, CoverTypeValidator>();
+builder.Services.AddScoped<IValidator<OrderDetails>, OrderDetailsValidator>();
+builder.Services.AddScoped<IValidator<Product>, ProductValidator>();
 builder.Services.AddScoped<IValidator<ReviewCreateDto>, ReviewValidator>();
 
 builder.Services.AddAuthentication(options =>

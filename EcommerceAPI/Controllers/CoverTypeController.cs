@@ -1,5 +1,7 @@
 ﻿using EcommerceAPI.Models.DTOs.CoverType;
+using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,11 +15,13 @@ namespace EcommerceAPI.Controllers
     {
         private readonly ICoverTypeService _coverTypeService;
         private readonly IConfiguration _configuration;
+        private readonly IValidator<CoverType> _coverTypeValidator;
 
-        public CoverTypeController(ICoverTypeService coverTypeService, IConfiguration configuration)
+        public CoverTypeController(ICoverTypeService coverTypeService, IConfiguration configuration, IValidator<CoverType> coverTypeValidator)
         {
             _coverTypeService = coverTypeService;
             _configuration = configuration;
+            _coverTypeValidator = coverTypeValidator;
         }
 
         [HttpGet("GetCoverType")]

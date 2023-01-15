@@ -3,6 +3,7 @@ using EcommerceAPI.Models.DTOs.OrderDetails;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services;
 using EcommerceAPI.Services.IServices;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 using Microsoft.EntityFrameworkCore;
@@ -17,12 +18,14 @@ namespace EcommerceAPI.Controllers
         private readonly IOrderDetailsService _orderDetailsService;
         private readonly IConfiguration _configuration;
         private readonly ICacheService _cacheService;
+        private readonly IValidator<OrderDetails> _orderDetailsValidator;
 
-        public OrderDetailsController(IOrderDetailsService orderDetailsService, IConfiguration configuration, ICacheService cacheService)
+        public OrderDetailsController(IOrderDetailsService orderDetailsService, IConfiguration configuration, ICacheService cacheService, IValidator<OrderDetails> orderDetailsValidator)
         {
             _orderDetailsService = orderDetailsService;
             _configuration = configuration;
             _cacheService = cacheService;
+            _orderDetailsValidator = orderDetailsValidator;
         }
 
 
@@ -111,9 +114,16 @@ namespace EcommerceAPI.Controllers
         [HttpPut("UpdateOrderDetails")]
         public async Task<IActionResult> Update(OrderDetails OrderDetailsToUpdate)
         {
-            await _orderDetailsService.UpdateOrderDetails(OrderDetailsToUpdate);
-
-            return Ok("OrderDetails updated successfully!");
+            try
+            {
+                await _orderDetailsValidator.ValidateAndThrowAsync(OrderDetailsToUpdate);
+                await _orderDetailsService.UpdateOrderDetails(OrderDetailsToUpdate);
+                return Ok("OrderDetails updated successfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"An error happened: '{ex.Message}'");
+            }
         }
 
         //[HttpPut("UpdateOrderDetails")]

@@ -1,6 +1,8 @@
 ﻿using EcommerceAPI.Models.DTOs.Category;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
+using EcommerceAPI.Validators;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
@@ -11,11 +13,13 @@ namespace EcommerceAPI.Controllers
     {
         private readonly ICategoryService _categoryService;
         private readonly IConfiguration _configuration;
+        private readonly IValidator<Category> _categoryValidator;
 
-        public CategoryController(ICategoryService categoryService, IConfiguration configuration)
+        public CategoryController(ICategoryService categoryService, IConfiguration configuration, IValidator<Category> categoryValidator)
         {
             _categoryService = categoryService;
             _configuration = configuration;
+            _categoryValidator = categoryValidator;
         }
 
         [HttpGet("GetCategory")]
@@ -71,9 +75,16 @@ namespace EcommerceAPI.Controllers
         [HttpPut("UpdateCategory")]
         public async Task<IActionResult> Update(Category CategoryToUpdate)
         {
-            await _categoryService.UpdateCategory(CategoryToUpdate);
-
-            return Ok("Category updated successfully!");
+            try
+            {
+                await _categoryValidator.ValidateAndThrowAsync(CategoryToUpdate);
+                await _categoryService.UpdateCategory(CategoryToUpdate);
+                return Ok("Category updated successfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"An error happened: '{ex.Message}'");
+            }
         }
 
         [HttpDelete("DeleteCategory")]

@@ -1,6 +1,8 @@
 ﻿using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
+using EcommerceAPI.Validators;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EcommerceAPI.Controllers
@@ -11,11 +13,13 @@ namespace EcommerceAPI.Controllers
     {
         private readonly IProductService _productService;
         private readonly IConfiguration _configuration;
+        private readonly IValidator<Product> _productValidator;
 
-        public ProductController(IProductService productService, IConfiguration configuration)
+        public ProductController(IProductService productService, IConfiguration configuration, IValidator<Product> productValidator)
         {
             _productService = productService;
             _configuration = configuration;
+            _productValidator = productValidator;
         }
 
         // GET: api/products
@@ -80,9 +84,16 @@ namespace EcommerceAPI.Controllers
         [HttpPut("UpdateProduct")]
         public async Task<IActionResult> Update(Product ProductToUpdate)
         {
-            await _productService.UpdateProduct(ProductToUpdate);
-
-            return Ok("Product updated successfully!");
+            try
+            {
+                await _productValidator.ValidateAndThrowAsync(ProductToUpdate);
+                await _productService.UpdateProduct(ProductToUpdate);
+                return Ok("Product updated successfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"An error happened: '{ex.Message}'");
+            }
         }
 
         [HttpDelete("DeleteProduct")]
