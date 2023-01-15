@@ -23,7 +23,7 @@ namespace EcommerceAPI.Controllers
             _productService = productService;
             _configuration = configuration;
             _productValidator = productValidator;
-            _logger - logger;
+            _logger = logger;
         }
 
         // GET: api/products

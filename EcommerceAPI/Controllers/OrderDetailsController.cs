@@ -29,20 +29,6 @@ namespace EcommerceAPI.Controllers
         }
 
 
-
-        //[HttpGet("GetOrderDetails")]
-        //public async Task<IActionResult> Get(int id)
-        //{
-        //    var orderDetails = await _orderDetailsService.GetOrderDetails(id);
-
-        //    if (orderDetails == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    return Ok(orderDetails);
-        //}
-
         [HttpGet("GetOrderDetails/{id}")]
 
         public async Task<IActionResult> Get(int id)
@@ -65,14 +51,6 @@ namespace EcommerceAPI.Controllers
             }
         }
 
-        //[HttpGet("GetAllOrderDetails")]
-        //public async Task<IActionResult> GetAllOrderDetails()
-        //{
-        //    var orderDetails = await _orderDetailsService.GetAllOrderDetails();
-
-        //    return Ok(orderDetails);
-        //}
-
         [HttpGet("GetAllOrderDetails")]
         public async Task<IActionResult> GetOrderDetails()
         {
@@ -91,15 +69,6 @@ namespace EcommerceAPI.Controllers
         }
 
 
-
-        //[HttpPost("PostOrderDetails")]
-        //public async Task<IActionResult> Post(OrderDetailsCreateDto OrderDetailsToCreate)
-        //{
-        //    await _orderDetailsService.CreateOrderDetails(OrderDetailsToCreate);
-
-        //    return Ok("OrderDetails created successfully!");
-        //}
-
         [HttpPost("PostOrderDetails")]
         public async Task<IActionResult> Post(OrderDetailsCreateDto OrderDetailsToCreate)
         {
@@ -114,55 +83,45 @@ namespace EcommerceAPI.Controllers
         [HttpPut("UpdateOrderDetails")]
         public async Task<IActionResult> Update(OrderDetails OrderDetailsToUpdate)
         {
-            try
+            var key = "orderDetails_" + OrderDetailsToUpdate.Id;
+            var cacheData = _cacheService.GetUpdatedData<OrderDetails>(key);
+            if (cacheData == null)
             {
-                await _orderDetailsValidator.ValidateAndThrowAsync(OrderDetailsToUpdate);
-                await _orderDetailsService.UpdateOrderDetails(OrderDetailsToUpdate);
-                return Ok("OrderDetails updated successfully!");
+                var orderDetails = await _orderDetailsService.GetOrderDetails(OrderDetailsToUpdate.Id);
+                if (orderDetails == null)
+                {
+                    return NotFound("OrderDetails not found!");
+                }
+                cacheData = orderDetails;
             }
-            catch (Exception ex)
-            {
-                return BadRequest($"An error happened: '{ex.Message}'");
-            }
+            cacheData.Id = OrderDetailsToUpdate.Id;
+            cacheData.OrderData = OrderDetailsToUpdate.OrderData;
+            cacheData.ProductId = OrderDetailsToUpdate.ProductId;
+            cacheData.Count = OrderDetailsToUpdate.Count;
+            cacheData.Price = OrderDetailsToUpdate.Price;
+            await _orderDetailsService.UpdateOrderDetails(cacheData);
+            var expiryTime = DateTimeOffset.Now.AddMinutes(5);
+            _cacheService.SetUpdatedData(key, cacheData, expiryTime);
+            return Ok("OrderDetails updated successfully!");
         }
-
-        //[HttpPut("UpdateOrderDetails")]
-        //public async Task<IActionResult> Update(OrderDetails OrderDetailsToUpdate)
-        //{
-        //    var key = "orderDetails_" + OrderDetailsToUpdate.Id;
-        //    var cacheData = _cacheService.GetData<OrderDetails>(key);
-        //    if (cacheData == null)
-        //    {
-        //        var orderDetails = await _orderDetailsService.GetOrderDetails(OrderDetailsToUpdate.Id);
-        //        if (orderDetails == null)
-        //        {
-        //            return NotFound("OrderDetails not found!");
-        //        }
-        //        cacheData = orderDetails;
-        //    }
-        //    //update the fields
-        //    cacheData.Id = OrderDetailsToUpdate.Id;
-        //    cacheData.OrderData = OrderDetailsToUpdate.OrderData;
-        //    cacheData.ProductId = OrderDetailsToUpdate.ProductId;
-        //    cacheData.Count = OrderDetailsToUpdate.Count;
-        //    cacheData.Price = OrderDetailsToUpdate.Price;
-        //    //update in database
-        //    await _orderDetailsService.UpdateOrderDetails(cacheData);
-        //    //update in cache
-        //    var expiryTime = DateTimeOffset.Now.AddMinutes(5);
-        //    _cacheService.SetData<OrderDetails>(key, cacheData, expiryTime);
-        //    return Ok("OrderDetails updated successfully!");
-        //}
-
-
-
 
         [HttpDelete("DeleteOrderDetails")]
         public async Task<IActionResult> Delete(int id)
         {
+            var key = "orderDetails_" + id;
+            var cacheData = _cacheService.GetData<OrderDetails>(key);
+            if (cacheData != null)
+            {
+                _cacheService.RemoveData(key);
+            }
+            var orderDetails = await _orderDetailsService.GetOrderDetails(id);
+            if (orderDetails == null)
+            {
+                return NotFound("OrderDetails not found!");
+            }
             await _orderDetailsService.DeleteOrderDetails(id);
-
             return Ok("OrderDetails deleted successfully!");
         }
+
     }
 }
