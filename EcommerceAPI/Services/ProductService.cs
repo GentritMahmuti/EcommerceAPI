@@ -8,6 +8,9 @@ using System.Linq.Expressions;
 using System.Linq.Dynamic.Core;
 using Nest;
 using EcommerceAPI.Helpers;
+using Microsoft.IdentityModel.Tokens;
+using Amazon.S3;
+using Amazon.S3.Model;
 
 namespace EcommerceAPI.Services
 {
@@ -250,6 +253,51 @@ namespace EcommerceAPI.Services
                    .Query(q => q.MatchAll())
                );
             _logger.LogInformation("Deleted all products from elastic successfully!");
+        }
+
+        public async Task<string> UploadImage(IFormFile? file, int productId)
+        {
+            var uploadPicture = await UploadToBlob(file, file.FileName, Path.GetExtension(file.FileName));
+            var imageUrl = $"{_configuration.GetValue<string>("BlobConfig:CDNLife")}{file.FileName}";
+
+            var product = await GetProduct(productId);
+            if (product is null)
+            {
+                throw new NullReferenceException("There is no product with the given id!");
+            }
+            product.ImageUrl = imageUrl;
+
+            _unitOfWork.Repository<Product>().Update(product);
+            _unitOfWork.Complete();
+            _logger.LogInformation($"{nameof(ProductService)}: Uploaded Image of the product successfully!");
+
+            return imageUrl;
+        }
+
+
+        public async Task<PutObjectResponse> UploadToBlob(IFormFile? file, string name, string extension)
+        {
+            string serviceURL = _configuration.GetValue<string>("BlobConfig:serviceURL");
+            string AWS_accessKey = _configuration.GetValue<string>("BlobConfig:accessKey");
+            string AWS_secretKey = _configuration.GetValue<string>("BlobConfig:secretKey");
+            var bucketName = _configuration.GetValue<string>("BlobConfig:bucketName");
+            var keyName = _configuration.GetValue<string>("BlobConfig:defaultFolder");
+
+            var config = new AmazonS3Config() { ServiceURL = serviceURL };
+            var s3Client = new AmazonS3Client(AWS_accessKey, AWS_secretKey, config);
+            keyName = String.Concat(keyName, name);
+
+            var fs = file.OpenReadStream();
+            var request = new PutObjectRequest
+            {
+                BucketName = bucketName,
+                Key = keyName,
+                InputStream = fs,
+                ContentType = $"image/{extension}",
+                CannedACL = S3CannedACL.PublicRead
+            };
+            _logger.LogInformation("File is uploaded to blob successfully!");
+            return await s3Client.PutObjectAsync(request);
         }
     }
 
