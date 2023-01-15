@@ -20,6 +20,12 @@ namespace EcommerceAPI.Data.UnitOfWork
             return numberOfAffectedRows > 0;
         }
 
+        public async Task<bool> CompleteAsync()
+        {
+            var numberOfAffectedRows = await _context.SaveChangesAsync();
+            return numberOfAffectedRows > 0;
+        }
+
         public IECommerceRepository<TEntity> Repository<TEntity>() where TEntity : class
         {
             if (_repositories == null) _repositories = new Hashtable();

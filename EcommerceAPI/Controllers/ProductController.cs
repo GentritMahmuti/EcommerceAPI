@@ -2,6 +2,8 @@
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
+using EcommerceAPI.Validators;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
 
@@ -14,12 +16,14 @@ namespace EcommerceAPI.Controllers
         private readonly IProductService _productService;
         private readonly IConfiguration _configuration;
         private readonly ILogger<ProductController> _logger;
+        private readonly IValidator<Product> _productValidator;
 
-        public ProductController(IProductService productService, IConfiguration configuration, ILogger<ProductController> logger)
+        public ProductController(IProductService productService, IConfiguration configuration, IValidator<Product> productValidator, ILogger<ProductController> logger)
         {
             _productService = productService;
             _configuration = configuration;
-            _logger = logger;
+            _productValidator = productValidator;
+            _logger - logger;
         }
 
         // GET: api/products
@@ -84,9 +88,16 @@ namespace EcommerceAPI.Controllers
         [HttpPut("UpdateProduct")]
         public async Task<IActionResult> Update(Product ProductToUpdate)
         {
-            await _productService.UpdateProduct(ProductToUpdate);
-
-            return Ok("Product updated successfully!");
+            try
+            {
+                await _productValidator.ValidateAndThrowAsync(ProductToUpdate);
+                await _productService.UpdateProduct(ProductToUpdate);
+                return Ok("Product updated successfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"An error happened: '{ex.Message}'");
+            }
         }
 
         [HttpDelete("DeleteProduct")]
@@ -113,9 +124,9 @@ namespace EcommerceAPI.Controllers
 
         }
         [HttpGet("SearchElastic")]
-        public async Task<IActionResult> SearchElastic([FromQuery] SearchInputDto input, int pageSize)
+        public async Task<IActionResult> SearchElastic([FromQuery] SearchInputDto input, int pageIndex, int pageSize)
         {
-            var response = await _productService.SearchElastic(input, pageSize);
+            var response = await _productService.SearchElastic(input, pageIndex, pageSize);
 
             return Ok(response);
         }
@@ -191,6 +202,12 @@ namespace EcommerceAPI.Controllers
             {
                 return BadRequest($"An error happened: '{ex.Message}'");
             }
+        }
+        [HttpDelete("DeleteByIdElastic")]
+        public async Task<IActionResult> DeleteProductByIdInElastic(int id)
+        {
+            await _productService.DeleteProductByIdInElastic(id);
+            return Ok("Product deleted successfully!");
         }
     }
 }

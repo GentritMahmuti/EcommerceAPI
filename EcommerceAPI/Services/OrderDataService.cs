@@ -23,7 +23,7 @@ namespace EcommerceAPI.Services
         }
         public async Task<OrderData> GetOrderData(int id)
         {
-            var orderData = await _unitOfWork.Repository<OrderData>().GetById(x => x.Id == id).FirstOrDefaultAsync();
+            var orderData = await _unitOfWork.Repository<OrderData>().GetById(x => x.OrderId == id).FirstOrDefaultAsync();
 
             return orderData;
         }
@@ -71,7 +71,7 @@ namespace EcommerceAPI.Services
 
         public async Task UpdateOrderData(OrderData orderDataToUpdate)
         {
-            var orderData = await GetOrderData(orderDataToUpdate.Id);
+            var orderData = await GetOrderData(orderDataToUpdate.OrderId);
             if (orderData == null)
             {
                 throw new NullReferenceException("The orderDetails you're trying to update doesn't exist!");

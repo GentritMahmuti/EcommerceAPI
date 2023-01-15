@@ -18,12 +18,13 @@ namespace EcommerceAPI.Services.IServices
 
 
         //Elastic
-        Task<List<Product>> SearchElastic(SearchInputDto input, int pageSize);
+        Task<List<Product>> SearchElastic(SearchInputDto input, int pageIndex, int pageSize);
         Task<IndexResponse> AddProductElastic(ProductCreateElasticDto product);
         Task<Product> GetByIdElastic(int id, string index);
         Task<List<Product>> GetAllElastic();
         Task AddBulkElastic(List<ProductCreateElasticDto> productsToCreate);
         Task UpdateElastic(ProductCreateElasticDto productToCreate);
         Task DeleteAllElastic();
+        Task DeleteProductByIdInElastic(int id);
     }
 }

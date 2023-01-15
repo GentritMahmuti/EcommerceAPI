@@ -3,8 +3,13 @@ using EcommerceAPI.Data;
 using EcommerceAPI.Data.UnitOfWork;
 using EcommerceAPI.Helpers;
 using EcommerceAPI.Helpers.EmailSender;
+using EcommerceAPI.Models.DTOs.Product;
+using EcommerceAPI.Models.DTOs.Review;
 using EcommerceAPI.Models.Entities;
+using EcommerceAPI.Services.IServices;
+using EcommerceAPI.Services;
 using Elasticsearch.Net;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
@@ -15,10 +20,17 @@ using Serilog;
 using System.Security.Claims;
 using System.Text;
 using claims = System.Security.Claims;
+using EcommerceAPI.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+builder.Services.AddScoped<IValidator<Category>, CategoryValidator>();
+builder.Services.AddScoped<IValidator<CoverType>, CoverTypeValidator>();
+builder.Services.AddScoped<IValidator<OrderDetails>, OrderDetailsValidator>();
+builder.Services.AddScoped<IValidator<Product>, ProductValidator>();
+builder.Services.AddScoped<IValidator<ReviewCreateDto>, ReviewValidator>();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -179,6 +191,8 @@ var connectionSettings = new ConnectionSettings(pool)
 var client = new ElasticClient(connectionSettings);
 
 builder.Services.AddSingleton(client);
+
+builder.Services.AddScoped<ICacheService, CacheService>();
 
 var app = builder.Build();
 

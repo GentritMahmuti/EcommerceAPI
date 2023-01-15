@@ -39,15 +39,15 @@ namespace EcommerceAPI.Services
         }
 
 
-        public async Task CreateOrderDetails(OrderDetailsCreateDto orderDetailsToCreate)
+        public async Task<OrderDetails> CreateOrderDetails(OrderDetailsCreateDto orderDetailsToCreate)
         {
             var orderDetails = _mapper.Map<OrderDetails>(orderDetailsToCreate);
-
             _unitOfWork.Repository<OrderDetails>().Create(orderDetails);
-            _unitOfWork.Complete();
+            await _unitOfWork.CompleteAsync();
             _logger.LogInformation("Created orderDetails successfully!");
-
+            return orderDetails;
         }
+
 
 
         public async Task CreateAllOrderDetails(List<OrderDetailsCreateDto> orderDetailssToCreate)
@@ -80,7 +80,7 @@ namespace EcommerceAPI.Services
             {
                 throw new NullReferenceException("The orderDetails you're trying to update doesn't exist!");
             }
-            orderDetails.OrderId = orderDetailsToUpdate.OrderId;
+            orderDetails.Id = orderDetailsToUpdate.Id;
             orderDetails.OrderData = orderDetailsToUpdate.OrderData;
             orderDetails.ProductId = orderDetailsToUpdate.ProductId;
             orderDetails.Count = orderDetailsToUpdate.Count;
