@@ -65,34 +65,48 @@ namespace EcommerceAPI.Controllers
         //}
 
         [HttpPost("PostCategory")]
-        public async Task<IActionResult> Post(CategoryCreateDto CategoryToCreate)
+        public async Task<IActionResult> Post(CategoryDto createCategory)
         {
-            await _categoryService.CreateCategory(CategoryToCreate);
+            await _categoryService.CreateCategory(createCategory);
 
             return Ok("Category created successfully!");
         }
 
-        [HttpPut("UpdateCategory")]
-        public async Task<IActionResult> Update(Category CategoryToUpdate)
+        [HttpPut("UpdateCategory/{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] CategoryDto categoryDto)
         {
             try
             {
-                await _categoryValidator.ValidateAndThrowAsync(CategoryToUpdate);
-                await _categoryService.UpdateCategory(CategoryToUpdate);
+                var category = await _categoryService.GetCategory(id);
+                if (category == null)
+                {
+                    return NotFound($"Category with id {id} not found");
+                }
+                category.Name = categoryDto.Name;
+                category.DisplayOrder = categoryDto.DisplayOrder;
+                await _categoryValidator.ValidateAndThrowAsync(category);
+                await _categoryService.UpdateCategory(category);
                 return Ok("Category updated successfully!");
             }
             catch (Exception ex)
             {
-                return BadRequest($"An error happened: '{ex.Message}'");
+                return BadRequest($"The update failed: '{ex.Message}'");
             }
         }
 
         [HttpDelete("DeleteCategory")]
         public async Task<IActionResult> Delete(int id)
         {
-            await _categoryService.DeleteCategory(id);
-
-            return Ok("Category deleted successfully!");
+            try
+            {
+                await _categoryService.DeleteCategory(id);
+                return Ok("Category deleted successfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Error deleting category: " + ex.Message);
+            }
         }
+
     }
 }

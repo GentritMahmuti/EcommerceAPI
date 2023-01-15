@@ -16,7 +16,7 @@ namespace EcommerceAPI.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task CreateCover(CoverTypeCreateDTO coverToCreate)
+        public async Task CreateCover(CoverTypeDTO coverToCreate)
         {
             var cover = new CoverType
             {
@@ -43,16 +43,33 @@ namespace EcommerceAPI.Services
             return cover;
         }
 
-        public async Task UpdateCover(CoverTypeDTO coverToUpdate)
+        //public async Task UpdateCover(CoverTypeDTO coverToUpdate)
+        //{
+        //    var cover = await GetCover(coverToUpdate.Id);
+
+        //    cover.Name = coverToUpdate.Name;
+
+        //    _unitOfWork.Repository<CoverType>().Update(cover);
+
+        //    _unitOfWork.Complete();
+        //}
+
+        public async Task UpdateCover(int id, CoverTypeDTO coverToUpdate)
         {
-            var cover = await GetCover(coverToUpdate.Id);
+            var cover = await _unitOfWork.Repository<CoverType>().GetById(x => x.Id == id).FirstOrDefaultAsync();
+
+            if (cover == null)
+            {
+                throw new Exception("Cover type not found");
+            }
 
             cover.Name = coverToUpdate.Name;
 
             _unitOfWork.Repository<CoverType>().Update(cover);
 
-            _unitOfWork.Complete();
+            await _unitOfWork.CompleteAsync();
         }
+
 
         public async Task DeleteCover(int id)
         {

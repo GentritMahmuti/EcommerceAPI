@@ -33,7 +33,7 @@ namespace EcommerceAPI.Controllers
 
         public async Task<IActionResult> Get(int id)
         {
-            var cacheData = _cacheService.GetData<OrderDetails>($"orderData-{id}");
+            var cacheData = _cacheService.GetData<OrderDetails>($"orderDetails-{id}");
             if (cacheData != null)
             {
                 return Ok(cacheData);
@@ -46,7 +46,7 @@ namespace EcommerceAPI.Controllers
                     return NotFound();
                 }
                 var expiryTime = DateTimeOffset.Now.AddMinutes(5);
-                _cacheService.SetData<OrderDetails>($"orderData-{id}", data, expiryTime);
+                _cacheService.SetData<OrderDetails>($"orderDetails-{id}", data, expiryTime);
                 return Ok(data);
             }
         }
@@ -54,7 +54,7 @@ namespace EcommerceAPI.Controllers
         [HttpGet("GetAllOrderDetails")]
         public async Task<IActionResult> GetOrderDetails()
         {
-            var cacheData = _cacheService.GetData<List<OrderDetails>>("orderData");
+            var cacheData = _cacheService.GetData<List<OrderDetails>>("orderDetails");
             if (cacheData != null && cacheData.Count() > 0)
             {
                 return Ok(cacheData);
@@ -63,7 +63,7 @@ namespace EcommerceAPI.Controllers
             {
                 var data = await _orderDetailsService.GetAllOrderDetails();
                 var expiryTime = DateTimeOffset.Now.AddMinutes(5);
-                _cacheService.SetData<List<OrderDetails>>("orderData", data, expiryTime);
+                _cacheService.SetData<List<OrderDetails>>("orderDetails", data, expiryTime);
                 return Ok(data);
             }
         }
@@ -74,31 +74,31 @@ namespace EcommerceAPI.Controllers
         {
             var orderDetails = await _orderDetailsService.CreateOrderDetails(OrderDetailsToCreate);
             var expiryTime = DateTimeOffset.Now.AddMinutes(5);
-            var key = $"orderData-{orderDetails.Id}";
+            var key = $"orderDetails-{orderDetails.Id}";
             _cacheService.SetData<OrderDetails>(key, orderDetails, expiryTime);
             return Ok("OrderDetails created successfully!");
         }
 
 
         [HttpPut("UpdateOrderDetails")]
-        public async Task<IActionResult> Update(OrderDetails OrderDetailsToUpdate)
+        public async Task<IActionResult> Update(OrderDetails orderDetailsToCreate)
         {
-            var key = "orderDetails_" + OrderDetailsToUpdate.Id;
+            var key = "orderDetails_" + orderDetailsToCreate.Id;
             var cacheData = _cacheService.GetUpdatedData<OrderDetails>(key);
             if (cacheData == null)
             {
-                var orderDetails = await _orderDetailsService.GetOrderDetails(OrderDetailsToUpdate.Id);
+                var orderDetails = await _orderDetailsService.GetOrderDetails(orderDetailsToCreate.Id);
                 if (orderDetails == null)
                 {
                     return NotFound("OrderDetails not found!");
                 }
                 cacheData = orderDetails;
             }
-            cacheData.Id = OrderDetailsToUpdate.Id;
-            cacheData.OrderData = OrderDetailsToUpdate.OrderData;
-            cacheData.ProductId = OrderDetailsToUpdate.ProductId;
-            cacheData.Count = OrderDetailsToUpdate.Count;
-            cacheData.Price = OrderDetailsToUpdate.Price;
+            cacheData.Id = orderDetailsToCreate.Id;
+            cacheData.OrderData = orderDetailsToCreate.OrderData;
+            cacheData.ProductId = orderDetailsToCreate.ProductId;
+            cacheData.Count = orderDetailsToCreate.Count;
+            cacheData.Price = orderDetailsToCreate.Price;
             await _orderDetailsService.UpdateOrderDetails(cacheData);
             var expiryTime = DateTimeOffset.Now.AddMinutes(5);
             _cacheService.SetUpdatedData(key, cacheData, expiryTime);

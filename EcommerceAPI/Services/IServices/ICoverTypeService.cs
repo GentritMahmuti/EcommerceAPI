@@ -5,10 +5,10 @@ namespace EcommerceAPI.Services.IServices
 { 
     public interface ICoverTypeService
     {
-        Task CreateCover(CoverTypeCreateDTO coverToCreate);
+        Task CreateCover(CoverTypeDTO coverToCreate);
         Task<List<CoverType>> GetAllCovers();
         Task<CoverType> GetCover(int id);
-        Task UpdateCover(CoverTypeDTO coverToUpdate);
+        Task UpdateCover(int id, CoverTypeDTO coverToUpdate);
         Task DeleteCover(int id);
     }
 }
