@@ -7,7 +7,7 @@ namespace EcommerceAPI.Services.IServices
     {
         Task<List<Review>> GetProductReviews(int productId);
         Task<List<Review>> GetAllReviews();
-        Task CreateReview(ReviewCreateDto reviewToCreate);
+        Task <Review> CreateReview(ReviewCreateDto reviewToCreate);
         Task UpdateReview(Review reviewToUpdate, string userId);
         Task DeleteReview(int id, string userId);
 

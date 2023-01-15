@@ -17,44 +17,70 @@ namespace EcommerceAPI.Controllers
     {
         private readonly IReviewService _reviewService;
         private readonly IValidator<ReviewCreateDto> _reviewValidator;
-        public ReviewController(IReviewService reviewService, IValidator<ReviewCreateDto> reviewValidator)
+        private readonly ICacheService _cacheService;
+        public ReviewController(IReviewService reviewService, IValidator<ReviewCreateDto> reviewValidator, ICacheService cacheService)
         {
             _reviewService = reviewService;
             _reviewValidator = reviewValidator;
+            _cacheService = cacheService;
         }
 
         [HttpGet("GetProductReviews")]
         public async Task<IActionResult> GetProductReviews(int productId)
         {
-            var reviews = await _reviewService.GetProductReviews(productId);
-
-            if (reviews == null)
+            var cacheData = _cacheService.GetData<List<Review>>($"reviews-{productId}");
+            if (cacheData != null)
             {
-                return NotFound();
+                return Ok(cacheData);
             }
+            else
+            {
+                var reviews = await _reviewService.GetProductReviews(productId);
 
-            return Ok(reviews);
+                if (reviews == null)
+                {
+                    return NotFound();
+                }
+
+                var expiryTime = DateTimeOffset.Now.AddMinutes(5);
+                _cacheService.SetData<List<Review>>($"reviews-{productId}", reviews, expiryTime);
+                return Ok(reviews);
+            }
         }
 
 
-        [Authorize(Roles = "LifeAdmin")]
+  //      [Authorize(Roles = "LifeAdmin")]
         [HttpGet("GetAllReviews")]
         public async Task<IActionResult> GetReviews()
         {
-            var reviews = await _reviewService.GetAllReviews();
-
-            return Ok(reviews);
+            var cacheData = _cacheService.GetData<List<Review>>("reviews");
+            if (cacheData != null && cacheData.Count > 0)
+            {
+                return Ok(cacheData);
+            }
+            else
+            {
+                var reviews = await _reviewService.GetAllReviews();
+                var expiryTime = DateTimeOffset.Now.AddMinutes(5);
+                _cacheService.SetData<List<Review>>("reviews", reviews, expiryTime);
+                return Ok(reviews);
+            }
         }
 
-        [Authorize(Roles = "LifeUser")]
+  //      [Authorize(Roles = "LifeUser")]
         [HttpPost("PostReview")]
         public async Task<IActionResult> Post([FromForm] ReviewCreateDto ReviewToCreate)
         {
             await _reviewValidator.ValidateAndThrowAsync(ReviewToCreate);
-            await _reviewService.CreateReview(ReviewToCreate);
-
+            var review = await _reviewService.CreateReview(ReviewToCreate);
+            var expiryTime = DateTimeOffset.Now.AddMinutes(5);
+            var key = $"review-{review.Id}";
+            _cacheService.SetData<Review>(key, review, expiryTime);
             return Ok("Review created successfully!");
         }
+
+
+
         [Authorize(Roles = "LifeUser")]
         [HttpPut("UpdateReview")]
         public async Task<IActionResult> Update(Review ReviewToUpdate)
@@ -70,13 +96,19 @@ namespace EcommerceAPI.Controllers
             {
                 return BadRequest(e);
             }
-            
+
         }
 
         [Authorize(Roles = "LifeUser")]
         [HttpDelete("DeleteReview")]
         public async Task<IActionResult> Delete(int id)
         {
+            var key = "review_" + id;
+            var cacheData = _cacheService.GetData<Review>(key);
+            if (cacheData != null)
+            {
+                _cacheService.RemoveData(key);
+            }
             try
             {
                 var userData = (ClaimsIdentity)User.Identity;
@@ -89,5 +121,6 @@ namespace EcommerceAPI.Controllers
                 return BadRequest(e);
             }
         }
+
     }
 }
