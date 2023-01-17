@@ -47,15 +47,16 @@ namespace EcommerceAPI.Services
 
         public async Task<Review> CreateReview(ReviewCreateDto reviewToCreate)
         {
+            
             var review = _mapper.Map<Review>(reviewToCreate);
 
             _unitOfWork.Repository<Review>().Create(review);
             _unitOfWork.Complete();
             return review;
         }
-        public async Task UpdateReview(Review reviewToUpdate, string userId)
+        public async Task UpdateReview(ReviewUpdateDto reviewToUpdate, string userId)
         {
-            var review = await GetReview(reviewToUpdate.Id);
+            var review = await GetReview(reviewToUpdate.Id);        
             if (review == null)
             {
                 throw new NullReferenceException("The review you're trying to update doesn't exist!");

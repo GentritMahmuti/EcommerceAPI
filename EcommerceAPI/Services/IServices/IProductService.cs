@@ -6,6 +6,8 @@ namespace EcommerceAPI.Services.IServices
 {
     public interface IProductService
     {
+        Task ProductDiscount(int productId, int discountPercentage);
+        Task RemoveProductDiscount(int productId);
         Task<List<Product>> GetFilterProducts(ProductFilter filter, ProductSort sort);
         Task CreateProduct(ProductCreateDto productToCreate);
         Task DeleteProduct(int id);
