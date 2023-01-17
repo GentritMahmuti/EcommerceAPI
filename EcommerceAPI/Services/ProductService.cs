@@ -11,6 +11,8 @@ using EcommerceAPI.Helpers;
 using Microsoft.IdentityModel.Tokens;
 using Amazon.S3;
 using Amazon.S3.Model;
+using System.ComponentModel.DataAnnotations;
+using static Nest.JoinField;
 
 namespace EcommerceAPI.Services
 {
@@ -30,6 +32,42 @@ namespace EcommerceAPI.Services
             _configuration = configuration;
             _logger = logger;
             _elasticClient = elasticClient;
+        }
+
+        public async Task ProductDiscount(int productId, int discountPercentage)
+        {
+            var product = await GetProduct(productId);
+            if (product == null)
+            {
+                throw new NullReferenceException("The product you're trying to make a discount doesn't exist!");
+            }
+            if(product.ListPrice - product.Price >= 0.01)
+            {
+                throw new Exception("The product it is at a discount, to make another discount, remove existing discount first.");
+            }
+            product.Price = product.ListPrice - (product.ListPrice * discountPercentage / 100);
+           
+            _unitOfWork.Repository<Product>().Update(product);
+
+            _unitOfWork.Complete();
+        }
+        public async Task RemoveProductDiscount(int productId)
+        {
+            var product = await GetProduct(productId);
+            if (product == null)
+            {
+                throw new NullReferenceException("The product you're trying to make a discount doesn't exist!");
+            }
+            if(product.ListPrice - product.Price < 0.0001)
+            {
+                throw new Exception("This product is not discounted");
+            }
+
+            product.Price = product.ListPrice;
+
+            _unitOfWork.Repository<Product>().Update(product);
+
+            _unitOfWork.Complete();
         }
 
         public async Task<List<Product>> GetFilterProducts(ProductFilter filter, ProductSort sort)

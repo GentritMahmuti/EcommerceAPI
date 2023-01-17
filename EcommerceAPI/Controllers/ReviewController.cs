@@ -7,6 +7,7 @@ using EcommerceAPI.Services.IServices;
 using EcommerceAPI.Validators;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
 using System.Security.Claims;
@@ -16,74 +17,46 @@ namespace EcommerceAPI.Controllers
     public class ReviewController : Controller
     {
         private readonly IReviewService _reviewService;
-        private readonly IValidator<ReviewCreateDto> _reviewValidator;
-        private readonly ICacheService _cacheService;
-        public ReviewController(IReviewService reviewService, IValidator<ReviewCreateDto> reviewValidator, ICacheService cacheService)
+        public ReviewController(IReviewService reviewService)
         {
             _reviewService = reviewService;
-            _reviewValidator = reviewValidator;
-            _cacheService = cacheService;
         }
-
+        [Authorize(Roles = "LifeUser")]
         [HttpGet("GetProductReviews")]
         public async Task<IActionResult> GetProductReviews(int productId)
         {
-            var cacheData = _cacheService.GetData<List<Review>>($"reviews-{productId}");
-            if (cacheData != null)
-            {
-                return Ok(cacheData);
-            }
-            else
-            {
-                var reviews = await _reviewService.GetProductReviews(productId);
+            var reviews = await _reviewService.GetProductReviews(productId);
 
-                if (reviews == null)
-                {
-                    return NotFound();
-                }
-
-                var expiryTime = DateTimeOffset.Now.AddMinutes(5);
-                _cacheService.SetData<List<Review>>($"reviews-{productId}", reviews, expiryTime);
-                return Ok(reviews);
+            if (reviews == null)
+            {
+                return NotFound();
             }
+
+            return Ok(reviews);
         }
 
-
-  //      [Authorize(Roles = "LifeAdmin")]
+        [Authorize(Roles = "LifeAdmin")]
         [HttpGet("GetAllReviews")]
         public async Task<IActionResult> GetReviews()
         {
-            var cacheData = _cacheService.GetData<List<Review>>("reviews");
-            if (cacheData != null && cacheData.Count > 0)
-            {
-                return Ok(cacheData);
-            }
-            else
-            {
-                var reviews = await _reviewService.GetAllReviews();
-                var expiryTime = DateTimeOffset.Now.AddMinutes(5);
-                _cacheService.SetData<List<Review>>("reviews", reviews, expiryTime);
-                return Ok(reviews);
-            }
+            var reviews = await _reviewService.GetAllReviews();
+
+            return Ok(reviews);
         }
 
-  //      [Authorize(Roles = "LifeUser")]
+        [Authorize(Roles = "LifeUser")]
         [HttpPost("PostReview")]
         public async Task<IActionResult> Post([FromForm] ReviewCreateDto ReviewToCreate)
         {
-            await _reviewValidator.ValidateAndThrowAsync(ReviewToCreate);
-            var review = await _reviewService.CreateReview(ReviewToCreate);
-            var expiryTime = DateTimeOffset.Now.AddMinutes(5);
-            var key = $"review-{review.Id}";
-            _cacheService.SetData<Review>(key, review, expiryTime);
+            var userData = (ClaimsIdentity)User.Identity;
+            var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+            await _reviewService.CreateReview(ReviewToCreate);
+
             return Ok("Review created successfully!");
         }
-
-
-
         [Authorize(Roles = "LifeUser")]
         [HttpPut("UpdateReview")]
-        public async Task<IActionResult> Update(Review ReviewToUpdate)
+        public async Task<IActionResult> Update(ReviewUpdateDto ReviewToUpdate)
         {
             try
             {
@@ -103,12 +76,6 @@ namespace EcommerceAPI.Controllers
         [HttpDelete("DeleteReview")]
         public async Task<IActionResult> Delete(int id)
         {
-            var key = "review_" + id;
-            var cacheData = _cacheService.GetData<Review>(key);
-            if (cacheData != null)
-            {
-                _cacheService.RemoveData(key);
-            }
             try
             {
                 var userData = (ClaimsIdentity)User.Identity;
