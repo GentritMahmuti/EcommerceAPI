@@ -209,7 +209,5 @@ namespace EcommerceAPI.Controllers
             await _productService.DeleteProductByIdInElastic(id);
             return Ok("Product deleted successfully!");
         }
-
-
     }
 }
