@@ -16,7 +16,7 @@ namespace EcommerceAPI.Helpers.EmailSender
         public Task SendEmailAsync(string email, string subject, string htmlMessage)
         {
             var client = new SendGridClient(SendGridSecret);
-            var from = new EmailAddress("admin@lifecommerce.com", "LIFE");
+            var from = new EmailAddress("\"life.ecommerce23@gmail.com", "LIFE");
             var to = new EmailAddress(email);
             var msg = MailHelper.CreateSingleEmail(from, to, subject, "", htmlMessage);
             return client.SendEmailAsync(msg);
