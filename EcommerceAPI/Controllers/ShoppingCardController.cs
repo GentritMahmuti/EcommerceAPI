@@ -1,5 +1,6 @@
 ﻿using EcommerceAPI.Models.DTOs.ShoppingCard;
 using EcommerceAPI.Services.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -8,6 +9,7 @@ namespace EcommerceAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ShoppingCardController : ControllerBase
     {
         private readonly IShoppingCardService _cardService;

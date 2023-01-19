@@ -209,7 +209,18 @@ namespace EcommerceAPI.Controllers
             await _productService.DeleteProductByIdInElastic(id);
             return Ok("Product deleted successfully!");
         }
+        [HttpPut("ProductDiscount")]
+        public async Task<IActionResult> ProductDiscount(int productId, [Range(1, 100, ErrorMessage = "Value for discount percentage must be between 1 and 100.")] int discountPercentage)
+        {
+            await _productService.ProductDiscount(productId, discountPercentage);
+            return Ok("Product discounted successfully");
+        }
 
-
+        [HttpPut("RemoveProductDiscount")]
+        public async Task<IActionResult> RemoveProductDiscount(int productId)
+        {
+            await _productService.RemoveProductDiscount(productId);
+            return Ok("The product discount was removed successfully");
+        }
     }
 }
