@@ -224,7 +224,7 @@ namespace EcommerceAPI.Services
             return response.Documents.ToList();
         }
 
-        public async Task<IndexResponse> AddProductElastic(ProductCreateElasticDto productToCreate)
+        public async Task<IndexResponse> AddProductElastic(ProductDto productToCreate)
         {
             var product = _mapper.Map<Product>(productToCreate);
             var result = await _elasticClient.IndexAsync
@@ -257,15 +257,15 @@ namespace EcommerceAPI.Services
             return response.Documents.ToList();
         }
 
-        public async Task AddBulkElastic(List<ProductCreateElasticDto> products)
+        public async Task AddBulkElastic(List<ProductDto> products)
         {
-            var productsToCreate = _mapper.Map<List<ProductCreateElasticDto>, List<Product>>(products);
+            var productsToCreate = _mapper.Map<List<ProductDto>, List<Product>>(products);
             var result = await _elasticClient.BulkAsync(x =>
                 x.Index("products").IndexMany(productsToCreate));
             _logger.LogInformation("Added bulk of products in elastic successfully!");
         }
 
-        public async Task UpdateElastic(ProductCreateElasticDto productToCreate)
+        public async Task UpdateElastic(ProductDto productToCreate)
         {
             var product = _mapper.Map<Product>(productToCreate);
 
@@ -347,5 +347,7 @@ namespace EcommerceAPI.Services
             _logger.LogInformation("File is uploaded to blob successfully!");
             return await s3Client.PutObjectAsync(request);
         }
+
+        
     }
 }

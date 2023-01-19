@@ -1,13 +1,11 @@
-﻿using System.ComponentModel;
+﻿using Nest;
 using System.ComponentModel.DataAnnotations;
-using System.Xml.Linq;
+using System.ComponentModel;
 
-namespace EcommerceAPI.Models.Entities
+namespace EcommerceAPI.Models.DTOs.Category
 {
-    public class Category
+    public class CategoryCreateDto
     {
-        public int CategoryId { get; set; }
-
         [Required, StringLength(100), Display(Name = "Name")]
         public string CategoryName { get; set; }
 
@@ -15,6 +13,5 @@ namespace EcommerceAPI.Models.Entities
         public int DisplayOrder { get; set; }
 
         public DateTime CreatedDateTime { get; set; } = DateTime.Now;
-        
     }
 }

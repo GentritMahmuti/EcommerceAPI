@@ -37,7 +37,7 @@ namespace EcommerceAPI.Controllers
             return Ok(coverType);
         }
 
-        [HttpGet("GetCoverTypes")]
+        [HttpGet("GetAllCoverTypes")]
         public async Task<IActionResult> GetCoverTypes()
         {
             var coverTypes = await _coverTypeService.GetAllCovers();
@@ -46,7 +46,7 @@ namespace EcommerceAPI.Controllers
         }
 
         [HttpPost("CreateCoverType")]
-        public async Task<IActionResult> CreateCoverType(CoverTypeDTO coverToCreate)
+        public async Task<IActionResult> CreateCoverType(CoverTypeCreateDto coverToCreate)
         {
             await _coverTypeService.CreateCover(coverToCreate);
 
@@ -54,7 +54,7 @@ namespace EcommerceAPI.Controllers
         }
 
         [HttpPut("UpdateCoverType")]
-        public async Task<IActionResult> UpdateCoverType(int id, CoverTypeDTO coverToUpdate)
+        public async Task<IActionResult> UpdateCoverType(int id, CoverTypeDto coverToUpdate)
         {
             try
             {

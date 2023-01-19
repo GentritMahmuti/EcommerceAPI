@@ -13,10 +13,6 @@ namespace EcommerceAPI.Validators
                 .NotEmpty().WithMessage("{PropertyName} must not be empty!")
                 .GreaterThan(0).WithMessage("{PropertyName} must be positive");
 
-            RuleFor(c => c.OrderDataId)
-                .NotNull().WithMessage("{PropertyName} must not be null!")
-                .NotEmpty().WithMessage("{PropertyName} must not be empty!")
-                .GreaterThan(0).WithMessage("{PropertyName} must be positive");
 
             RuleFor(c => c.ProductId)
                .NotNull().WithMessage("{PropertyName} must not be null!")

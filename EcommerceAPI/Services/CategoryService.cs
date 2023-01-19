@@ -23,11 +23,9 @@ namespace EcommerceAPI.Services
             _configuration = configuration;
             _logger = logger;
         }
-
-
         public async Task<Category> GetCategory(int id)
         {
-            Expression<Func<Category, bool>> expression = x => x.Id == id;
+            Expression<Func<Category, bool>> expression = x => x.CategoryId == id;
             var category = await _unitOfWork.Repository<Category>().GetById(expression).FirstOrDefaultAsync();
 
             return category;
@@ -40,23 +38,13 @@ namespace EcommerceAPI.Services
         }
 
         //test
-        public async Task CreateCategory(CategoryDto categoryToCreate)
+        public async Task CreateCategory(CategoryCreateDto categoryToCreate)
         {
             var category = _mapper.Map<Category>(categoryToCreate);
 
             _unitOfWork.Repository<Category>().Create(category);
             _unitOfWork.Complete();
             _logger.LogInformation("Created category successfully!");
-
-        }
-
-
-        public async Task CreateCategories(List<CategoryDto> categorysToCreate)
-        {
-            var categorys = _mapper.Map<List<CategoryDto>, List<Category>>(categorysToCreate);
-            _unitOfWork.Repository<Category>().CreateRange(categorys);
-            _unitOfWork.Complete();
-            _logger.LogInformation("Created categorys successfully!");
 
         }
 
@@ -76,12 +64,12 @@ namespace EcommerceAPI.Services
 
         public async Task UpdateCategory(Category categoryToUpdate)
         {
-            var category = await GetCategory(categoryToUpdate.Id);
+            var category = await GetCategory(categoryToUpdate.CategoryId);
             if (category == null)
             {
                 throw new NullReferenceException("The category you're trying to update doesn't exist!");
             }
-            category.Name = categoryToUpdate.Name;
+            category.CategoryName = categoryToUpdate.CategoryName;
 
             _unitOfWork.Repository<Category>().Update(category);
 

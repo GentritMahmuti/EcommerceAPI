@@ -4,7 +4,7 @@ namespace EcommerceAPI.Helpers
 {
     public static class HelperMethods
     {
-        
+
         public static IQueryable<T> PageBy<T, Type>(this IQueryable<T> query, Expression<Func<T, Type>> orderBy, int page, int pageSize, bool orderByDescending = true) //add Tkey into PageBy if needed
         {
             const int defaultPageNumber = 1;
@@ -26,15 +26,14 @@ namespace EcommerceAPI.Helpers
             return query.Skip((page - 1) * pageSize).Take(pageSize);
         }
 
-        public static double GetPriceByQuantity(int quantity, double price, double price50, double price100)
+        public static double GetPriceByQuantity(int quantity, double price)
         {
-            if (quantity <= 50) return price;
-            else
+            if (quantity < 1)
             {
-                if (quantity <= 100) return price50;
-                else
-                    return price100;
+                throw new Exception("Quantity must be greater than 0.");
             }
+
+            return quantity * price;
         }
     }
 }

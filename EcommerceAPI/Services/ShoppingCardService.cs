@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using EcommerceAPI.Data.UnitOfWork;
 using EcommerceAPI.Helpers;
-using EcommerceAPI.Models.DTOs.OrderDetails;
+using EcommerceAPI.Models.DTOs.Order;
 using EcommerceAPI.Models.DTOs.ShoppingCard;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
@@ -22,6 +22,7 @@ namespace EcommerceAPI.Services
             _mapper = mapper;
             _emailSender = emailSender;
         }
+
 
         public async Task AddProductToCard(string userId, int productId, int count)
         {
@@ -49,7 +50,7 @@ namespace EcommerceAPI.Services
             {
                 var currentProduct = item.Product;
 
-                var calculatedPrice = HelperMethods.GetPriceByQuantity(item.Count, currentProduct.Price, currentProduct.Price50, currentProduct.Price100);
+                var calculatedPrice = HelperMethods.GetPriceByQuantity(item.Count, currentProduct.Price);
 
                 var model = new ShoppingCardViewDto
                 {
@@ -118,9 +119,10 @@ namespace EcommerceAPI.Services
             {
                 var order = new OrderData
                 {
+                    OrderId = Guid.NewGuid().ToString(),
                     OrderDate = DateTime.Now,
                     ShippingDate = DateTime.Now.AddDays(7),
-                    OrderTotal = item.Total,
+                    OrderTotal = (long)item.Total,
                     PhoheNumber = addressDetails.PhoheNumber,
                     StreetAddress = addressDetails.StreetAddress,
                     City = addressDetails.City,
@@ -186,5 +188,6 @@ namespace EcommerceAPI.Services
 
             await _emailSender.SendEmailAsync(addressDetails.Email, "OrderConfirmation", content);
         }
+
     }
 }

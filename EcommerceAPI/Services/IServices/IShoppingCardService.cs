@@ -1,4 +1,4 @@
-﻿using EcommerceAPI.Models.DTOs.OrderDetails;
+﻿using EcommerceAPI.Models.DTOs.Order;
 using EcommerceAPI.Models.DTOs.ShoppingCard;
 
 namespace EcommerceAPI.Services.IServices

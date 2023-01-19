@@ -1,22 +1,15 @@
 ﻿using EcommerceAPI.Models.Entities;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
 
-namespace EcommerceAPI.Models.DTOs.OrderDetails
+namespace EcommerceAPI.Models.DTOs.Order
 {
     public class OrderDetailsCreateDto
     {
-        public string Id { get; set; }
+        public string OrderId { get; set; }
         [ForeignKey("OrderId")]
-        [ValidateNever]
         public OrderData OrderData { get; set; }
-
-        [Required]
         public int ProductId { get; set; }
-        [ForeignKey("ProductId")]
-        [ValidateNever]
-        //public Product Product { get; set; }
+        public Entities.Product Product { get; set; }
         public int Count { get; set; }
         public double Price { get; set; }
     }

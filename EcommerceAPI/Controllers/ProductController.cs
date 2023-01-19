@@ -27,6 +27,7 @@ namespace EcommerceAPI.Controllers
             _logger = logger;
         }
 
+
         // GET: api/products
         [HttpGet("GetFilterProducts")]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts(
@@ -133,7 +134,7 @@ namespace EcommerceAPI.Controllers
         }
 
         [HttpPost("AddProductElastic")]
-        public async Task<IActionResult> AddProductElastic([FromBody] ProductCreateElasticDto productToAdd)
+        public async Task<IActionResult> AddProductElastic([FromBody] ProductDto productToAdd)
         {
             var result = await _productService.AddProductElastic(productToAdd);
             return Ok(result.Result);
@@ -162,7 +163,7 @@ namespace EcommerceAPI.Controllers
         }
 
         [HttpPost("AddBulkElastic")]
-        public async Task<IActionResult> AddBulkElastic([FromBody] List<ProductCreateElasticDto> productsToCreate)
+        public async Task<IActionResult> AddBulkElastic([FromBody] List<ProductDto> productsToCreate)
         {
             try
             {
@@ -175,10 +176,8 @@ namespace EcommerceAPI.Controllers
             }
         }
 
-
-
         [HttpPut("UpdateElastic")]
-        public async Task<IActionResult> UpdateElastic([FromBody] ProductCreateElasticDto product)
+        public async Task<IActionResult> UpdateElastic([FromBody] ProductDto product)
         {
             try
             {
@@ -210,18 +209,7 @@ namespace EcommerceAPI.Controllers
             await _productService.DeleteProductByIdInElastic(id);
             return Ok("Product deleted successfully!");
         }
-        [HttpPut("ProductDiscount")]
-        public async Task<IActionResult> ProductDiscount(int productId, [Range(1, 100, ErrorMessage = "Value for discount percentage must be between 1 and 100.")] int discountPercentage)
-        { 
-            await _productService.ProductDiscount(productId, discountPercentage);
-            return Ok("Product discounted successfully");
-        }
 
-        [HttpPut("RemoveProductDiscount")]
-        public async Task<IActionResult> RemoveProductDiscount(int productId)
-        {
-            await _productService.RemoveProductDiscount(productId);
-            return Ok("The product discount was removed successfully");
-        }
+
     }
 }

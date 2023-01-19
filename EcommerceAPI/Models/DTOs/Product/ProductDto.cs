@@ -1,8 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Nest;
+using System.ComponentModel.DataAnnotations;
 
-namespace EcommerceAPI.Models.Entities
+namespace EcommerceAPI.Models.DTOs.Product
 {
-    public class Product
+    public class ProductDto
     {
         public int Id { get; set; }
 
@@ -13,8 +14,6 @@ namespace EcommerceAPI.Models.Entities
         [Required, StringLength(10000), Display(Name = "Product Description"), DataType(DataType.MultilineText)]
         public string Description { get; set; }
 
-        public double ListPrice { get; set; }
-
         [Display(Name = "Price")]
         public double Price { get; set; }
 
@@ -23,13 +22,7 @@ namespace EcommerceAPI.Models.Entities
         [Required]
         public int CategoryId { get; set; }
 
-        public Category Category { get; set; }
-
         [Required]
         public int CoverTypeId { get; set; }
-        public CoverType CoverType { get; set; }
-
-        public ICollection<Review> SubmittedReviews { get; set; }
-
     }
 }

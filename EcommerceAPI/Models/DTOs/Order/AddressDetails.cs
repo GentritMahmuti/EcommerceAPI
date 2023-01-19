@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace EcommerceAPI.Models.DTOs.OrderDetails
+namespace EcommerceAPI.Models.DTOs.Order
 {
     public class AddressDetails
     {

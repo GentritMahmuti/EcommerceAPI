@@ -21,7 +21,8 @@ using System.Security.Claims;
 using System.Text;
 using claims = System.Security.Claims;
 using EcommerceAPI.Validators;
-using System.Text.Json.Serialization;
+using Stripe;
+using EcommerceAPI.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,7 +31,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IValidator<Category>, CategoryValidator>();
 builder.Services.AddScoped<IValidator<CoverType>, CoverTypeValidator>();
 builder.Services.AddScoped<IValidator<OrderDetails>, OrderDetailsValidator>();
-builder.Services.AddScoped<IValidator<Product>, ProductValidator>();
 builder.Services.AddScoped<IValidator<ReviewCreateDto>, ReviewValidator>();
 
 builder.Services.AddAuthentication(options =>
@@ -91,7 +91,7 @@ builder.Services.AddAuthentication(options =>
                               };
 
                               userService.Repository<User>().Create(userToBeAdded);
-                              
+
                               //var emailService = context.HttpContext.RequestServices.GetService<IEmailSender>();
                               //if(emailService != null) 
                               //{
@@ -140,12 +140,13 @@ builder.Services.AddSwaggerGen(c =>
 
     c.OperationFilter<AuthorizeCheckOperationFilter>();
 });
-builder.Services.AddControllers().AddJsonOptions(x =>
-                x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
-
+builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Add Stripe Infrastructure
+builder.Services.AddStripeInfrastructure(builder.Configuration);
 
 
 var logger = new LoggerConfiguration()
@@ -168,6 +169,7 @@ var smtpConfigurations = builder.Configuration.GetSection(nameof(SmtpConfigurati
 builder.Services.AddSingleton(smtpConfigurations);
 builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
 
+builder.Services.AddHttpClient();
 
 
 

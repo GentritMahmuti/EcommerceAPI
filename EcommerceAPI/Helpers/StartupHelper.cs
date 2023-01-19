@@ -14,8 +14,7 @@ namespace EcommerceAPI.Helpers
             services.AddTransient<ICategoryService, CategoryService>();
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IShoppingCardService, ShoppingCardService>();
-            services.AddTransient<IOrderDataService, OrderDataService>();
-            services.AddTransient<IOrderDetailsService, OrderDetailsService>();
+            services.AddTransient<IOrderService, OrderService>();
             services.AddTransient<ICoverTypeService, CoverTypeService>();
             services.AddTransient<IReviewService, ReviewService>();
         }

@@ -35,19 +35,7 @@ namespace EcommerceAPI.Controllers
             return Ok(category);
         }
 
-        //[HttpGet("GetCategoryWithIncludes")]
-        //public async Task<IActionResult> GetIncludes(int id)
-        //{
-        //    var category = await _categoryService.GetWithIncludes(id);
-
-        //    if (category == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    return Ok(category);
-        //}
-        [Authorize(Roles = "LifeAdmin")]
+        //[Authorize(Roles = "LifeAdmin")]
         [HttpGet("GetCategories")]
         public async Task<IActionResult> GetCategories()
         {
@@ -56,16 +44,8 @@ namespace EcommerceAPI.Controllers
             return Ok(categories);
         }
 
-        //[HttpGet("CategorysListView")]
-        //public async Task<IActionResult> CategorysListView(string? search, int categoryId = 0, int page = 1, int pageSize = 10)
-        //{
-        //    var categorys = await _categoryService.CategorysListView(search, page, pageSize, categoryId);
-
-        //    return Ok(categorys);
-        //}
-
         [HttpPost("PostCategory")]
-        public async Task<IActionResult> Post(CategoryDto createCategory)
+        public async Task<IActionResult> Post(CategoryCreateDto createCategory)
         {
             await _categoryService.CreateCategory(createCategory);
 
@@ -82,7 +62,7 @@ namespace EcommerceAPI.Controllers
                 {
                     return NotFound($"Category with id {id} not found");
                 }
-                category.Name = categoryDto.Name;
+                category.CategoryName = categoryDto.CategoryName;
                 category.DisplayOrder = categoryDto.DisplayOrder;
                 await _categoryValidator.ValidateAndThrowAsync(category);
                 await _categoryService.UpdateCategory(category);
@@ -107,6 +87,5 @@ namespace EcommerceAPI.Controllers
                 return BadRequest("Error deleting category: " + ex.Message);
             }
         }
-
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace EcommerceAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class CreateDb : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,15 +15,15 @@ namespace EcommerceAPI.Migrations
                 name: "Categories",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    CategoryId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    CategoryName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     DisplayOrder = table.Column<int>(type: "int", nullable: false),
                     CreatedDateTime = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Categories", x => x.Id);
+                    table.PrimaryKey("PK_Categories", x => x.CategoryId);
                 });
 
             migrationBuilder.CreateTable(
@@ -32,7 +32,7 @@ namespace EcommerceAPI.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -62,15 +62,10 @@ namespace EcommerceAPI.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Seller = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ISBN = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Author = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", maxLength: 10000, nullable: false),
                     ListPrice = table.Column<double>(type: "float", nullable: false),
                     Price = table.Column<double>(type: "float", nullable: false),
-                    Price50 = table.Column<double>(type: "float", nullable: false),
-                    Price100 = table.Column<double>(type: "float", nullable: false),
                     ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CategoryId = table.Column<int>(type: "int", nullable: false),
                     CoverTypeId = table.Column<int>(type: "int", nullable: false)
@@ -82,7 +77,7 @@ namespace EcommerceAPI.Migrations
                         name: "FK_Products_Categories_CategoryId",
                         column: x => x.CategoryId,
                         principalTable: "Categories",
-                        principalColumn: "Id",
+                        principalColumn: "CategoryId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Products_CoverTypes_CoverTypeId",
@@ -96,11 +91,10 @@ namespace EcommerceAPI.Migrations
                 name: "OrderData",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    OrderId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     OrderDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ShippingDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    OrderTotal = table.Column<double>(type: "float", nullable: false),
+                    OrderTotal = table.Column<long>(type: "bigint", nullable: false),
                     TrackingId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Carrier = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     OrderStatus = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -118,7 +112,7 @@ namespace EcommerceAPI.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_OrderData", x => x.Id);
+                    table.PrimaryKey("PK_OrderData", x => x.OrderId);
                     table.ForeignKey(
                         name: "FK_OrderData_Users_UserId",
                         column: x => x.UserId,
@@ -188,7 +182,7 @@ namespace EcommerceAPI.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    OrderId = table.Column<int>(type: "int", nullable: false),
+                    OrderDataId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ProductId = table.Column<int>(type: "int", nullable: false),
                     Count = table.Column<int>(type: "int", nullable: false),
                     Price = table.Column<double>(type: "float", nullable: false)
@@ -197,10 +191,10 @@ namespace EcommerceAPI.Migrations
                 {
                     table.PrimaryKey("PK_OrderDetails", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_OrderDetails_OrderData_OrderId",
-                        column: x => x.OrderId,
+                        name: "FK_OrderDetails_OrderData_OrderDataId",
+                        column: x => x.OrderDataId,
                         principalTable: "OrderData",
-                        principalColumn: "Id",
+                        principalColumn: "OrderId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_OrderDetails_Products_ProductId",
@@ -216,9 +210,9 @@ namespace EcommerceAPI.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_OrderDetails_OrderId",
+                name: "IX_OrderDetails_OrderDataId",
                 table: "OrderDetails",
-                column: "OrderId");
+                column: "OrderDataId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderDetails_ProductId",

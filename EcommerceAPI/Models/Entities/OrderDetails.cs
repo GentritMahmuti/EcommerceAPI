@@ -8,13 +8,15 @@ namespace EcommerceAPI.Models.Entities
     {
         public int Id { get; set; }
 
-        public int OrderDataId { get; set; }
+        public string OrderDataId { get; set; }
+        [ForeignKey("OrderDataId")]
         public OrderData OrderData { get; set; }
 
         public int ProductId { get; set; }
-        [ValidateNever]
         public Product Product { get; set; }
+
         public int Count { get; set; }
+
         public double Price { get; set; }
     }
 }
