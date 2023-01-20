@@ -200,6 +200,7 @@ builder.Services.AddSingleton(client);
 
 builder.Services.AddScoped<ICacheService, CacheService>();
 
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
