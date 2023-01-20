@@ -16,7 +16,21 @@ namespace EcommerceAPI.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task CreateCover(CoverTypeCreateDTO coverToCreate)
+        public async Task<CoverType> GetCover(int id)
+        {
+            var cover = await _unitOfWork.Repository<CoverType>().GetById(x => x.Id == id).FirstOrDefaultAsync();
+
+            return cover;
+        }
+
+        public async Task<List<CoverType>> GetAllCovers()
+        {
+            var covers = _unitOfWork.Repository<CoverType>().GetAll().ToList();
+
+            return covers.ToList();
+        }
+
+        public async Task CreateCover(CoverTypeCreateDto coverToCreate)
         {
             var cover = new CoverType
             {
@@ -28,30 +42,20 @@ namespace EcommerceAPI.Services
             _unitOfWork.Complete();
         }
 
-        public async Task<List<CoverType>> GetAllCovers()
+        public async Task UpdateCover(int id, CoverTypeDto coverToUpdate)
         {
-            var covers = _unitOfWork.Repository<CoverType>().GetAll().ToList();
-
-            return covers.ToList();
-        }
-
-        public async Task<CoverType> GetCover(int id)
-        {
-           
             var cover = await _unitOfWork.Repository<CoverType>().GetById(x => x.Id == id).FirstOrDefaultAsync();
 
-            return cover;
-        }
-
-        public async Task UpdateCover(CoverTypeDTO coverToUpdate)
-        {
-            var cover = await GetCover(coverToUpdate.Id);
+            if (cover == null)
+            {
+                throw new Exception("Cover type not found");
+            }
 
             cover.Name = coverToUpdate.Name;
 
             _unitOfWork.Repository<CoverType>().Update(cover);
 
-            _unitOfWork.Complete();
+            await _unitOfWork.CompleteAsync();
         }
 
         public async Task DeleteCover(int id)

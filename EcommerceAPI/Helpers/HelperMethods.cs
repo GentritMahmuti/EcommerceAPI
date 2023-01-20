@@ -4,9 +4,36 @@ namespace EcommerceAPI.Helpers
 {
     public static class HelperMethods
     {
-        public static IQueryable<T> WhereIf<T>(this IQueryable<T> query, bool searchCondition, Expression<Func<T, bool>> predicate)
+
+        public static IQueryable<T> PageBy<T, Type>(this IQueryable<T> query, Expression<Func<T, Type>> orderBy, int page, int pageSize, bool orderByDescending = true) //add Tkey into PageBy if needed
         {
-            return searchCondition ? query.Where(predicate) : query;
+            const int defaultPageNumber = 1;
+
+            if (query == null)
+            {
+                throw new ArgumentNullException(nameof(query));
+            }
+
+            // Check if the page number is greater then zero - otherwise use default page number
+            if (page <= 0)
+            {
+                page = defaultPageNumber;
+            }
+
+            // It is necessary sort items before it
+            query = orderByDescending ? query.OrderByDescending(orderBy) : query.OrderBy(orderBy);
+
+            return query.Skip((page - 1) * pageSize).Take(pageSize);
+        }
+
+        public static double GetPriceByQuantity(int quantity, double price)
+        {
+            if (quantity < 1)
+            {
+                throw new Exception("Quantity must be greater than 0.");
+            }
+
+            return quantity * price;
         }
     }
 }

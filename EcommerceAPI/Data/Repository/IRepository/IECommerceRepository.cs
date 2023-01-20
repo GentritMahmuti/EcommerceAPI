@@ -17,6 +17,8 @@ namespace EcommerceAPI.Data.Repository.IRepository
         void Create(Tentity entity);
         void CreateRange(List<Tentity> entity);
 
+        void CreateRangeList(List<List<Tentity>> entities);
+
         void Delete(Tentity entity);
         void DeleteRange(List<Tentity> entity);
 

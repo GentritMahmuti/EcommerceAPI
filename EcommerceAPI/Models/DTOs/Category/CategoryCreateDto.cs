@@ -1,14 +1,17 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Nest;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel;
 
 namespace EcommerceAPI.Models.DTOs.Category
 {
     public class CategoryCreateDto
     {
-        [Required]
-        [MaxLength(30)]
-        public string Name { get; set; }
-        [Range(1, 100, ErrorMessage = "")]
+        [Required, StringLength(100), Display(Name = "Name")]
+        public string CategoryName { get; set; }
+
+        [DisplayName("Display Order")]
         public int DisplayOrder { get; set; }
+
         public DateTime CreatedDateTime { get; set; } = DateTime.Now;
     }
 }

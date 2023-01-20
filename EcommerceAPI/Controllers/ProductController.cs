@@ -1,7 +1,12 @@
 ﻿using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
+using Microsoft.AspNetCore.Authorization;
+using EcommerceAPI.Validators;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using System.Data;
+using System.ComponentModel.DataAnnotations;
 
 namespace EcommerceAPI.Controllers
 {
@@ -11,13 +16,26 @@ namespace EcommerceAPI.Controllers
     {
         private readonly IProductService _productService;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<ProductController> _logger;
+        private readonly IValidator<Product> _productValidator;
 
-        public ProductController(IProductService productService, IConfiguration configuration)
+        public ProductController(IProductService productService, IConfiguration configuration, IValidator<Product> productValidator, ILogger<ProductController> logger)
         {
             _productService = productService;
             _configuration = configuration;
+            _productValidator = productValidator;
+            _logger = logger;
         }
 
+
+        // GET: api/products
+        [HttpGet("GetFilterProducts")]
+        public async Task<ActionResult<IEnumerable<Product>>> GetProducts(
+            [FromQuery] ProductFilter filter,
+            [FromQuery] ProductSort sort)
+        {
+            return await _productService.GetFilterProducts(filter, sort);
+        }
 
         [HttpGet("GetProduct")]
         public async Task<IActionResult> Get(int id)
@@ -72,9 +90,16 @@ namespace EcommerceAPI.Controllers
         [HttpPut("UpdateProduct")]
         public async Task<IActionResult> Update(Product ProductToUpdate)
         {
-            await _productService.UpdateProduct(ProductToUpdate);
-
-            return Ok("Product updated successfully!");
+            try
+            {
+                await _productValidator.ValidateAndThrowAsync(ProductToUpdate);
+                await _productService.UpdateProduct(ProductToUpdate);
+                return Ok("Product updated successfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"An error happened: '{ex.Message}'");
+            }
         }
 
         [HttpDelete("DeleteProduct")]
@@ -83,6 +108,119 @@ namespace EcommerceAPI.Controllers
             await _productService.DeleteProduct(id);
 
             return Ok("Product deleted successfully!");
+        }
+
+        [HttpPost("UploadImage")]
+        public async Task<IActionResult> UploadImage(IFormFile file, int productId)
+        {
+            try
+            {
+                var url = await _productService.UploadImage(file, productId);
+                return Ok($"Picture was uploaded sucessfully at the url: {url}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in uploading the image.");
+                return BadRequest(ex.Message);
+            }
+
+        }
+        [HttpGet("SearchElastic")]
+        public async Task<IActionResult> SearchElastic([FromQuery] SearchInputDto input, int pageIndex, int pageSize)
+        {
+            var response = await _productService.SearchElastic(input, pageIndex, pageSize);
+
+            return Ok(response);
+        }
+
+        [HttpPost("AddProductElastic")]
+        public async Task<IActionResult> AddProductElastic([FromBody] ProductDto productToAdd)
+        {
+            var result = await _productService.AddProductElastic(productToAdd);
+            return Ok(result.Result);
+        }
+
+        [HttpGet("GetByIdElastic")]
+        public async Task<IActionResult> GetByIdElastic(int id, string index)
+        {
+            if (index == null)
+            {
+                index = "products";
+            }
+            var product = await _productService.GetByIdElastic(id, index);
+            if (product == null)
+            {
+                return NotFound();
+            }
+            return Ok(product);
+        }
+
+        [HttpGet("GetAllElastic")]
+        public async Task<IActionResult> GetAllElastic()
+        {
+            var products = await _productService.GetAllElastic();
+            return Ok(products);
+        }
+
+        [HttpPost("AddBulkElastic")]
+        public async Task<IActionResult> AddBulkElastic([FromBody] List<ProductDto> productsToCreate)
+        {
+            try
+            {
+                await _productService.AddBulkElastic(productsToCreate);
+                return Ok("Products are added successfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"An error happened: '{ex.Message}'");
+            }
+        }
+
+        [HttpPut("UpdateElastic")]
+        public async Task<IActionResult> UpdateElastic([FromBody] ProductDto product)
+        {
+            try
+            {
+                await _productService.UpdateElastic(product);
+                return Ok("Products are updated successfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"An error happened: '{ex.Message}'");
+            }
+        }
+
+        [HttpDelete("DeleteAllElastic")]
+        public async Task<IActionResult> DeleteAllElastic()
+        {
+            try
+            {
+                await _productService.DeleteAllElastic();
+                return Ok("Products are deleted successfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"An error happened: '{ex.Message}'");
+            }
+        }
+        [HttpDelete("DeleteByIdElastic")]
+        public async Task<IActionResult> DeleteProductByIdInElastic(int id)
+        {
+            await _productService.DeleteProductByIdInElastic(id);
+            return Ok("Product deleted successfully!");
+        }
+        [HttpPut("ProductDiscount")]
+        public async Task<IActionResult> ProductDiscount(int productId, [Range(1, 100, ErrorMessage = "Value for discount percentage must be between 1 and 100.")] int discountPercentage)
+        {
+            await _productService.ProductDiscount(productId, discountPercentage);
+            return Ok("Product discounted successfully");
+        }
+
+        [HttpPut("RemoveProductDiscount")]
+        public async Task<IActionResult> RemoveProductDiscount(int productId)
+        {
+            await _productService.RemoveProductDiscount(productId);
+            return Ok("The product discount was removed successfully");
         }
     }
 }

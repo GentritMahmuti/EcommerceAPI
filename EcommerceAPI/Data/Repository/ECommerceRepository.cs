@@ -57,6 +57,14 @@ namespace EcommerceAPI.Data.Repository
             _dbContext.Set<Tentity>().AddRange(entities);
         }
 
+        public void CreateRangeList(List<List<Tentity>> entities)
+        {
+            foreach (List<Tentity> entityList in entities)
+            {
+                _dbContext.Set<Tentity>().AddRange(entityList);
+            }
+        }
+
         public void Delete(Tentity entity)
         {
             _dbContext.Set<Tentity>().Remove(entity);
