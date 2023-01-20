@@ -34,6 +34,7 @@
 
   <ItemGroup>
     <Folder Include="Common\Constants\" />
+    <Folder Include="Migrations\" />
     <Folder Include="Template\" />
   </ItemGroup>
 

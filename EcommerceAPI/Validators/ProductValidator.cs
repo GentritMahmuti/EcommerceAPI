@@ -13,7 +13,7 @@ namespace EcommerceAPI.Validators
                 .NotEmpty().WithMessage("{PropertyName} must not be empty!")
                 .GreaterThan(0).WithMessage("{PropertyName} must be positive");
 
-            RuleFor(p => p.Title)
+            RuleFor(p => p.Name)
                 .NotNull().WithMessage("{PropertyName} must not be null!")
                 .NotEmpty().WithMessage("{PropertyName} must not be empty!")
                 .MaximumLength(250).WithMessage("{PropertyName} can have maximum 250 characters");
@@ -33,10 +33,6 @@ namespace EcommerceAPI.Validators
                .NotEmpty().WithMessage("{PropertyName} must not be empty!")
                .GreaterThan(0).WithMessage("{PropertyName} must be positive");
 
-            RuleFor(p => p.CoverTypeId)
-               .NotNull().WithMessage("{PropertyName} must not be null!")
-               .NotEmpty().WithMessage("{PropertyName} must not be empty!")
-               .GreaterThan(0).WithMessage("{PropertyName} must be positive");
         }
     }
 }
