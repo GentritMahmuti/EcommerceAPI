@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using EcommerceAPI.Data.UnitOfWork;
+using EcommerceAPI.Helpers;
 using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Linq.Dynamic.Core;
 using Nest;
