@@ -47,9 +47,10 @@ namespace EcommerceAPI.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId", "ProductId")
+                        .IsUnique();
 
-                    b.ToTable("ShoppingCards");
+                    b.ToTable("CardItems");
                 });
 
             modelBuilder.Entity("EcommerceAPI.Models.Entities.Category", b =>
@@ -191,30 +192,21 @@ namespace EcommerceAPI.Migrations
 
             modelBuilder.Entity("EcommerceAPI.Models.Entities.ProductOrderData", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("ProductId")
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<string>("OrderDataId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("Count")
                         .HasColumnType("int");
 
-                    b.Property<string>("OrderDataId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<double>("Price")
                         .HasColumnType("float");
 
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
+                    b.HasKey("ProductId", "OrderDataId");
 
                     b.HasIndex("OrderDataId");
-
-                    b.HasIndex("ProductId");
 
                     b.ToTable("ProductOrderDatas");
                 });
@@ -286,6 +278,31 @@ namespace EcommerceAPI.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("EcommerceAPI.Models.Entities.WishListItem", b =>
+                {
+                    b.Property<string>("WishListItemId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("WishListItemId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("UserId", "ProductId")
+                        .IsUnique();
+
+                    b.ToTable("WishListItems");
+                });
+
             modelBuilder.Entity("EcommerceAPI.Models.Entities.CartItem", b =>
                 {
                     b.HasOne("EcommerceAPI.Models.Entities.Product", "Product")
@@ -328,13 +345,13 @@ namespace EcommerceAPI.Migrations
             modelBuilder.Entity("EcommerceAPI.Models.Entities.ProductOrderData", b =>
                 {
                     b.HasOne("EcommerceAPI.Models.Entities.OrderData", "OrderData")
-                        .WithMany()
+                        .WithMany("ProductOrderData")
                         .HasForeignKey("OrderDataId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("EcommerceAPI.Models.Entities.Product", "Product")
-                        .WithMany()
+                        .WithMany("ProductOrderData")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -363,8 +380,34 @@ namespace EcommerceAPI.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("EcommerceAPI.Models.Entities.WishListItem", b =>
+                {
+                    b.HasOne("EcommerceAPI.Models.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EcommerceAPI.Models.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EcommerceAPI.Models.Entities.OrderData", b =>
+                {
+                    b.Navigation("ProductOrderData");
+                });
+
             modelBuilder.Entity("EcommerceAPI.Models.Entities.Product", b =>
                 {
+                    b.Navigation("ProductOrderData");
+
                     b.Navigation("SubmittedReviews");
                 });
 
