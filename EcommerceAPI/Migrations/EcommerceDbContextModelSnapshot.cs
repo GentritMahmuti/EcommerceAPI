@@ -49,7 +49,7 @@ namespace EcommerceAPI.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CartItems");
+                    b.ToTable("ShoppingCards");
                 });
 
             modelBuilder.Entity("EcommerceAPI.Models.Entities.Category", b =>
@@ -136,7 +136,6 @@ namespace EcommerceAPI.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("OrderId");
@@ -162,6 +161,7 @@ namespace EcommerceAPI.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
+                        .HasMaxLength(10000)
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ImageUrl")
@@ -173,7 +173,8 @@ namespace EcommerceAPI.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<double>("Price")
                         .HasColumnType("float");
@@ -215,7 +216,7 @@ namespace EcommerceAPI.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductOrderData");
+                    b.ToTable("ProductOrderDatas");
                 });
 
             modelBuilder.Entity("EcommerceAPI.Models.Entities.Review", b =>
@@ -285,30 +286,6 @@ namespace EcommerceAPI.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("EcommerceAPI.Models.Entities.WishListItem", b =>
-                {
-                    b.Property<string>("WishListItemId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("DateCreated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("WishListItemId");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("WishListItems");
-                });
-
             modelBuilder.Entity("EcommerceAPI.Models.Entities.CartItem", b =>
                 {
                     b.HasOne("EcommerceAPI.Models.Entities.Product", "Product")
@@ -332,9 +309,7 @@ namespace EcommerceAPI.Migrations
                 {
                     b.HasOne("EcommerceAPI.Models.Entities.User", "User")
                         .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UserId");
 
                     b.Navigation("User");
                 });
@@ -379,25 +354,6 @@ namespace EcommerceAPI.Migrations
 
                     b.HasOne("EcommerceAPI.Models.Entities.User", "User")
                         .WithMany("SubmittedReviews")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("EcommerceAPI.Models.Entities.WishListItem", b =>
-                {
-                    b.HasOne("EcommerceAPI.Models.Entities.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("EcommerceAPI.Models.Entities.User", "User")
-                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

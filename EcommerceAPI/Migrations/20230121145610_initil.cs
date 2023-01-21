@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace EcommerceAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class initil : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -49,8 +49,8 @@ namespace EcommerceAPI.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", maxLength: 10000, nullable: false),
                     ListPrice = table.Column<double>(type: "float", nullable: false),
                     Price = table.Column<double>(type: "float", nullable: false),
                     ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -90,7 +90,7 @@ namespace EcommerceAPI.Migrations
                     Country = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PostalCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -99,36 +99,7 @@ namespace EcommerceAPI.Migrations
                         name: "FK_OrderData_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "CartItems",
-                columns: table => new
-                {
-                    CartItemId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ProductId = table.Column<int>(type: "int", nullable: false),
-                    Count = table.Column<int>(type: "int", nullable: false),
-                    DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_CartItems", x => x.CartItemId);
-                    table.ForeignKey(
-                        name: "FK_CartItems_Products_ProductId",
-                        column: x => x.ProductId,
-                        principalTable: "Products",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_CartItems_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -161,25 +132,27 @@ namespace EcommerceAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "WishListItems",
+                name: "ShoppingCards",
                 columns: table => new
                 {
-                    WishListItemId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CartItemId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ProductId = table.Column<int>(type: "int", nullable: false),
+                    Count = table.Column<int>(type: "int", nullable: false),
                     DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_WishListItems", x => x.WishListItemId);
+                    table.PrimaryKey("PK_ShoppingCards", x => x.CartItemId);
                     table.ForeignKey(
-                        name: "FK_WishListItems_Products_ProductId",
+                        name: "FK_ShoppingCards_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_WishListItems_Users_UserId",
+                        name: "FK_ShoppingCards_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -187,7 +160,7 @@ namespace EcommerceAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProductOrderData",
+                name: "ProductOrderDatas",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -199,15 +172,15 @@ namespace EcommerceAPI.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProductOrderData", x => x.Id);
+                    table.PrimaryKey("PK_ProductOrderDatas", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ProductOrderData_OrderData_OrderDataId",
+                        name: "FK_ProductOrderDatas_OrderData_OrderDataId",
                         column: x => x.OrderDataId,
                         principalTable: "OrderData",
                         principalColumn: "OrderId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_ProductOrderData_Products_ProductId",
+                        name: "FK_ProductOrderDatas_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "Id",
@@ -215,28 +188,18 @@ namespace EcommerceAPI.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_CartItems_ProductId",
-                table: "CartItems",
-                column: "ProductId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CartItems_UserId",
-                table: "CartItems",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_OrderData_UserId",
                 table: "OrderData",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProductOrderData_OrderDataId",
-                table: "ProductOrderData",
+                name: "IX_ProductOrderDatas_OrderDataId",
+                table: "ProductOrderDatas",
                 column: "OrderDataId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProductOrderData_ProductId",
-                table: "ProductOrderData",
+                name: "IX_ProductOrderDatas_ProductId",
+                table: "ProductOrderDatas",
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
@@ -255,13 +218,13 @@ namespace EcommerceAPI.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_WishListItems_ProductId",
-                table: "WishListItems",
+                name: "IX_ShoppingCards_ProductId",
+                table: "ShoppingCards",
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_WishListItems_UserId",
-                table: "WishListItems",
+                name: "IX_ShoppingCards_UserId",
+                table: "ShoppingCards",
                 column: "UserId");
         }
 
@@ -269,16 +232,13 @@ namespace EcommerceAPI.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "CartItems");
-
-            migrationBuilder.DropTable(
-                name: "ProductOrderData");
+                name: "ProductOrderDatas");
 
             migrationBuilder.DropTable(
                 name: "Reviews");
 
             migrationBuilder.DropTable(
-                name: "WishListItems");
+                name: "ShoppingCards");
 
             migrationBuilder.DropTable(
                 name: "OrderData");

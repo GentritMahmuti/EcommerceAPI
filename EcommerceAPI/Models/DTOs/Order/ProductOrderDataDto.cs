@@ -4,7 +4,6 @@ namespace EcommerceAPI.Models.DTOs.Order
 {
     public class ProductOrderDataDto
     {
-        public int Id { get; set; }
         public int ProductId { get; set; }
         public Entities.Product Product { get; set; }
         public string OrderDataId { get; set; }
