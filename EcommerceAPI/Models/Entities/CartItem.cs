@@ -6,7 +6,7 @@ namespace EcommerceAPI.Models.Entities
     public class CartItem
     {
         [Key]
-        public string CartItemId { get; set; }
+        public int CartItemId { get; set; }
 
         [Display(Name = "CartId")]
         public string UserId { get; set; }
