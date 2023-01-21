@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using EcommerceAPI.Models.DTOs.Category;
-using EcommerceAPI.Models.DTOs.CoverType;
 using EcommerceAPI.Models.DTOs.Order;
 using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Models.DTOs.Review;
@@ -18,9 +17,12 @@ namespace EcommerceAPI.Helpers
             CreateMap<Category, CategoryDto>().ReverseMap();
             CreateMap<Category, CategoryCreateDto>().ReverseMap();
 
-            //CreateMap<OrderDetails, OrderDetailsCreateDto>().ReverseMap();
-            //CreateMap<OrderData, OrderDataCreateDto>().ReverseMap();
-            
+            CreateMap<OrderData, OrderDataDto>().ReverseMap();
+            CreateMap<OrderData, OrderDataCreateDto>().ReverseMap();
+
+            CreateMap<ProductOrderData, ProductOrderDataDto>().ReverseMap();
+            CreateMap<ProductOrderData, ProductOrderDataCreateDto>().ReverseMap();
+
             CreateMap<Review, ReviewCreateDto>().ReverseMap();
         }
     }
