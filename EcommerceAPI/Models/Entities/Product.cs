@@ -8,7 +8,6 @@ namespace EcommerceAPI.Models.Entities
 
         public string Name { get; set; }
 
-
         [Display(Name = "Product Description")]
         public string Description { get; set; }
 
@@ -24,11 +23,10 @@ namespace EcommerceAPI.Models.Entities
 
         public int Stock { get; set; }
 
-        public DateTime CreatedDate { get; set; } = DateTime.Now;
+        public DateTime CreatedDateTime { get; set; } = DateTime.Now;
 
         public ICollection<Review> SubmittedReviews { get; set; }
 
-        public ICollection<ProductOrderData> ProductOrderData { get; set; }
 
     }
 }

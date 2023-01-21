@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace EcommerceAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class CreateDb : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -56,7 +56,7 @@ namespace EcommerceAPI.Migrations
                     ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CategoryId = table.Column<int>(type: "int", nullable: false),
                     Stock = table.Column<int>(type: "int", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    CreatedDateTime = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -107,7 +107,8 @@ namespace EcommerceAPI.Migrations
                 name: "CartItems",
                 columns: table => new
                 {
-                    CartItemId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CartItemId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ProductId = table.Column<int>(type: "int", nullable: false),
                     Count = table.Column<int>(type: "int", nullable: false),
@@ -189,15 +190,16 @@ namespace EcommerceAPI.Migrations
                 name: "ProductOrderData",
                 columns: table => new
                 {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     ProductId = table.Column<int>(type: "int", nullable: false),
                     OrderDataId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Id = table.Column<int>(type: "int", nullable: false),
                     Count = table.Column<int>(type: "int", nullable: false),
                     Price = table.Column<double>(type: "float", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProductOrderData", x => new { x.ProductId, x.OrderDataId });
+                    table.PrimaryKey("PK_ProductOrderData", x => x.Id);
                     table.ForeignKey(
                         name: "FK_ProductOrderData_OrderData_OrderDataId",
                         column: x => x.OrderDataId,
@@ -218,10 +220,9 @@ namespace EcommerceAPI.Migrations
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CartItems_UserId_ProductId",
+                name: "IX_CartItems_UserId",
                 table: "CartItems",
-                columns: new[] { "UserId", "ProductId" },
-                unique: true);
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderData_UserId",
@@ -232,6 +233,11 @@ namespace EcommerceAPI.Migrations
                 name: "IX_ProductOrderData_OrderDataId",
                 table: "ProductOrderData",
                 column: "OrderDataId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductOrderData_ProductId",
+                table: "ProductOrderData",
+                column: "ProductId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Products_CategoryId",
@@ -254,10 +260,9 @@ namespace EcommerceAPI.Migrations
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_WishListItems_UserId_ProductId",
+                name: "IX_WishListItems_UserId",
                 table: "WishListItems",
-                columns: new[] { "UserId", "ProductId" },
-                unique: true);
+                column: "UserId");
         }
 
         /// <inheritdoc />

@@ -150,103 +150,83 @@ namespace EcommerceAPI.Services
 
         public async Task CreateOrder(AddressDetails addressDetails, List<ShoppingCardViewDto> shoppingCardItems)
         {
-            var orders = new List<OrderData>();
-            List<int>? shoppingCardItemIdsToRemove = new();
-
+            var orderId = Guid.NewGuid().ToString();
             var trackingId = Guid.NewGuid().ToString();
+            var orderTotal = 0L;
+
+            var order = new OrderData
+            {
+                OrderId = orderId,
+                OrderDate = DateTime.Now,
+                ShippingDate = DateTime.Now.AddDays(7),
+                PhoheNumber = addressDetails.PhoheNumber,
+                StreetAddress = addressDetails.StreetAddress,
+                City = addressDetails.City,
+                Country = addressDetails.Country,
+                PostalCode = addressDetails.PostalCode,
+                Name = addressDetails.Name,
+                TrackingId = trackingId
+            };
 
             var orderDetailsList = new List<ProductOrderData>();
 
-            try
+            foreach (ShoppingCardViewDto item in shoppingCardItems)
             {
-                foreach (ShoppingCardViewDto item in shoppingCardItems)
+                var orderDetails = new ProductOrderData
                 {
-                    var order = new OrderData
-                    {
-                        OrderId = Guid.NewGuid().ToString(),
-                        OrderDate = DateTime.Now,
-                        ShippingDate = DateTime.Now.AddDays(7),
-                        OrderTotal = (long)item.Total,
-                        PhoheNumber = addressDetails.PhoheNumber,
-                        StreetAddress = addressDetails.StreetAddress,
-                        City = addressDetails.City,
-                        Country = addressDetails.Country,
-                        PostalCode = addressDetails.PostalCode,
-                        Name = addressDetails.Name,
-                        TrackingId = trackingId
-                    };
+                    OrderDataId = orderId,
+                    ProductId = item.ProductId,
+                    Count = item.ShopingCardProductCount,
+                    Price = item.Total
+                };
 
-                    var orderDetails = new ProductOrderData
-                    {
-                        OrderDataId = order.OrderId,
-                        ProductId = item.ProductId,
-                        Count = item.ShopingCardProductCount,
-                        Price = item.Total
-                    };
+                orderDetailsList.Add(orderDetails);
+                orderTotal += (long)item.Total;
+            }
+            order.OrderTotal = orderTotal;
 
-                    // Add the data to cache
-                    _cacheService.SetData(orderDetails.OrderDataId, orderDetails, DateTimeOffset.Now.AddDays(1));
-
-                    orderDetailsList.Add(orderDetails);
-
-                    orders.Add(order);
-
-                    shoppingCardItemIdsToRemove.Add(item.ShoppingCardItemId);
-
-                }
-
-                var shoppingCardItemsToRemove = await _unitOfWork.Repository<CartItem>()
+            var shoppingCardItemIdsToRemove = shoppingCardItems.Select(x => x.ShoppingCardItemId).ToList();
+            var shoppingCardItemsToRemove = await _unitOfWork.Repository<CartItem>()
                                                      .GetByCondition(x => shoppingCardItemIdsToRemove.Contains(x.CartItemId))
                                                      .ToListAsync();
 
-                _unitOfWork.Repository<OrderData>().CreateRange(orders);
+            _unitOfWork.Repository<OrderData>().Create(order);
+            _unitOfWork.Repository<CartItem>().DeleteRange(shoppingCardItemsToRemove);
+            _unitOfWork.Repository<ProductOrderData>().CreateRange(orderDetailsList);
 
-                _unitOfWork.Repository<CartItem>().DeleteRange(shoppingCardItemsToRemove);
+            _unitOfWork.Complete();
 
-                //Add the data to cache
-                _cacheService.SetData("orderDetailsList", orderDetailsList, DateTimeOffset.Now.AddDays(1));
+            //var pathToFile = "Templates/order_confirmation.html";
 
-                // Get the data from the cache
-                var cachedOrderDetailsList = _cacheService.GetData<List<ProductOrderData>>("orderDetailsList");
-                //TODO CreateRangeList Method 
-                _unitOfWork.Repository<ProductOrderData>().CreateRangeList(cachedOrderDetailsList);
+            //string htmlBody = "";
+            //using (StreamReader streamReader = System.IO.File.OpenText(pathToFile))
+            //{
+            //    htmlBody = streamReader.ReadToEnd();
+            //}
 
-                _unitOfWork.Complete();
+            //double totalPrice = 0;
+            //shoppingCardItems.ForEach(x => totalPrice += x.ProductPrice);
 
-                var pathToFile = "Templates/order_confirmation.html";
+            //var orderIds = orders.Select(x => x.OrderId).ToList();
 
-                string htmlBody = "";
-                using (StreamReader streamReader = System.IO.File.OpenText(pathToFile))
-                {
-                    htmlBody = streamReader.ReadToEnd();
-                }
+            ////var totalPrice = shoppingCardItems.Select(x => x.ProductPrice).Sum();
+            //var orderConfirmationDto = new OrderConirmationDto
+            //{
+            //    UserName = "LifeUser",
+            //    OrderDate = DateTime.Now,
+            //    Price = totalPrice,
+            //    OrderId = string.Join(",", orderIds)
+            //};
 
-                double totalPrice = 0;
-                shoppingCardItems.ForEach(x => totalPrice += x.ProductPrice);
+            //var myData = new[] { "LifeUser", DateTime.Now.ToString(), totalPrice.ToString(), string.Join(",", orderIds) };
 
-                var orderIds = orders.Select(x => x.OrderId).ToList();
+            //var content = string.Format(htmlBody, myData);
 
-                //var totalPrice = shoppingCardItems.Select(x => x.ProductPrice).Sum();
-                var orderConfirmationDto = new OrderConirmationDto
-                {
-                    UserName = "LifeUser",
-                    OrderDate = DateTime.Now,
-                    Price = totalPrice,
-                    OrderId = string.Join(",", orderIds)
-                };
-
-                var myData = new[] { "LifeUser", DateTime.Now.ToString(), totalPrice.ToString(), string.Join(",", orderIds) };
-
-                var content = string.Format(htmlBody, myData);
-
-                await _emailSender.SendEmailAsync(addressDetails.Email, "OrderConfirmation", content);
-
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while creating shopping card item.");
-            }
+            //await _emailSender.SendEmailAsync(addressDetails.Email, "OrderConfirmation", content);
         }
+
+
+
 
     }
 }

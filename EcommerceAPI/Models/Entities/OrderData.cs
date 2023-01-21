@@ -16,11 +16,8 @@ namespace EcommerceAPI.Models.Entities
         public string? OrderStatus { get; set; }
         public string? PaymentStatus { get; set; }
         public string? TransactionId { get; set; }
-
         public DateTime? PaymentDate { get; set; }
         public DateTime? PaymentDueDate { get; set; }
-
-       
         public string PhoheNumber { get; set; }
         public string StreetAddress { get; set; }
         public string City { get; set; }
@@ -29,7 +26,5 @@ namespace EcommerceAPI.Models.Entities
         public string Name { get; set; }
         public string UserId { get; set; }
         public User User { get; set; }
-
-        public ICollection<ProductOrderData> ProductOrderData { get; set; }
     }
 }
