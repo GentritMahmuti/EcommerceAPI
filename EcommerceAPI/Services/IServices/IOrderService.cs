@@ -5,7 +5,7 @@ namespace EcommerceAPI.Services.IServices
     public interface IOrderService
     {
         Task ProcessOrder(List<string> orderIds, string status);
-        OrderData GetOrder(string orderId);
-        void UpdateOrder(OrderData order);
+        Task<OrderData> GetOrder(string orderId);
+        Task UpdateOrder(OrderData order);
     }
 }

@@ -2,6 +2,7 @@
 using EcommerceAPI.Models.DTOs.Stripe;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
+using StackExchange.Redis;
 using Stripe;
 
 namespace EcommerceAPI.Services
@@ -12,6 +13,7 @@ namespace EcommerceAPI.Services
         private readonly CustomerService _customerService;
         private readonly TokenService _tokenService;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IOrderService _orderService;
 
         public StripeAppService(ChargeService chargeService, CustomerService customerService, TokenService tokenService, IUnitOfWork unitOfWork)
         {
@@ -70,6 +72,17 @@ namespace EcommerceAPI.Services
 
             // Create the payment
             var createdPayment = await _chargeService.CreateAsync(paymentOptions, null, ct);
+
+
+            // update the OrderData
+            orderData.PaymentStatus = "paid";
+            orderData.TransactionId = createdPayment.Id;
+            orderData.PaymentDate = DateTime.Now;
+            orderData.PaymentDueDate = DateTime.Now.AddDays(30);
+
+            // Save the changes
+            _unitOfWork.Complete();
+
 
             return new StripePayment(
                 createdPayment.CustomerId,

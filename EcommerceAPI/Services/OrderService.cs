@@ -4,6 +4,7 @@ using EcommerceAPI.Helpers;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace EcommerceAPI.Services
 {
@@ -19,22 +20,28 @@ namespace EcommerceAPI.Services
             _mapper = mapper;
         }
 
-        public OrderData GetOrder(string orderId)
+
+        public async Task<OrderData> GetOrder(string orderId)
         {
-            var orderData = _unitOfWork.Repository<OrderData>().GetByCondition(o => o.OrderId == orderId).SingleOrDefault();
-            if (orderData == null)
-            {
-                throw new Exception("Order not found");
-            }
+            Expression<Func<OrderData, bool>> expression = x => x.OrderId == orderId;
+            var orderData = await _unitOfWork.Repository<OrderData>().GetById(expression).FirstOrDefaultAsync();
+
             return orderData;
         }
 
-        public void UpdateOrder(OrderData order)
+        public async Task UpdateOrder(OrderData order)
         {
-            _unitOfWork.Repository<OrderData>().Update(order);
+            var product = await GetOrder(order.OrderId);
+            if (product == null)
+            {
+                throw new NullReferenceException("The orderdata you're trying to update doesn't exist!");
+            }
+            product.Name = order.Name;
+
+            _unitOfWork.Repository<OrderData>().Update(product);
+
             _unitOfWork.Complete();
         }
-
 
         public async Task ProcessOrder(List<string> orderIds, string status)
         {
