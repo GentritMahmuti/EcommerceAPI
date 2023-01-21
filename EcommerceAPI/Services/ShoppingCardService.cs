@@ -27,12 +27,15 @@ namespace EcommerceAPI.Services
 
         public async Task AddProductToCard(string userId, int productId, int count)
         {
+            
             var shoppingCardItem = new CartItem
             {
                 UserId = userId,
                 ProductId = productId,
                 Count = count
             };
+            
+            
 
             _unitOfWork.Repository<CartItem>().Create(shoppingCardItem);
             _unitOfWork.Complete();
@@ -130,6 +133,20 @@ namespace EcommerceAPI.Services
 
             foreach (ShoppingCardViewDto item in shoppingCardItems)
             {
+                var product = await _unitOfWork.Repository<Product>().GetById(x => x.Id == item.ProductId).FirstOrDefaultAsync();
+                if (product == null)
+                {
+                    throw new Exception("Product not found.");
+                }
+
+                if (product.Stock < item.ShopingCardProductCount)
+                {
+                    throw new Exception("Stock is not sufficient.");
+                }
+
+                product.Stock -= item.ShopingCardProductCount;
+                _unitOfWork.Repository<Product>().Update(product);
+                
                 var orderDetails = new ProductOrderData
                 {
                     OrderDataId = orderId,
