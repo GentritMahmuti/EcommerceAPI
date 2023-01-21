@@ -31,5 +31,7 @@ namespace EcommerceAPI.Models.Entities
 
         public ICollection<Review> SubmittedReviews { get; set; }
 
+        public ICollection<ProductOrderData> ProductOrderData { get; set; }
+
     }
 }
