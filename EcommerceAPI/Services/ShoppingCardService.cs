@@ -51,7 +51,6 @@ namespace EcommerceAPI.Services
             {
                 var currentProduct = item.Product;
 
-                var calculatedPrice = HelperMethods.GetPriceByQuantity(item.Count, currentProduct.Price);
 
                 var model = new ShoppingCardViewDto
                 {
@@ -60,9 +59,9 @@ namespace EcommerceAPI.Services
                     ProductImage = currentProduct.ImageUrl,
                     ProductDescription = currentProduct.Description,
                     ProductName = currentProduct.Name,
-                    ProductPrice = calculatedPrice,
+                    ProductPrice = currentProduct.Price,
                     ShopingCardProductCount = item.Count,
-                    Total = calculatedPrice * item.Count
+                    Total = currentProduct.Price * item.Count
                 };
 
                 shoppingCardList.Add(model);

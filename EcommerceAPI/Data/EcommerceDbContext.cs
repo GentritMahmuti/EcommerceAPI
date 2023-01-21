@@ -28,12 +28,14 @@ namespace EcommerceAPI.Data
             modelBuilder.Entity<ProductOrderData>()
                 .HasOne(p => p.Product)
                 .WithMany(pod => pod.ProductOrderData)
-                .HasForeignKey(pi => pi.ProductId);
+                .HasForeignKey(pi => pi.ProductId).OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<ProductOrderData>()
                 .HasOne(od => od.OrderData)
                 .WithMany(pod => pod.ProductOrderData)
                 .HasForeignKey(odi => odi.OrderDataId);
+
+
         }
 
         public DbSet<Product> Products { get; set; }

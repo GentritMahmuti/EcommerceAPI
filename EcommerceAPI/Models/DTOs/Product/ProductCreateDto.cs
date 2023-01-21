@@ -22,6 +22,6 @@ namespace EcommerceAPI.Models.DTOs.Product
 
         public int Stock { get; set; }
 
-        public DateTime CreatedDateTime { get; set; } = DateTime.Now;
+        //public DateTime CreatedDateTime { get; set; } = DateTime.Now;
     }
 }
