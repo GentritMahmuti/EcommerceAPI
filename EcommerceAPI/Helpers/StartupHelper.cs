@@ -13,9 +13,8 @@ namespace EcommerceAPI.Helpers
             services.AddTransient<IProductService, ProductService>();
             services.AddTransient<ICategoryService, CategoryService>();
             services.AddTransient<IUserService, UserService>();
-            services.AddTransient<IShoppingCardService, ShoppingCardService>();
+            //services.AddTransient<IShoppingCardService, ShoppingCardService>();
             services.AddTransient<IOrderService, OrderService>();
-            services.AddTransient<ICoverTypeService, CoverTypeService>();
             services.AddTransient<IReviewService, ReviewService>();
         }
         public static void AddEmailSenders(this IServiceCollection services, IConfiguration configuration)

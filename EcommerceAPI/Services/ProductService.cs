@@ -162,7 +162,7 @@ namespace EcommerceAPI.Services
             {
                 throw new NullReferenceException("The product you're trying to update doesn't exist!");
             }
-            product.Title = productToUpdate.Title;
+            product.Name = productToUpdate.Name;
 
             _unitOfWork.Repository<Product>().Update(product);
 
@@ -171,7 +171,7 @@ namespace EcommerceAPI.Services
 
         public async Task<PagedInfo<Product>> ProductsListView(string search, int page, int pageSize, int categoryId = 0)
         {
-            Expression<Func<Product, bool>> condition = x => x.Title.Contains(search);
+            Expression<Func<Product, bool>> condition = x => x.Name.Contains(search);
 
             IQueryable<Product> products;
 
@@ -213,7 +213,7 @@ namespace EcommerceAPI.Services
                .Size(pageSize)
                .Query(q => q
                     .Match(m => m
-                        .Field(f => f.Title)
+                        .Field(f => f.Name)
                             .Query(input.Title)
                  ) && q
                  .Range(r => r
@@ -274,7 +274,7 @@ namespace EcommerceAPI.Services
             var response = await _elasticClient.GetAsync<Product>(product.Id, x => x.Index("products"));
             var existingProduct = response.Source;
 
-            existingProduct.Title = product.Title;
+            existingProduct.Name = product.Name;
             existingProduct.Description = product.Description;
             existingProduct.Price = product.Price;
             existingProduct.Category = product.Category;
