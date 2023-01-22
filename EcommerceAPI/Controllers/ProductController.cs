@@ -133,27 +133,7 @@ namespace EcommerceAPI.Controllers
             return Ok(response);
         }
 
-        [HttpPost("AddProductElastic")]
-        public async Task<IActionResult> AddProductElastic([FromBody] ProductDto productToAdd)
-        {
-            var result = await _productService.AddProductElastic(productToAdd);
-            return Ok(result.Result);
-        }
-
-        [HttpGet("GetByIdElastic")]
-        public async Task<IActionResult> GetByIdElastic(int id, string index)
-        {
-            if (index == null)
-            {
-                index = "products";
-            }
-            var product = await _productService.GetByIdElastic(id, index);
-            if (product == null)
-            {
-                return NotFound();
-            }
-            return Ok(product);
-        }
+       
 
         [HttpGet("GetAllElastic")]
         public async Task<IActionResult> GetAllElastic()
@@ -162,19 +142,7 @@ namespace EcommerceAPI.Controllers
             return Ok(products);
         }
 
-        [HttpPost("AddBulkElastic")]
-        public async Task<IActionResult> AddBulkElastic([FromBody] List<ProductDto> productsToCreate)
-        {
-            try
-            {
-                await _productService.AddBulkElastic(productsToCreate);
-                return Ok("Products are added successfully!");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"An error happened: '{ex.Message}'");
-            }
-        }
+       
 
         [HttpPut("UpdateElastic")]
         public async Task<IActionResult> UpdateElastic([FromBody] ProductDto product)
@@ -203,12 +171,7 @@ namespace EcommerceAPI.Controllers
                 return BadRequest($"An error happened: '{ex.Message}'");
             }
         }
-        [HttpDelete("DeleteByIdElastic")]
-        public async Task<IActionResult> DeleteProductByIdInElastic(int id)
-        {
-            await _productService.DeleteProductByIdInElastic(id);
-            return Ok("Product deleted successfully!");
-        }
+      
         [HttpPut("ProductDiscount")]
         public async Task<IActionResult> ProductDiscount(int productId, [Range(1, 100, ErrorMessage = "Value for discount percentage must be between 1 and 100.")] int discountPercentage)
         {

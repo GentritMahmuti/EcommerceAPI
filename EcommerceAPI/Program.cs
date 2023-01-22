@@ -23,6 +23,7 @@ using claims = System.Security.Claims;
 using EcommerceAPI.Validators;
 using Stripe;
 using EcommerceAPI.Infrastructure;
+using EcommerceAPI.Workers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -161,6 +162,8 @@ builder.Logging.AddSerilog(logger);
 
 builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(logger);
+
+builder.Services.AddHostedService<UpdateElasticBackgroundService>();
 
 
 
