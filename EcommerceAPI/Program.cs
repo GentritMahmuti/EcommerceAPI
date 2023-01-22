@@ -24,6 +24,10 @@ using EcommerceAPI.Validators;
 using Stripe;
 using EcommerceAPI.Infrastructure;
 using EcommerceAPI.Hubs;
+using EcommerceAPI.Workers;
+using FluentAssertions.Common;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +37,8 @@ builder.Services.AddScoped<IValidator<Category>, CategoryValidator>();
 builder.Services.AddScoped<IValidator<EcommerceAPI.Models.Entities.Product>, ProductValidator>();
 //builder.Services.AddScoped<IValidator<OrderDetails>, OrderDetailsValidator>();
 builder.Services.AddScoped<IValidator<ReviewCreateDto>, ReviewValidator>();
+
+
 
 builder.Services.AddAuthentication(options =>
 {
@@ -161,6 +167,7 @@ builder.Logging.AddSerilog(logger);
 builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(logger);
 
+builder.Services.AddHostedService<UpdateElasticBackgroundService>();
 
 
 
@@ -204,14 +211,16 @@ builder.Services.AddServices();
 var pool = new SingleNodeConnectionPool(new Uri("https://localhost:9200"));
 
 var connectionSettings = new ConnectionSettings(pool)
-                .BasicAuthentication("elastic", "pfEzK09bAv3=ie56=DFX")
-                .CertificateFingerprint("e607c5b0f141794f57bed41248bf36bb3711bed76fa9e526719cf1aeff4968c8");
+                .BasicAuthentication("elastic", "eboNxDUFV1NIhJMSMhbi")
+                .CertificateFingerprint("78e440c7620e82b2b8215339b1fef65ea0ff4ef491e350ac521fa897d50833ac");
 
 var client = new ElasticClient(connectionSettings);
 
 builder.Services.AddSingleton(client);
 
 builder.Services.AddScoped<ICacheService, CacheService>();
+
+builder.Services.AddScoped<IWishlistService, WishlistService>();
 
 
 var app = builder.Build();

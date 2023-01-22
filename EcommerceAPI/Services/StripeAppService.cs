@@ -55,42 +55,39 @@ namespace EcommerceAPI.Services
             return new StripeCustomer(createdCustomer.Name, createdCustomer.Email, createdCustomer.Id);
         }
 
-        public async Task<StripePayment> AddStripePaymentAsync(AddStripePayment payment, CancellationToken ct, string orderId)
+      
+        public async Task<string> AddStripePaymentAsync(AddStripePayment payment, CancellationToken ct, string orderId)
         {
-
             var orderData = _unitOfWork.Repository<OrderData>().GetByCondition(o => o.OrderId == orderId).FirstOrDefault();
 
-            // Set the options for the payment we would like to create at Stripe
             ChargeCreateOptions paymentOptions = new ChargeCreateOptions
             {
                 Customer = payment.CustomerId,
                 ReceiptEmail = payment.ReceiptEmail,
                 Description = "Order Payment",
                 Currency = "usd",
-                Amount = (long)(orderData.OrderTotal * 100)
+                Amount = (long)(orderData.OrderFinalPrice * 100)
             };
 
-            // Create the payment
             var createdPayment = await _chargeService.CreateAsync(paymentOptions, null, ct);
 
 
-            // update the OrderData
-            orderData.PaymentStatus = "paid";
-            orderData.TransactionId = createdPayment.Id;
-            orderData.PaymentDate = DateTime.Now;
-            orderData.PaymentDueDate = DateTime.Now.AddDays(30);
 
-            // Save the changes
-            _unitOfWork.Complete();
+            if (createdPayment.Status == "succeeded")
+            {
+                orderData.PaymentStatus = "paid";
+                orderData.TransactionId = createdPayment.Id;
+                orderData.PaymentDate = DateTime.Now;
+                orderData.PaymentDueDate = DateTime.Now.AddDays(30);
 
-
-            return new StripePayment(
-                createdPayment.CustomerId,
-                createdPayment.ReceiptEmail,
-                createdPayment.Description,
-                createdPayment.Currency,
-                orderData.OrderTotal,
-                createdPayment.Id);
+                _unitOfWork.Complete();
+                
+                return "Payment was successful!";
+            }
+            else
+            {
+                return "Payment failed. Please try again.";
+            }
         }
     }
 }

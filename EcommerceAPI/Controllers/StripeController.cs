@@ -25,11 +25,12 @@ namespace EcommerceAPI.Controllers
         }
 
         [HttpPost("payment/add")]
-        public async Task<ActionResult<StripePayment>> AddStripePayment([FromBody] AddStripePayment payment, CancellationToken ct, string orderId)
+        public async Task<ActionResult<string>> AddStripePayment([FromBody] AddStripePayment payment, CancellationToken ct, string orderId)
         {
-            StripePayment createdPayment = await _stripeService.AddStripePaymentAsync(payment, ct, orderId);
+            string paymentId = await _stripeService.AddStripePaymentAsync(payment, ct, orderId);
 
-            return StatusCode(StatusCodes.Status200OK, createdPayment);
+            return StatusCode(StatusCodes.Status200OK, paymentId);
         }
+
     }
 }

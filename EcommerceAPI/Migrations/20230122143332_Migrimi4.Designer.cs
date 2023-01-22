@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EcommerceAPI.Migrations
 {
     [DbContext(typeof(EcommerceDbContext))]
-    [Migration("20230121162915_Create-Database")]
-    partial class CreateDatabase
+    [Migration("20230122143332_Migrimi4")]
+    partial class Migrimi4
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -356,7 +356,7 @@ namespace EcommerceAPI.Migrations
                     b.HasOne("EcommerceAPI.Models.Entities.Product", "Product")
                         .WithMany("ProductOrderData")
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("OrderData");

@@ -1,6 +1,9 @@
-﻿using EcommerceAPI.Services.IServices;
+﻿using EcommerceAPI.Models.Entities;
+using EcommerceAPI.Services.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace EcommerceAPI.Controllers
 {
@@ -17,12 +20,12 @@ namespace EcommerceAPI.Controllers
             _configuration = configuration;
         }
 
+        //[Authorize(Roles = "LifeAdmin")]
         [HttpPost("ProcessOrder")]
-        public async Task<IActionResult> ProcessOrder(List<string> orderIds, string status)
+        public async Task<IActionResult> ProcessOrder(string orderId, string status)
         {
-            await _orderService.ProcessOrder(orderIds, status);
-
-            return Ok($"Now selected orders are in new status: {status}");
+            await _orderService.ProcessOrder(orderId, status);
+            return Ok($"Now selected order is in new status: {status}");
         }
     }
 }
