@@ -34,6 +34,32 @@ namespace EcommerceAPI.Controllers
             return Ok("Added to card!");
         }
 
+        [HttpDelete("RemoveFromCard")]
+        public async Task<IActionResult> RemoveProductFromCard(int shoppingCardItemId)
+        {
+            var userData = (ClaimsIdentity)User.Identity;
+            var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            if (userId == null) { return Unauthorized(); }
+            
+            await _cardService.RemoveProductFromCard(shoppingCardItemId);
+
+            return Ok("Removed from card!");
+        }
+
+        [HttpDelete("RemoveAllProductsFromCard")]
+        public async Task<IActionResult> RemoveAllProductsFromCard()
+        {
+            var userData = (ClaimsIdentity)User.Identity;
+            var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            if (userId == null) { return Unauthorized(); }
+
+            await _cardService.RemoveAllProductsFromCard(userId);
+
+            return Ok("All products removed from card!");
+        }
+
 
         [HttpGet("ShoppingCardContent")]
         public async Task<IActionResult> ShoppingCardContent()
@@ -82,7 +108,7 @@ namespace EcommerceAPI.Controllers
 
             if (userId == null) { return Unauthorized(); }
 
-            await _cardService.CreateOrder(model.AddressDetails, model.ShoppingCardItems);
+            await _cardService.CreateOrder(model.AddressDetails, model.ShoppingCardItems, model.PromoCode);
 
             return Ok();
         }
