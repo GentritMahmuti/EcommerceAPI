@@ -66,7 +66,7 @@ namespace EcommerceAPI.Services
                 ReceiptEmail = payment.ReceiptEmail,
                 Description = "Order Payment",
                 Currency = "usd",
-                Amount = (long)(orderData.OrderTotal * 100)
+                Amount = (long)(orderData.OrderFinalPrice * 100)
             };
 
             var createdPayment = await _chargeService.CreateAsync(paymentOptions, null, ct);
