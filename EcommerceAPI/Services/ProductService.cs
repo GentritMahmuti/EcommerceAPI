@@ -120,7 +120,11 @@ namespace EcommerceAPI.Services
             return products.ToList();
         }
 
-
+        public async Task<List<Product>> GetProductsCreatedLast()
+        {
+            var products = _unitOfWork.Repository<Product>().GetByCondition(x => x.CreatedDateTime > DateTime.Now.AddHours(-1)).ToList();
+            return products;   
+        }
         public async Task CreateProduct(ProductCreateDto productToCreate)
         {
             var product = _mapper.Map<Product>(productToCreate);
@@ -226,29 +230,6 @@ namespace EcommerceAPI.Services
             return response.Documents.ToList();
         }
 
-        public async Task<IndexResponse> AddProductElastic(ProductDto productToCreate)
-        {
-            var product = _mapper.Map<Product>(productToCreate);
-            var result = await _elasticClient.IndexAsync
-              (product, x => x.Index("products").Id(product.Id));
-
-            if (result.IsValid)
-            {
-                _logger.LogInformation("Added product using elastic successfully!");
-            }
-            return result;
-        }
-
-        public async Task<Product> GetByIdElastic(int id, string index)
-        {
-            var response = await _elasticClient.GetAsync<Product>(id, x => x.Index(index));
-            if (response.Source != null)
-            {
-                _logger.LogInformation("Found product by id using elastic successfully!");
-            }
-            return response.Source;
-        }
-
         public async Task<List<Product>> GetAllElastic()
         {
             var response = await _elasticClient.SearchAsync<Product>(s =>
@@ -259,11 +240,10 @@ namespace EcommerceAPI.Services
             return response.Documents.ToList();
         }
 
-        public async Task AddBulkElastic(List<ProductDto> products)
+        public async Task AddBulkElastic(List<Product> products)
         {
-            var productsToCreate = _mapper.Map<List<ProductDto>, List<Product>>(products);
             var result = await _elasticClient.BulkAsync(x =>
-                x.Index("products").IndexMany(productsToCreate));
+                x.Index("products").IndexMany(products));
             _logger.LogInformation("Added bulk of products in elastic successfully!");
         }
 
@@ -292,18 +272,10 @@ namespace EcommerceAPI.Services
                    .Index("products")
                    .Query(q => q.MatchAll())
                );
+
             _logger.LogInformation("Deleted all products from elastic successfully!");
         }
-        public async Task DeleteProductByIdInElastic(int id)
-        {
-            var deleteResponse = _elasticClient.Delete<Product>(id, d => d
-            .Index("products")
-            );
-            if (!deleteResponse.IsValid)
-            {
-                throw new Exception("There isn't a product with that ID");
-            }
-        }
+       
 
         public async Task<string> UploadImage(IFormFile? file, int productId)
         {
