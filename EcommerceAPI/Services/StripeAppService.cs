@@ -67,7 +67,7 @@ namespace EcommerceAPI.Services
                 ReceiptEmail = payment.ReceiptEmail,
                 Description = "Order Payment",
                 Currency = "usd",
-                Amount = (long)(orderData.OrderTotal * 100)
+                Amount = (long)(orderData.OrderFinalPrice * 100)
             };
 
             // Create the payment
