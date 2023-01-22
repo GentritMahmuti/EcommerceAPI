@@ -23,6 +23,7 @@ using claims = System.Security.Claims;
 using EcommerceAPI.Validators;
 using Stripe;
 using EcommerceAPI.Infrastructure;
+using FluentAssertions.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -164,7 +165,6 @@ builder.Logging.AddSerilog(logger);
 
 
 
-
 builder.Services.AddEmailSenders(builder.Configuration);
 
 var smtpConfigurations = builder.Configuration.GetSection(nameof(SmtpConfiguration)).Get<SmtpConfiguration>();
@@ -200,6 +200,8 @@ var client = new ElasticClient(connectionSettings);
 builder.Services.AddSingleton(client);
 
 builder.Services.AddScoped<ICacheService, CacheService>();
+
+builder.Services.AddScoped<IWishlistService, WishlistService>();
 
 
 var app = builder.Build();
