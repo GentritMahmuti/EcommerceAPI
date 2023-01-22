@@ -34,9 +34,6 @@ namespace EcommerceAPI.Services
                 throw new Exception("An error occurred while getting the wishlist content for user");
             }
         }
-
-
-
         public async Task AddProductToWishlist(string userId, int productId)
         {
             try
@@ -92,6 +89,47 @@ namespace EcommerceAPI.Services
             {
                 _logger.LogError(ex, "An error occurred while removing the item in your wishlist");
                 throw new Exception("An error occurred while removing the item in your wishlist");
+            }
+        }
+
+        public async Task AddToCart(int productId)
+        {
+            try
+            {
+                var product = await _unitOfWork.Repository<Product>().GetById(x => x.Id == productId).FirstOrDefaultAsync();
+                if (product == null)
+                {
+                    throw new Exception("Product not found");
+                }
+
+                var cartItems = await _unitOfWork.Repository<CartItem>().GetByCondition(c => c.ProductId == productId).ToListAsync();
+
+                if (cartItems.Any(x => x.ProductId == productId))
+                {
+                    var existingCartItem = cartItems.FirstOrDefault(x => x.ProductId == productId);
+                    existingCartItem.Count += 1;
+                    _unitOfWork.Repository<CartItem>().Update(existingCartItem);
+                    _unitOfWork.Complete();
+                }
+                else
+                {
+                    var item = new CartItem
+                    {
+                        CartItemId = 0,
+                        ProductId = productId,
+                        Price = product.Price,
+                        Count = 1,
+                        DateCreated = DateTime.Now
+                    };
+
+                    _unitOfWork.Repository<CartItem>().Create(item);
+                    _unitOfWork.Complete();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while adding the item to the cart");
+                throw new Exception("An error occurred while adding the item to the cart");
             }
         }
     }

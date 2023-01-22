@@ -17,7 +17,7 @@ namespace EcommerceAPI.Controllers
 
         public WishListController(IWishlistService wishlistService)
         {
-           _wishlistService = wishlistService;
+            _wishlistService = wishlistService;
         }
 
         [HttpGet("GetWishlistContent")]
@@ -80,7 +80,7 @@ namespace EcommerceAPI.Controllers
                 return BadRequest(ex.Message);
             }
         }
-
     }
 }
+
 
