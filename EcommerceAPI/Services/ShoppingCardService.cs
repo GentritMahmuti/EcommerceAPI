@@ -7,7 +7,10 @@ using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using RabbitMQ.Client;
 using System;
+using System.Text;
 
 namespace EcommerceAPI.Services
 {
@@ -16,12 +19,13 @@ namespace EcommerceAPI.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IEmailSender _emailSender;
-
-        public ShoppingCardService(IUnitOfWork unitOfWork, IMapper mapper, IEmailSender emailSender)
+        private readonly ILogger<ShoppingCardService> _logger;
+        public ShoppingCardService(IUnitOfWork unitOfWork, IMapper mapper, IEmailSender emailSender, ILogger<ShoppingCardService> logger)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _emailSender = emailSender;
+            _logger = logger;
         }
 
 
@@ -154,35 +158,40 @@ namespace EcommerceAPI.Services
 
             _unitOfWork.Complete();
 
-            //var pathToFile = "Templates/order_confirmation.html";
+            double totalPrice = 0;
+            totalPrice = shoppingCardItems.Select(x => x.Total).Sum();
 
-            //string htmlBody = "";
-            //using (StreamReader streamReader = System.IO.File.OpenText(pathToFile))
-            //{
-            //    htmlBody = streamReader.ReadToEnd();
-            //}
-
-            //double totalPrice = 0;
-            //shoppingCardItems.ForEach(x => totalPrice += x.ProductPrice);
-
-            //var orderIds = orders.Select(x => x.OrderId).ToList();
-
-            ////var totalPrice = shoppingCardItems.Select(x => x.ProductPrice).Sum();
-            //var orderConfirmationDto = new OrderConirmationDto
-            //{
-            //    UserName = "LifeUser",
-            //    OrderDate = DateTime.Now,
-            //    Price = totalPrice,
-            //    OrderId = string.Join(",", orderIds)
-            //};
-
-            //var myData = new[] { "LifeUser", DateTime.Now.ToString(), totalPrice.ToString(), string.Join(",", orderIds) };
-
-            //var content = string.Format(htmlBody, myData);
-
-            //await _emailSender.SendEmailAsync(addressDetails.Email, "OrderConfirmation", content);
+            var orderConfirmationDto = new OrderConfirmationDto
+            {
+                UserName = addressDetails.Name,
+                OrderDate = DateTime.Now,
+                Price = totalPrice,
+                OrderId = orderId,
+                Email = addressDetails.Email,
+            };
+            PublishOrderConfirmation(orderConfirmationDto);
         }
+        public void PublishOrderConfirmation(OrderConfirmationDto rabbitData)
+        {
+            var factory = new ConnectionFactory() { HostName = "localhost" };
+            using (var connection = factory.CreateConnection())
+            using (var channel = connection.CreateModel())
+            {
+                channel.QueueDeclare(queue: "order-confirmations",
+                                     durable: true,
+                                     exclusive: false,
+                                     autoDelete: false,
+                                     arguments: null);
 
+                var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(rabbitData));
+
+                channel.BasicPublish(exchange: "",
+                                     routingKey: "order-confirmations",
+                                     basicProperties: null,
+                                     body: body);
+                _logger.LogInformation("Data for order confirmation is published to the rabbit!");
+            }
+        }
 
     }
 }

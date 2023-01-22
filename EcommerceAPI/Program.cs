@@ -33,6 +33,8 @@ builder.Services.AddScoped<IValidator<EcommerceAPI.Models.Entities.Product>, Pro
 //builder.Services.AddScoped<IValidator<OrderDetails>, OrderDetailsValidator>();
 builder.Services.AddScoped<IValidator<ReviewCreateDto>, ReviewValidator>();
 
+
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
