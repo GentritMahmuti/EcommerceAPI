@@ -15,6 +15,7 @@ using Stripe;
 using System;
 using System.Linq.Expressions;
 using System.Text;
+using Product = EcommerceAPI.Models.Entities.Product;
 
 namespace EcommerceAPI.Services
 {
@@ -247,7 +248,7 @@ namespace EcommerceAPI.Services
 
             foreach (ShoppingCardViewDto item in shoppingCardItems)
             {
-                var product = await _unitOfWork.Repository<Models.Entities.Product>().GetById(x => x.Id == item.ProductId).FirstOrDefaultAsync();
+                var product = await _unitOfWork.Repository<Product>().GetById(x => x.Id == item.ProductId).FirstOrDefaultAsync();
                 if (product == null)
                 {
                     throw new Exception("Product not found.");
@@ -296,18 +297,18 @@ namespace EcommerceAPI.Services
 
             _unitOfWork.Complete();
 
-            //double totalPrice = 0;
-            //totalPrice = shoppingCardItems.Select(x => x.Total).Sum();
+            double totalPrice = 0;
+            totalPrice = shoppingCardItems.Select(x => x.Total).Sum();
 
-            //var orderConfirmationDto = new OrderConfirmationDto
-            //{
-            //    UserName = addressDetails.Name,
-            //    OrderDate = DateTime.Now,
-            //    Price = totalPrice,
-            //    OrderId = orderId,
-            //    Email = addressDetails.Email,
-            //};
-            //PublishOrderConfirmation(orderConfirmationDto);
+            var orderConfirmationDto = new OrderConfirmationDto
+            {
+                UserName = addressDetails.Name,
+                OrderDate = DateTime.Now,
+                Price = totalPrice,
+                OrderId = orderId,
+                Email = addressDetails.Email,
+            };
+            PublishOrderConfirmation(orderConfirmationDto);
         }
 
         async private Task<(int PromotionId, double orderTotal)> CheckPromoCode(string promoCode, double orderTotal)
