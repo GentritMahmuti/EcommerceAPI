@@ -39,8 +39,6 @@ namespace EcommerceAPI.Services
                 Count = count
             };
             
-            
-
             _unitOfWork.Repository<CartItem>().Create(shoppingCardItem);
             _unitOfWork.Complete();
         }
@@ -81,6 +79,17 @@ namespace EcommerceAPI.Services
             };
 
             return shoppingCardDetails;
+        }
+
+        public async Task RemoveProductFromCard(int shoppingCardItemId)
+        {
+            var shoppingCardItem = await _unitOfWork.Repository<CartItem>()
+                                                                .GetById(x => x.CartItemId == shoppingCardItemId)
+                                                                .FirstOrDefaultAsync();
+
+            _unitOfWork.Repository<CartItem>().Delete(shoppingCardItem);
+            _unitOfWork.Complete();
+            
         }
 
         public async Task Plus(int shoppingCardItemId, int? newQuantity)

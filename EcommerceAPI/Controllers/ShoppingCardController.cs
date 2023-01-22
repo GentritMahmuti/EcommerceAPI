@@ -34,6 +34,19 @@ namespace EcommerceAPI.Controllers
             return Ok("Added to card!");
         }
 
+        [HttpDelete("RemoveFromCard")]
+        public async Task<IActionResult> RemoveProductFromCard(int shoppingCardItemId)
+        {
+            var userData = (ClaimsIdentity)User.Identity;
+            var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            if (userId == null) { return Unauthorized(); }
+            
+            await _cardService.RemoveProductFromCard(shoppingCardItemId);
+
+            return Ok("Removed from card!");
+        }
+
 
         [HttpGet("ShoppingCardContent")]
         public async Task<IActionResult> ShoppingCardContent()
