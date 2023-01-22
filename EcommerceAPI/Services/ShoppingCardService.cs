@@ -8,9 +8,12 @@ using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
+using Stripe;
 using System;
+using System.Linq.Expressions;
 using System.Text;
 
 namespace EcommerceAPI.Services
@@ -149,6 +152,17 @@ namespace EcommerceAPI.Services
             }
         }
 
+        public async Task RemoveAllProductsFromCard(string userId)
+        {
+            var shoppingCardItems = _unitOfWork.Repository<CartItem>()
+                                                                .GetByCondition(x => x.UserId.Equals(userId))
+                                                                .ToList();
+
+            _unitOfWork.Repository<CartItem>().DeleteRange(shoppingCardItems);
+            _unitOfWork.Complete();
+
+        }
+
         public async Task Plus(int shoppingCardItemId, int? newQuantity)
         {
             try
@@ -209,11 +223,11 @@ namespace EcommerceAPI.Services
             }
         }
 
-        public async Task CreateOrder(AddressDetails addressDetails, List<ShoppingCardViewDto> shoppingCardItems)
+        public async Task CreateOrder(AddressDetails addressDetails, List<ShoppingCardViewDto> shoppingCardItems, string promoCode)
         {
             var orderId = Guid.NewGuid().ToString();
             var trackingId = Guid.NewGuid().ToString();
-            var orderTotal = 0L;
+            var orderCalculatedPrice = 0.0;
 
             var order = new OrderData
             {
@@ -233,7 +247,7 @@ namespace EcommerceAPI.Services
 
             foreach (ShoppingCardViewDto item in shoppingCardItems)
             {
-                var product = await _unitOfWork.Repository<Product>().GetById(x => x.Id == item.ProductId).FirstOrDefaultAsync();
+                var product = await _unitOfWork.Repository<Models.Entities.Product>().GetById(x => x.Id == item.ProductId).FirstOrDefaultAsync();
                 if (product == null)
                 {
                     throw new Exception("Product not found.");
@@ -245,6 +259,7 @@ namespace EcommerceAPI.Services
                 }
 
                 product.Stock -= item.ShopingCardProductCount;
+
                 _unitOfWork.Repository<Product>().Update(product);
 
                 var orderDetails = new ProductOrderData
@@ -256,9 +271,19 @@ namespace EcommerceAPI.Services
                 };
 
                 orderDetailsList.Add(orderDetails);
-                orderTotal += (long)item.Total;
+                orderCalculatedPrice += item.Total;
             }
-            order.OrderTotal = orderTotal;
+            order.OrderPrice = orderCalculatedPrice;
+            (int PromotionId, double orderFinalPrice) promotionData;
+            promotionData.orderFinalPrice = orderCalculatedPrice;
+            promotionData.PromotionId = 0;
+            if (!promoCode.IsNullOrEmpty())
+            {
+                promotionData = await CheckPromoCode(promoCode, orderCalculatedPrice);
+                order.PromotionId = promotionData.PromotionId;
+            }
+            order.OrderFinalPrice = promotionData.orderFinalPrice;
+            
 
             var shoppingCardItemIdsToRemove = shoppingCardItems.Select(x => x.ShoppingCardItemId).ToList();
             var shoppingCardItemsToRemove = await _unitOfWork.Repository<CartItem>()
@@ -271,19 +296,40 @@ namespace EcommerceAPI.Services
 
             _unitOfWork.Complete();
 
-            double totalPrice = 0;
-            totalPrice = shoppingCardItems.Select(x => x.Total).Sum();
+            //double totalPrice = 0;
+            //totalPrice = shoppingCardItems.Select(x => x.Total).Sum();
 
-            var orderConfirmationDto = new OrderConfirmationDto
-            {
-                UserName = addressDetails.Name,
-                OrderDate = DateTime.Now,
-                Price = totalPrice,
-                OrderId = orderId,
-                Email = addressDetails.Email,
-            };
-            PublishOrderConfirmation(orderConfirmationDto);
+            //var orderConfirmationDto = new OrderConfirmationDto
+            //{
+            //    UserName = addressDetails.Name,
+            //    OrderDate = DateTime.Now,
+            //    Price = totalPrice,
+            //    OrderId = orderId,
+            //    Email = addressDetails.Email,
+            //};
+            //PublishOrderConfirmation(orderConfirmationDto);
         }
+
+        async private Task<(int PromotionId, double orderTotal)> CheckPromoCode(string promoCode, double orderTotal)
+        {
+            var promotion = await _unitOfWork.Repository<Promotion>().GetByCondition(x=>x.Name.Equals(promoCode)).FirstOrDefaultAsync();
+            if(promotion == null)
+            {  
+                throw new NullReferenceException("Promotion code is incorrect.");
+            }
+            if(!promotion.IsActive())
+            {
+                throw new NullReferenceException("This promotion code is not active anymore.");
+            }
+            else
+            {
+                orderTotal = orderTotal - (orderTotal * promotion.DiscountAmount / 100);
+            }
+            return (promotion.Id, orderTotal);
+           
+            
+        }
+
         public void PublishOrderConfirmation(OrderConfirmationDto rabbitData)
         {
             var factory = new ConnectionFactory() { HostName = "localhost" };
