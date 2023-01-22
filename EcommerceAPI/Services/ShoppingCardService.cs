@@ -95,6 +95,17 @@ namespace EcommerceAPI.Services
             
         }
 
+        public async Task RemoveAllProductsFromCard(string userId)
+        {
+            var shoppingCardItems = _unitOfWork.Repository<CartItem>()
+                                                                .GetByCondition(x => x.UserId.Equals(userId))
+                                                                .ToList();
+
+            _unitOfWork.Repository<CartItem>().DeleteRange(shoppingCardItems);
+            _unitOfWork.Complete();
+
+        }
+
         public async Task Plus(int shoppingCardItemId, int? newQuantity)
         {
             var shoppingCardItem = await _unitOfWork.Repository<CartItem>()
