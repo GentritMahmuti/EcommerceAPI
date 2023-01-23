@@ -33,7 +33,7 @@ namespace EcommerceAPI.Services
 
         public async Task<List<Promotion>> GetAllPromotions()
         {
-            var promotions = _unitOfWork.Repository<Promotion>().GetAll().Include("OrderDatas");
+            var promotions = _unitOfWork.Repository<Promotion>().GetAll();
             return promotions.ToList();
         }
 
