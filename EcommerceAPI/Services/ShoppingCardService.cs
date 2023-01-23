@@ -17,7 +17,7 @@ using Stripe;
 using System;
 using System.Linq.Expressions;
 using System.Text;
-using Product = EcommerceAPI.Models.Entities.Product;
+
 
 
 namespace EcommerceAPI.Services
@@ -80,11 +80,6 @@ namespace EcommerceAPI.Services
                 // Check if the data is already in the cache
                 ShoppingCardDetails shoppingCardDetails = _cacheService.GetData<ShoppingCardDetails>(key);
 
-                // Check the connection
-                _cacheService.SetData("test", "test value", DateTimeOffset.Now.AddDays(1));
-                var testValue = _cacheService.GetData<string>("test");
-                _logger.LogInformation("The value retrieved from cache is: " + testValue);
-
                 // If not, then get the data from the database
                 if (shoppingCardDetails == null)
                 {
@@ -118,8 +113,8 @@ namespace EcommerceAPI.Services
                             CardTotal = shoppingCardList.Select(x => x.Total).Sum()
                         };
 
-                        // Store the data in the cache
-                        _cacheService.SetData<ShoppingCardDetails>(userId, shoppingCardDetails, DateTimeOffset.Now.AddDays(1));
+                        // Store the data in the cache using the same key
+                        _cacheService.SetData<ShoppingCardDetails>(key, shoppingCardDetails, DateTimeOffset.Now.AddDays(1));
                     }
                 }
                 return shoppingCardDetails;
@@ -130,6 +125,7 @@ namespace EcommerceAPI.Services
                 return new ShoppingCardDetails();
             }
         }
+
 
         public async Task RemoveProductFromCard(int shoppingCardItemId)
         {
