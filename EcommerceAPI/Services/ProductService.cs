@@ -15,6 +15,8 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using System.ComponentModel.DataAnnotations;
 using static Nest.JoinField;
+using EcommerceAPI.Models.DTOs.Order;
+using StackExchange.Redis;
 
 namespace EcommerceAPI.Services
 {
@@ -35,6 +37,54 @@ namespace EcommerceAPI.Services
             _logger = logger;
             _elasticClient = elasticClient;
         }
+
+
+        //create an order by using produvtid and count
+        public async Task CreateOrderForProduct(string userId, int productId, int count, AddressDetails addressDetails)
+        {
+
+            var product = await GetProduct(productId);
+            if (product == null)
+            {
+                throw new NullReferenceException("The product you're trying to order doesn't exist!");
+            }
+            var trackingId = Guid.NewGuid().ToString();
+            var orderDetailsList = new List<ProductOrderData>();
+            var order = new OrderData
+            {
+                OrderId = Guid.NewGuid().ToString(),
+                OrderDate = DateTime.Now,
+                ShippingDate = DateTime.Now.AddDays(7),
+                OrderFinalPrice = product.Price * count,
+                PhoheNumber = addressDetails.PhoheNumber,
+                StreetAddress = addressDetails.StreetAddress,
+                City = addressDetails.City,
+                Country = addressDetails.Country,
+                PostalCode = addressDetails.PostalCode,
+                Name = addressDetails.Name,
+                TrackingId = trackingId,
+                OrderStatus = StaticDetails.Created,
+                UserId = userId
+            };
+
+            var orderDetails = new ProductOrderData
+            {
+                OrderDataId = order.OrderId,
+                ProductId = productId,
+                Count = count,
+                Price = product.Price
+            };
+
+            orderDetailsList.Add(orderDetails);
+
+            _unitOfWork.Repository<OrderData>().Create(order);
+
+            _unitOfWork.Repository<ProductOrderData>().Create(orderDetails);
+
+            _unitOfWork.Complete();
+            
+        }
+
 
         public async Task ProductDiscount(int productId, int discountPercentage)
         {
