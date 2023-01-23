@@ -7,6 +7,8 @@ using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
+using EcommerceAPI.Models.DTOs.Order;
 
 namespace EcommerceAPI.Controllers
 {
@@ -26,6 +28,22 @@ namespace EcommerceAPI.Controllers
             _productValidator = productValidator;
             _logger = logger;
         }
+
+        [Authorize(Roles = "LifeUser")]
+        //CreateOrderForProduct(string userId, int productId, int count, AddressDetails addressDetails)
+        [HttpPost("CreateOrderForProduct")]
+        public async Task<IActionResult> CreateOrderForProduct(int productId, int count, AddressDetails addressDetails)
+        {
+            var userData = (ClaimsIdentity)User.Identity;
+            var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            if (userId == null) { return Unauthorized(); }
+
+            await _productService.CreateOrderForProduct(userId, productId, count, addressDetails);
+
+            return Ok("Order created!");
+        }
+
 
 
         // GET: api/products

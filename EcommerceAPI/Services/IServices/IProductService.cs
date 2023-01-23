@@ -1,4 +1,5 @@
-﻿using EcommerceAPI.Models.DTOs.Product;
+﻿using EcommerceAPI.Models.DTOs.Order;
+using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Models.Entities;
 using Nest;
 
@@ -6,6 +7,7 @@ namespace EcommerceAPI.Services.IServices
 {
     public interface IProductService
     {
+        Task CreateOrderForProduct(string userId, int productId, int count, AddressDetails addressDetails);
         Task ProductDiscount(int productId, int discountPercentage);
         Task RemoveProductDiscount(int productId);
 
