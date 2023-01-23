@@ -22,10 +22,12 @@ using System.Text;
 using claims = System.Security.Claims;
 using EcommerceAPI.Validators;
 using Stripe;
+using EcommerceAPI;
 using EcommerceAPI.Infrastructure;
 using EcommerceAPI.Hubs;
 using EcommerceAPI.Workers;
 using FluentAssertions.Common;
+
 
 
 
@@ -247,12 +249,15 @@ app.UseCors("ClientPermission");
 
 
 app.UseRouting();
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.MapControllers();
+
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
