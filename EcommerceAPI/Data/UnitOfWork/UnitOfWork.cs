@@ -1,6 +1,8 @@
 ﻿using EcommerceAPI.Data.Repository;
 using EcommerceAPI.Data.Repository.IRepository;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Collections;
+using System.Data.Entity.Infrastructure;
 
 namespace EcommerceAPI.Data.UnitOfWork
 {
@@ -14,6 +16,7 @@ namespace EcommerceAPI.Data.UnitOfWork
         {
             _context = context;
         }
+       
         public bool Complete()
         {
             var numberOfAffectedRows = _context.SaveChanges();
@@ -40,5 +43,6 @@ namespace EcommerceAPI.Data.UnitOfWork
             }
             return (IECommerceRepository<TEntity>)_repositories[type];
         }
+
     }
 }

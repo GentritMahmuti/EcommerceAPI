@@ -14,17 +14,7 @@ namespace EcommerceAPI.Services
             var redis = ConnectionMultiplexer.Connect("localhost:6379");
             _cacheDb = redis.GetDatabase();
         }
-        public List<T> GetData<T>(string key)
-        {
-            var value = _cacheDb.StringGet(key);
-            if (!string.IsNullOrEmpty(value))
-            {
-                return JsonSerializer.Deserialize<List<T>>(value);
-            }
-            return default;
-        }
-
-        public T GetUpdatedData<T>(string key)
+        public T GetData<T>(string key)
         {
             var value = _cacheDb.StringGet(key);
             if (!string.IsNullOrEmpty(value))
