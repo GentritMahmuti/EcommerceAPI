@@ -50,7 +50,7 @@ namespace EcommerceAPI.Services
                 {
                     var item = new WishListItem
                     {
-                        WishListItemId = Guid.NewGuid().ToString(), // Add a unique identifier
+                        WishListItemId = Guid.NewGuid().ToString(), 
                         UserId = userId,
                         ProductId = productId,
                         DateCreated = DateTime.Now
@@ -92,7 +92,7 @@ namespace EcommerceAPI.Services
             }
         }
 
-        public async Task AddToCart(int productId)
+        public async Task AddToCard(string userId, int productId)
         {
             try
             {
@@ -102,27 +102,20 @@ namespace EcommerceAPI.Services
                     throw new Exception("Product not found");
                 }
 
-                var cartItems = await _unitOfWork.Repository<CartItem>().GetByCondition(c => c.ProductId == productId).ToListAsync();
+                var wishlist = await _unitOfWork.Repository<WishListItem>().GetByCondition(x => x.UserId == userId).ToListAsync();
 
-                if (cartItems.Any(x => x.ProductId == productId))
-                {
-                    var existingCartItem = cartItems.FirstOrDefault(x => x.ProductId == productId);
-                    existingCartItem.Count += 1;
-                    _unitOfWork.Repository<CartItem>().Update(existingCartItem);
-                    _unitOfWork.Complete();
-                }
-                else
+                if (wishlist.Any(x => x.ProductId == productId))
                 {
                     var item = new CartItem
                     {
-                        CartItemId = 0,
+                        UserId = userId,
                         ProductId = productId,
-                        Price = product.Price,
-                        Count = 1,
-                        DateCreated = DateTime.Now
+                        Count = 1
                     };
 
                     _unitOfWork.Repository<CartItem>().Create(item);
+                    _unitOfWork.Complete();
+                    _unitOfWork.Repository<WishListItem>().Delete(wishlist.FirstOrDefault(x => x.ProductId == productId));
                     _unitOfWork.Complete();
                 }
             }
@@ -132,6 +125,22 @@ namespace EcommerceAPI.Services
                 throw new Exception("An error occurred while adding the item to the cart");
             }
         }
+
+        public async Task<Product> GetProductFromWishlist(int productId)
+        {
+            var wishlist = await _unitOfWork.Repository<WishListItem>().GetByCondition(x => x.ProductId == productId).FirstOrDefaultAsync();
+            if (wishlist != null)
+            {
+                var product = await _unitOfWork.Repository<Product>().GetById(x => x.Id == wishlist.ProductId).FirstOrDefaultAsync();
+                return product;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+
     }
 }
 

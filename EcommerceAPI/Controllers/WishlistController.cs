@@ -80,6 +80,31 @@ namespace EcommerceAPI.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpPost("AddToShoppingCard")]
+        public async Task<IActionResult> AddToCard(int productId)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); 
+                var product = await _wishlistService.GetProductFromWishlist(productId);
+                if (product == null)
+                {
+                    return NotFound();
+                }
+                await _wishlistService.AddToCard(userId, productId); 
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
+
+
+
     }
 }
 

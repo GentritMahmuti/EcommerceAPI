@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
+using Product = EcommerceAPI.Models.Entities.Product;
 using Stripe;
 using System;
 using System.Linq.Expressions;
@@ -51,7 +52,7 @@ namespace EcommerceAPI.Services
                 };
 
                 _unitOfWork.Repository<CartItem>().Create(shoppingCardItem);
-                _unitOfWork.Complete(); // add this line
+                _unitOfWork.Complete(); 
 
                 //Check if the data is already in the cache
                 var key = $"UserId_{userId}_ProductId_{productId}";
