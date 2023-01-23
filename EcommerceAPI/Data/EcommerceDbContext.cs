@@ -35,6 +35,10 @@ namespace EcommerceAPI.Data
                 .WithMany(pod => pod.ProductOrderData)
                 .HasForeignKey(odi => odi.OrderDataId);
 
+            modelBuilder.Entity<OrderData>()
+                .HasOne(p => p.Promotion)
+                .WithMany(od => od.OrderDatas).OnDelete(DeleteBehavior.NoAction);
+
 
         }
 
@@ -46,6 +50,7 @@ namespace EcommerceAPI.Data
         public DbSet<Category> Categories { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<WishListItem> WishListItems { get; set; }
+        public DbSet<Promotion> Promotions { get; set; }
 
 
 

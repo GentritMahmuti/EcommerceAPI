@@ -8,7 +8,8 @@ namespace EcommerceAPI.Models.DTOs.Order
         public DateTime OrderDate { get; set; }
         [Required]
         public DateTime ShippingDate { get; set; }
-        public double OrderTotal { get; set; }
+        public double OrderPrice { get; set; }
+        public double OrderFinalPrice { get; set; }
         public string TrackingId { get; set; }
         public string Carrier { get; set; }
         public string OrderStatus { get; set; }

@@ -99,11 +99,14 @@ namespace EcommerceAPI.Migrations
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<double>("OrderFinalPrice")
+                        .HasColumnType("float");
+
+                    b.Property<double>("OrderPrice")
+                        .HasColumnType("float");
+
                     b.Property<string>("OrderStatus")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("OrderTotal")
-                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("PaymentDate")
                         .HasColumnType("datetime2");
@@ -121,6 +124,9 @@ namespace EcommerceAPI.Migrations
                     b.Property<string>("PostalCode")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("PromotionId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("ShippingDate")
                         .HasColumnType("datetime2");
@@ -140,6 +146,8 @@ namespace EcommerceAPI.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("OrderId");
+
+                    b.HasIndex("PromotionId");
 
                     b.HasIndex("UserId");
 
@@ -209,6 +217,32 @@ namespace EcommerceAPI.Migrations
                     b.HasIndex("OrderDataId");
 
                     b.ToTable("ProductOrderDatas");
+                });
+
+            modelBuilder.Entity("EcommerceAPI.Models.Entities.Promotion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<double>("DiscountAmount")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Promotions");
                 });
 
             modelBuilder.Entity("EcommerceAPI.Models.Entities.Review", b =>
@@ -324,9 +358,16 @@ namespace EcommerceAPI.Migrations
 
             modelBuilder.Entity("EcommerceAPI.Models.Entities.OrderData", b =>
                 {
+                    b.HasOne("EcommerceAPI.Models.Entities.Promotion", "Promotion")
+                        .WithMany("OrderDatas")
+                        .HasForeignKey("PromotionId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("EcommerceAPI.Models.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId");
+
+                    b.Navigation("Promotion");
 
                     b.Navigation("User");
                 });
@@ -409,6 +450,11 @@ namespace EcommerceAPI.Migrations
                     b.Navigation("ProductOrderData");
 
                     b.Navigation("SubmittedReviews");
+                });
+
+            modelBuilder.Entity("EcommerceAPI.Models.Entities.Promotion", b =>
+                {
+                    b.Navigation("OrderDatas");
                 });
 
             modelBuilder.Entity("EcommerceAPI.Models.Entities.User", b =>
