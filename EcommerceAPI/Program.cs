@@ -23,8 +23,10 @@ using claims = System.Security.Claims;
 using EcommerceAPI.Validators;
 using Stripe;
 using EcommerceAPI.Infrastructure;
+using EcommerceAPI.Hubs;
 using EcommerceAPI.Workers;
 using FluentAssertions.Common;
+
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -179,6 +181,19 @@ builder.Services.AddHttpClient();
 
 
 
+builder.Services.AddSignalR();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ClientPermission", policy =>
+    {
+        policy.AllowAnyHeader()
+            .AllowAnyMethod()
+            .WithOrigins("http://localhost:3000")
+            .AllowCredentials();
+    });
+});
+
 var mapperConfiguration = new MapperConfiguration(
     mc => mc.AddProfile(new AutoMapperConfigurations()));
 
@@ -228,11 +243,20 @@ if (app.Environment.IsDevelopment())
 }
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
+app.UseCors("ClientPermission");
+
+
+app.UseRouting();
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+    endpoints.MapHub<ChatHub>("/hubs/chat");
+});
 
 app.Run();
