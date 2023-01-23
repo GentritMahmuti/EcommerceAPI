@@ -1,5 +1,6 @@
 ﻿using Amazon.Runtime.Internal.Util;
 using AutoMapper;
+using EcommerceAPI.Data;
 using EcommerceAPI.Data.UnitOfWork;
 using EcommerceAPI.Helpers;
 using EcommerceAPI.Models.DTOs.Order;
@@ -16,6 +17,7 @@ using System;
 using System.Linq.Expressions;
 using System.Text;
 using Product = EcommerceAPI.Models.Entities.Product;
+
 
 namespace EcommerceAPI.Services
 {
@@ -48,19 +50,21 @@ namespace EcommerceAPI.Services
                 };
 
                 _unitOfWork.Repository<CartItem>().Create(shoppingCardItem);
-                _unitOfWork.Complete();
+                _unitOfWork.Complete(); // add this line
 
-                //Set data to cache 
-                var cacheService = new CacheService();
+                //Check if the data is already in the cache
                 var key = $"UserId_{userId}_ProductId_{productId}";
-                var expirationTime = DateTimeOffset.Now.AddDays(1); 
-                cacheService.SetData(key, shoppingCardItem, expirationTime);
+                var itemInCache = _cacheService.GetData<CartItem>(key);
+                if (itemInCache == null)
+                {
+                    //Store the data in the cache
+                    var expirationTime = DateTimeOffset.Now.AddDays(1);
+                    _cacheService.SetData(key, shoppingCardItem, expirationTime);
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occured while trying to add a product to card");
-                throw new Exception("An error occurred while adding the item to the cart");
-
             }
         }
 
@@ -68,23 +72,31 @@ namespace EcommerceAPI.Services
         {
             try
             {
+                // Log the key
+                var key = $"UserId_{userId}";
+                _logger.LogInformation("The key passed to cache service is: " + key);
+
                 // Check if the data is already in the cache
-                ShoppingCardDetails shoppingCardDetails = _cacheService.GetUpdatedData<ShoppingCardDetails>(userId);
+                ShoppingCardDetails shoppingCardDetails = _cacheService.GetData<ShoppingCardDetails>(key);
+
+                // Check the connection
+                _cacheService.SetData("test", "test value", DateTimeOffset.Now.AddDays(1));
+                var testValue = _cacheService.GetData<string>("test");
+                _logger.LogInformation("The value retrieved from cache is: " + testValue);
 
                 // If not, then get the data from the database
                 if (shoppingCardDetails == null)
                 {
                     var usersShoppingCard = await _unitOfWork.Repository<CartItem>()
-                                                                            .GetByCondition(x => x.UserId == userId)
-                                                                            .Include(x => x.Product)
-                                                                            .ToListAsync();
+                                                                        .GetByCondition(x => x.UserId == userId)
+                                                                        .Include(x => x.Product)
+                                                                        .ToListAsync();
 
                     var shoppingCardList = new List<ShoppingCardViewDto>();
 
                     foreach (CartItem item in usersShoppingCard)
                     {
                         var currentProduct = item.Product;
-
 
                         var model = new ShoppingCardViewDto
                         {
@@ -99,28 +111,22 @@ namespace EcommerceAPI.Services
                         };
 
                         shoppingCardList.Add(model);
+                        shoppingCardDetails = new ShoppingCardDetails()
+                        {
+                            ShoppingCardItems = shoppingCardList,
+                            CardTotal = shoppingCardList.Select(x => x.Total).Sum()
+                        };
+
+                        // Store the data in the cache
+                        _cacheService.SetData<ShoppingCardDetails>(userId, shoppingCardDetails, DateTimeOffset.Now.AddDays(1));
                     }
-
-                    shoppingCardDetails = new ShoppingCardDetails()
-                    {
-                        ShoppingCardItems = shoppingCardList,
-                        CardTotal = shoppingCardList.Select(x => x.Total).Sum()
-                    };
-
-                    // Store the data in the cache
-                    _cacheService.SetData<ShoppingCardDetails>(userId, shoppingCardDetails, DateTimeOffset.Now.AddDays(1));
-
-                    // Store the data in the database
-                    _unitOfWork.Repository<ShoppingCardDetails>().Create(shoppingCardDetails);
-                    _unitOfWork.Complete();
                 }
-
                 return shoppingCardDetails;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "There was an error while tryng to get the shopping card content!");
-                throw new Exception("There was an error while trying to get the shopping card content!");
+                return new ShoppingCardDetails();
             }
         }
 
@@ -130,7 +136,7 @@ namespace EcommerceAPI.Services
             {
                 // Retrieve data from the cache
                 string cacheKey = string.Format("CartItem_{0}", shoppingCardItemId);
-                var shoppingCardItem = _cacheService.GetUpdatedData<CartItem>(cacheKey);
+                var shoppingCardItem = _cacheService.GetData<CartItem>(cacheKey);
 
                 // If the data is not found in the cache, retrieve it from the database
                 if (shoppingCardItem == null)
@@ -168,7 +174,7 @@ namespace EcommerceAPI.Services
         {
             try
             {
-                var shoppingCardItem = _cacheService.GetUpdatedData<CartItem>(shoppingCardItemId.ToString());
+                var shoppingCardItem = _cacheService.GetData<CartItem>(shoppingCardItemId.ToString());
                 if (shoppingCardItem == null)
                 {
                     shoppingCardItem = await _unitOfWork.Repository<CartItem>()
@@ -192,19 +198,21 @@ namespace EcommerceAPI.Services
 
             }
         }
-
         public async Task Minus(int shoppingCardItemId, int? newQuantity)
         {
             try
             {
                 var cacheKey = $"cart-item-{shoppingCardItemId}";
-                var shoppingCardItem = _cacheService.GetUpdatedData<CartItem>(cacheKey);
+                var shoppingCardItem = _cacheService.GetData<CartItem>(cacheKey);
 
                 if (shoppingCardItem == null)
                 {
-                    shoppingCardItem = await _unitOfWork.Repository<CartItem>()
-                                                                        .GetById(x => x.CartItemId == shoppingCardItemId)
-                                                                        .FirstOrDefaultAsync();
+                    var itemInDb = await _unitOfWork.Repository<CartItem>().GetById(x => x.CartItemId == shoppingCardItemId).FirstOrDefaultAsync();
+                    if (itemInDb == null)
+                    {
+                        throw new Exception("Cart item not found in the database.");
+                    }
+                    shoppingCardItem = itemInDb;
                 }
 
                 if (newQuantity == null)
