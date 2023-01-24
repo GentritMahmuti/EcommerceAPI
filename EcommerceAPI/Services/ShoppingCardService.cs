@@ -54,7 +54,7 @@ namespace EcommerceAPI.Services
                 _unitOfWork.Complete(); // add this line
 
                 //Check if the data is already in the cache
-                var key = $"UserId_{userId}_ProductId_{productId}";
+                var key = $"CartItems_CartItemId_{shoppingCardItem.CartItemId}";
                 var itemInCache = _cacheService.GetData<CartItem>(key);
                 if (itemInCache == null)
                 {
@@ -74,16 +74,11 @@ namespace EcommerceAPI.Services
             try
             {
                 // Log the key
-                var key = $"UserId_{userId}";
+                var key = $"CartItems_UserId_{userId}";
                 _logger.LogInformation("The key passed to cache service is: " + key);
 
                 // Check if the data is already in the cache
                 ShoppingCardDetails shoppingCardDetails = _cacheService.GetData<ShoppingCardDetails>(key);
-
-                // Check the connection
-                _cacheService.SetData("test", "test value", DateTimeOffset.Now.AddDays(1));
-                var testValue = _cacheService.GetData<string>("test");
-                _logger.LogInformation("The value retrieved from cache is: " + testValue);
 
                 // If not, then get the data from the database
                 if (shoppingCardDetails == null)
@@ -118,8 +113,8 @@ namespace EcommerceAPI.Services
                             CardTotal = shoppingCardList.Select(x => x.Total).Sum()
                         };
 
-                        // Store the data in the cache
-                        _cacheService.SetData<ShoppingCardDetails>(userId, shoppingCardDetails, DateTimeOffset.Now.AddDays(1));
+                        // Store the data in the cache using the same key
+                        _cacheService.SetData<ShoppingCardDetails>(key, shoppingCardDetails, DateTimeOffset.Now.AddDays(1));
                     }
                 }
                 return shoppingCardDetails;
@@ -136,20 +131,20 @@ namespace EcommerceAPI.Services
             try
             {
                 // Retrieve data from the cache
-                string cacheKey = string.Format("CartItem_{0}", shoppingCardItemId);
-                var shoppingCardItem = _cacheService.GetData<CartItem>(cacheKey);
+                string cacheKey = string.Format("CartItems_CartItemId_{0}", shoppingCardItemId);
+                
 
                 // If the data is not found in the cache, retrieve it from the database
-                if (shoppingCardItem == null)
-                {
-                    shoppingCardItem = await _unitOfWork.Repository<CartItem>()
+               
+                var shoppingCardItem = await _unitOfWork.Repository<CartItem>()
                                                                         .GetById(x => x.CartItemId == shoppingCardItemId)
                                                                         .FirstOrDefaultAsync();
-                }
+                
 
                 // Delete data from both cache and database
-                _cacheService.RemoveData(cacheKey);
+                
                 _unitOfWork.Repository<CartItem>().Delete(shoppingCardItem);
+                _cacheService.RemoveData(cacheKey);
                 _unitOfWork.Complete();
             }
             catch (Exception ex)
@@ -173,9 +168,11 @@ namespace EcommerceAPI.Services
 
         public async Task Plus(int shoppingCardItemId, int? newQuantity)
         {
+
             try
             {
-                var shoppingCardItem = _cacheService.GetData<CartItem>(shoppingCardItemId.ToString());
+                string cacheKey = string.Format("CartItems_CartItemId_{0}", shoppingCardItemId);
+                var shoppingCardItem = _cacheService.GetData<CartItem>(cacheKey);
                 if (shoppingCardItem == null)
                 {
                     shoppingCardItem = await _unitOfWork.Repository<CartItem>()
@@ -203,7 +200,7 @@ namespace EcommerceAPI.Services
         {
             try
             {
-                var cacheKey = $"cart-item-{shoppingCardItemId}";
+                string cacheKey = string.Format("CartItems_CartItemId_{0}", shoppingCardItemId);
                 var shoppingCardItem = _cacheService.GetData<CartItem>(cacheKey);
 
                 if (shoppingCardItem == null)
