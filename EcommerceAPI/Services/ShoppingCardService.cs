@@ -12,12 +12,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
+using Product = EcommerceAPI.Models.Entities.Product;
 using Stripe;
 using System;
 using System.Linq.Expressions;
 using System.Text;
 using static Amazon.S3.Util.S3EventNotification;
-using Product = EcommerceAPI.Models.Entities.Product;
+
 
 
 namespace EcommerceAPI.Services
@@ -51,7 +52,7 @@ namespace EcommerceAPI.Services
                 };
 
                 _unitOfWork.Repository<CartItem>().Create(shoppingCardItem);
-                _unitOfWork.Complete(); // add this line
+                _unitOfWork.Complete(); 
 
                 //Check if the data is already in the cache
                 var key = $"CartItems_CartItemId_{shoppingCardItem.CartItemId}";
@@ -125,6 +126,7 @@ namespace EcommerceAPI.Services
                 return new ShoppingCardDetails();
             }
         }
+
 
         public async Task RemoveProductFromCard(int shoppingCardItemId)
         {
