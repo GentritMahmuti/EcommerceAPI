@@ -5,10 +5,10 @@ namespace EcommerceAPI.Services.IServices
 {
     public interface IPromotionService
     {
-        Task CreatePromotion(PromotionCreateDto promotionToCreate);
+        Task CreatePromotion(PromotionDto promotionToCreate);
         Task DeletePromotion(int id);
-        Task<List<Promotion>> GetAllPromotions();
-        Task<Promotion> GetPromotion(int id);
-        Task UpdatePromotion(Promotion promotionToUpdate);
+        Task<List<PromotionDetailsDto>> GetAllPromotions();
+        Task<PromotionDetailsDto> GetPromotionDetails(int id);
+        Task UpdatePromotion(int id, PromotionDto promotionToUpdate);
     }
 }

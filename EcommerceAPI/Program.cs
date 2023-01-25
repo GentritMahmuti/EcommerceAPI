@@ -27,9 +27,7 @@ using EcommerceAPI.Infrastructure;
 using EcommerceAPI.Hubs;
 using EcommerceAPI.Workers;
 using FluentAssertions.Common;
-
-
-
+using EcommerceAPI.Models.DTOs.Promotion;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +37,8 @@ builder.Services.AddScoped<IValidator<Category>, CategoryValidator>();
 builder.Services.AddScoped<IValidator<EcommerceAPI.Models.Entities.Product>, ProductValidator>();
 //builder.Services.AddScoped<IValidator<OrderDetails>, OrderDetailsValidator>();
 builder.Services.AddScoped<IValidator<ReviewCreateDto>, ReviewValidator>();
+builder.Services.AddScoped<IValidator<PromotionDto>, PromotionValidator>();
+
 
 
 

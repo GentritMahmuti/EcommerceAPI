@@ -101,16 +101,22 @@ namespace EcommerceAPI.Controllers
         [HttpPost("ProductSummaryForOrder")]
         public async Task<IActionResult> ProductSummary(ProductSummaryModel model)
         {
-            var userData = (ClaimsIdentity)User.Identity;
-            var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+            try
+            {
+                var userData = (ClaimsIdentity)User.Identity;
+                var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-            model.AddressDetails.Email = userData.FindFirst(ClaimTypes.Email).Value;
+                model.AddressDetails.Email = userData.FindFirst(ClaimTypes.Email).Value;
 
-            if (userId == null) { return Unauthorized(); }
+                if (userId == null) { return Unauthorized(); }
 
-            await _cardService.CreateOrder(model.AddressDetails, model.ShoppingCardItems, model.PromoCode);
+                await _cardService.CreateOrder(model.AddressDetails, model.ShoppingCardItems, model.PromoCode);
 
-            return Ok();
+                return Ok();
+            } catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
 
