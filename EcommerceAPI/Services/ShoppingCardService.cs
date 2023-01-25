@@ -115,7 +115,7 @@ namespace EcommerceAPI.Services
                         };
 
                         // Store the data in the cache using the same key
-                        _cacheService.SetData<ShoppingCardDetails>(key, shoppingCardDetails, DateTimeOffset.Now.AddDays(1));
+                        _cacheService.SetData<ShoppingCardDetails>(key, shoppingCardDetails, DateTimeOffset.Now.AddSeconds(30));
                     }
                 }
                 return shoppingCardDetails;
@@ -174,13 +174,11 @@ namespace EcommerceAPI.Services
             try
             {
                 string cacheKey = string.Format("CartItems_CartItemId_{0}", shoppingCardItemId);
-                var shoppingCardItem = _cacheService.GetData<CartItem>(cacheKey);
-                if (shoppingCardItem == null)
-                {
-                    shoppingCardItem = await _unitOfWork.Repository<CartItem>()
-                                                            .GetById(x => x.CartItemId == shoppingCardItemId)
-                                                            .FirstOrDefaultAsync();
-                }
+                
+                
+                var shoppingCardItem = await _unitOfWork.Repository<CartItem>()
+                                                        .GetById(x => x.CartItemId == shoppingCardItemId)
+                                                        .FirstOrDefaultAsync();
 
                 if (newQuantity == null)
                     shoppingCardItem.Count++;
@@ -189,7 +187,7 @@ namespace EcommerceAPI.Services
 
                 _unitOfWork.Repository<CartItem>().Update(shoppingCardItem);
                 _unitOfWork.Complete();
-                _cacheService.SetUpdatedData(shoppingCardItemId.ToString(), shoppingCardItem, DateTimeOffset.Now.AddDays(1));
+                _cacheService.SetUpdatedData(cacheKey, shoppingCardItem, DateTimeOffset.Now.AddDays(1));
             }
             catch (Exception ex)
             {
@@ -203,18 +201,11 @@ namespace EcommerceAPI.Services
             try
             {
                 string cacheKey = string.Format("CartItems_CartItemId_{0}", shoppingCardItemId);
-                var shoppingCardItem = _cacheService.GetData<CartItem>(cacheKey);
-
+                var shoppingCardItem = await _unitOfWork.Repository<CartItem>().GetById(x => x.CartItemId == shoppingCardItemId).FirstOrDefaultAsync();
                 if (shoppingCardItem == null)
                 {
-                    var itemInDb = await _unitOfWork.Repository<CartItem>().GetById(x => x.CartItemId == shoppingCardItemId).FirstOrDefaultAsync();
-                    if (itemInDb == null)
-                    {
-                        throw new Exception("Cart item not found in the database.");
-                    }
-                    shoppingCardItem = itemInDb;
+                    throw new Exception("Cart item not found in the database.");
                 }
-
                 if (newQuantity == null)
                     shoppingCardItem.Count--;
                 else
@@ -222,7 +213,7 @@ namespace EcommerceAPI.Services
 
                 _unitOfWork.Repository<CartItem>().Update(shoppingCardItem);
                 _unitOfWork.Complete();
-                _cacheService.RemoveData(cacheKey);
+                _cacheService.SetUpdatedData(cacheKey, shoppingCardItem, DateTimeOffset.Now.AddDays(1));
             }
             catch (Exception ex)
             {
