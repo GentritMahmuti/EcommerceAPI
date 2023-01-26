@@ -28,6 +28,7 @@ namespace EcommerceAPI.Helpers
             CreateMap<Promotion, PromotionDetailsDto>().ReverseMap();
 
             CreateMap<Review, ReviewCreateDto>().ReverseMap();
+            CreateMap<Review, ReviewDetailsDto>().ReverseMap();
         }
     }
 }
