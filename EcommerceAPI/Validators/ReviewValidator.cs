@@ -8,7 +8,7 @@ namespace EcommerceAPI.Validators
 {
     public class ReviewValidator : AbstractValidator<ReviewCreateDto>
     {
-        public ReviewValidator(IReviewService _reviewService)
+        public ReviewValidator()
         {
            
 

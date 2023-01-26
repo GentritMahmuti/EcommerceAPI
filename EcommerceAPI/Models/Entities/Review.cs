@@ -13,7 +13,7 @@ namespace EcommerceAPI.Models.Entities
         public int ProductId { get; set; }
         public Product Product { get; set; }
         public int Rating { get; set; }
-        public string ReviewComment { get; set; }
+        public string? ReviewComment { get; set; }
         public DateTime ReviewPostedDate { get; set; }  = DateTime.Now;
     }
 }

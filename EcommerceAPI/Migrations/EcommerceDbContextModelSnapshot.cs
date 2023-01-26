@@ -260,7 +260,6 @@ namespace EcommerceAPI.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("ReviewComment")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("ReviewPostedDate")
