@@ -223,7 +223,7 @@ builder.Services.AddSingleton(client);
 builder.Services.AddScoped<ICacheService, CacheService>();
 
 builder.Services.AddScoped<IWishlistService, WishlistService>();
-
+builder.Services.AddTransient<PaymentMethodService>();
 
 var app = builder.Build();
 

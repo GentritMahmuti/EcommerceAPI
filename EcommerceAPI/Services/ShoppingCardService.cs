@@ -223,7 +223,7 @@ namespace EcommerceAPI.Services
             }
         }
 
-        public async Task CreateOrder(AddressDetails addressDetails, List<ShoppingCardViewDto> shoppingCardItems, string promoCode)
+        public async Task CreateOrder(string userId, AddressDetails addressDetails, List<ShoppingCardViewDto> shoppingCardItems, string promoCode)
         {
             var orderId = Guid.NewGuid().ToString();
             var trackingId = Guid.NewGuid().ToString();
@@ -240,7 +240,8 @@ namespace EcommerceAPI.Services
                 Country = addressDetails.Country,
                 PostalCode = addressDetails.PostalCode,
                 Name = addressDetails.Name,
-                TrackingId = trackingId
+                TrackingId = trackingId,
+                UserId = userId
             };
 
             var orderDetailsList = new List<ProductOrderData>();

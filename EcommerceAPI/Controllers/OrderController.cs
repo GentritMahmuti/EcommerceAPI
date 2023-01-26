@@ -27,5 +27,19 @@ namespace EcommerceAPI.Controllers
             await _orderService.ProcessOrder(orderId, status);
             return Ok($"Now selected order is in new status: {status}");
         }
+
+        [Authorize(Roles = "LifeUser")]
+        [HttpGet("GetOrderHistory")]
+        public async Task<IActionResult> GetOrderHistory()
+        {
+            var userData = (ClaimsIdentity)User.Identity;
+            var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            if (userId == null) { return Unauthorized(); }
+
+            List<OrderData> orderHistory = _orderService.GetOrderHistory(userId);
+
+            return Ok(orderHistory);
+        }
     }
 }

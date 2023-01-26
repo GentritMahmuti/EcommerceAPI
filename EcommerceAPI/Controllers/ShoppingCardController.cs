@@ -110,7 +110,7 @@ namespace EcommerceAPI.Controllers
 
                 if (userId == null) { return Unauthorized(); }
 
-                await _cardService.CreateOrder(model.AddressDetails, model.ShoppingCardItems, model.PromoCode);
+                await _cardService.CreateOrder(userId, model.AddressDetails, model.ShoppingCardItems, model.PromoCode);
 
                 return Ok();
             } catch (Exception ex)

@@ -154,6 +154,39 @@ namespace EcommerceAPI.Migrations
                     b.ToTable("OrderData");
                 });
 
+            modelBuilder.Entity("EcommerceAPI.Models.Entities.PaymentMethodEntity", b =>
+                {
+                    b.Property<string>("PaymentMethodId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CardBrand")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CardLastFour")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CustomerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("ExpMonth")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ExpYear")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("PaymentMethodId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PaymentMethods");
+                });
+
             modelBuilder.Entity("EcommerceAPI.Models.Entities.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -367,6 +400,15 @@ namespace EcommerceAPI.Migrations
                         .HasForeignKey("UserId");
 
                     b.Navigation("Promotion");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EcommerceAPI.Models.Entities.PaymentMethodEntity", b =>
+                {
+                    b.HasOne("EcommerceAPI.Models.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
 
                     b.Navigation("User");
                 });
