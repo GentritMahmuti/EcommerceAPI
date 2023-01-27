@@ -8,7 +8,6 @@ namespace EcommerceAPI.Models.Entities
     {
         [Key]
         public string OrderId { get; set; }
-
         [Required]
         public DateTime OrderDate { get; set; }
         [Required]

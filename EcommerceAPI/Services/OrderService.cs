@@ -35,6 +35,12 @@ namespace EcommerceAPI.Services
             return orderData;
         }
 
+        public List<OrderData> GetOrderHistory(string userId)
+        {
+            var orders = _unitOfWork.Repository<OrderData>().GetByCondition(o => o.UserId == userId).ToList();
+            return orders;
+        }
+        
         public async Task UpdateOrder(OrderData order)
         {
             var product = await GetOrder(order.OrderId);
