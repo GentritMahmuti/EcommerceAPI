@@ -6,6 +6,7 @@ namespace EcommerceAPI.Services.IServices
     {
         Task ProcessOrder(string orderId, string status);
         Task<OrderData> GetOrder(string orderId);
+        List<OrderData> GetOrderHistory(string userId);
         Task UpdateOrder(OrderData order);
     }
 }
