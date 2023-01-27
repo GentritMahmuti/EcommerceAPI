@@ -9,8 +9,8 @@ namespace EcommerceAPI.Services.IServices
         Task RemoveProductFromCard(int shoppingCardItemId);
         Task RemoveAllProductsFromCard(string userId);
         Task<ShoppingCardDetails> GetShoppingCardContentForUser(string userId);
-        Task Plus(int shoppingCardItemId, int? newQuantity);
-        Task Minus(int shoppingCardItemId, int? newQuantity);
+        Task IncreaseProductQuantityInShoppingCard(int shoppingCardItemId, int? newQuantity);
+        Task DecreaseProductQuantityInShoppingCard(int shoppingCardItemId, int? newQuantity);
         Task CreateOrder(string userId, AddressDetails addressDetails, List<ShoppingCardViewDto> shoppingCardItems, string promoCode);
     }
 }

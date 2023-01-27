@@ -73,27 +73,27 @@ namespace EcommerceAPI.Controllers
         }
 
         [HttpPost("IncreaseQuantityForProduct")]
-        public async Task<IActionResult> Plus(int? newQuantity, int shoppingCardItemId)
+        public async Task<IActionResult> IncreaseProductQuantity(int? newQuantity, int shoppingCardItemId)
         {
             var userData = (ClaimsIdentity)User.Identity;
             var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
 
             if (userId == null) { return Unauthorized(); }
 
-            await _cardService.Plus(shoppingCardItemId, newQuantity);
+            await _cardService.IncreaseProductQuantityInShoppingCard(shoppingCardItemId, newQuantity);
 
             return Ok();
         }
 
         [HttpPost("DecreaseQuantityForProduct")]
-        public async Task<IActionResult> Minus(int? newQuantity, int shoppingCardItemId)
+        public async Task<IActionResult> DecreaseProductQuantity(int? newQuantity, int shoppingCardItemId)
         {
             var userData = (ClaimsIdentity)User.Identity;
             var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
 
             if (userId == null) { return Unauthorized(); }
 
-            await _cardService.Minus(shoppingCardItemId, newQuantity);
+            await _cardService.DecreaseProductQuantityInShoppingCard(shoppingCardItemId, newQuantity);
 
             return Ok();
         }
@@ -118,7 +118,5 @@ namespace EcommerceAPI.Controllers
                 return BadRequest(ex.Message);
             }
         }
-
-
     }
 }

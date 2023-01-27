@@ -36,7 +36,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IValidator<Category>, CategoryValidator>();
 builder.Services.AddScoped<IValidator<EcommerceAPI.Models.Entities.Product>, ProductValidator>();
 //builder.Services.AddScoped<IValidator<OrderDetails>, OrderDetailsValidator>();
-builder.Services.AddScoped<IValidator<ReviewCreateDto>, ReviewValidator>();
+builder.Services.AddScoped<IValidator<ReviewCreateDto>, ReviewCreateDtoValidator>();
+builder.Services.AddScoped<IValidator<ReviewUpdateDto>, ReviewUpdateDtoValidator>();
 builder.Services.AddScoped<IValidator<PromotionDto>, PromotionValidator>();
 
 

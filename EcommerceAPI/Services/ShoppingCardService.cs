@@ -168,7 +168,7 @@ namespace EcommerceAPI.Services
 
         }
 
-        public async Task Plus(int shoppingCardItemId, int? newQuantity)
+        public async Task IncreaseProductQuantityInShoppingCard(int shoppingCardItemId, int? newQuantity)
         {
 
             try
@@ -196,7 +196,7 @@ namespace EcommerceAPI.Services
 
             }
         }
-        public async Task Minus(int shoppingCardItemId, int? newQuantity)
+        public async Task DecreaseProductQuantityInShoppingCard(int shoppingCardItemId, int? newQuantity)
         {
             try
             {
