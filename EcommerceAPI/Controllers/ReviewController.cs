@@ -17,9 +17,11 @@ namespace EcommerceAPI.Controllers
     public class ReviewController : Controller
     {
         private readonly IReviewService _reviewService;
-        public ReviewController(IReviewService reviewService)
+        private readonly IValidator<ReviewCreateDto> _createReviewValidator;
+        public ReviewController(IReviewService reviewService, IValidator<ReviewCreateDto> createReviewValidator)
         {
             _reviewService = reviewService;
+            _createReviewValidator = createReviewValidator;
         }
 
         [Authorize]
@@ -62,6 +64,7 @@ namespace EcommerceAPI.Controllers
         [HttpPost("PostReview")]
         public async Task<IActionResult> Post([FromForm] ReviewCreateDto ReviewToCreate)
         {
+            await _createReviewValidator.ValidateAndThrowAsync(ReviewToCreate);
             var userData = (ClaimsIdentity)User.Identity;
             var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
             await _reviewService.CreateReview(userId, ReviewToCreate);
@@ -92,11 +95,6 @@ namespace EcommerceAPI.Controllers
         {
             try
             {
-                //if (User.IsInRole("LifeAdmin"))
-                //{
-                //    await _reviewService.DeleteReviewComment(id);
-                //    return Ok("Review comment deleted successfully!");
-                //}
                 var userData = (ClaimsIdentity)User.Identity;
                 var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
                 await _reviewService.DeleteReview(id, userId);

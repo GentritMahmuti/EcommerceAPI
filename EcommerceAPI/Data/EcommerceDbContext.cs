@@ -12,6 +12,11 @@ namespace EcommerceAPI.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Review>(entity =>
+            {
+                entity.HasIndex(x => new { x.UserId, x.ProductId }).IsUnique();
+            });
+
             modelBuilder.Entity<CartItem>(entity =>
             {
                 entity.HasIndex(x => new { x.UserId, x.ProductId }).IsUnique();

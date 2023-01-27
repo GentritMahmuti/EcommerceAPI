@@ -4,7 +4,7 @@ namespace EcommerceAPI.Models.DTOs.Review
 {
     public class ReviewUpdateDto
     {
-        public int Id { get; set; }
+        public int ReviewId { get; set; }
         public int Rating { get; set; }
         public string ReviewComment { get; set; }
     }
