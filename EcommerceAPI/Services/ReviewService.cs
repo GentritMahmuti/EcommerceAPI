@@ -61,7 +61,7 @@ namespace EcommerceAPI.Services
         }
         public async Task UpdateReview(ReviewUpdateDto reviewToUpdate, string userId)
         {
-            var review = await GetReview(reviewToUpdate.Id);        
+            var review = await GetReview(reviewToUpdate.ReviewId);        
             if (review == null)
             {
                 throw new NullReferenceException("The review you're trying to update doesn't exist!");
