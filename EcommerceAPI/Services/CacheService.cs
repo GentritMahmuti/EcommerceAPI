@@ -14,12 +14,12 @@ namespace EcommerceAPI.Services
             var redis = ConnectionMultiplexer.Connect("localhost:6379");
             _cacheDb = redis.GetDatabase();
         }
-        public List<T> GetData<T>(string key)
+        public T GetData<T>(string key)
         {
             var value = _cacheDb.StringGet(key);
             if (!string.IsNullOrEmpty(value))
             {
-                return JsonSerializer.Deserialize<List<T>>(value);
+                return JsonSerializer.Deserialize<T>(value);
             }
             return default;
         }
@@ -40,7 +40,8 @@ namespace EcommerceAPI.Services
             return _cacheDb.StringSet(key, JsonSerializer.Serialize(value), expiryTime);
         }
 
-        public bool SetUpdatedData(string key, OrderDetails value, DateTimeOffset expirationTime)
+
+        public bool SetUpdatedData<T>(string key, T value, DateTimeOffset expirationTime)
         {
             var expiryTime = expirationTime.DateTime.Subtract(DateTime.Now);
             return _cacheDb.StringSet(key, JsonSerializer.Serialize(value), expiryTime);

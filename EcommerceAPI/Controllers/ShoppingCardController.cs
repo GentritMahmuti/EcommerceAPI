@@ -1,5 +1,6 @@
 ﻿using EcommerceAPI.Models.DTOs.ShoppingCard;
 using EcommerceAPI.Services.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -8,6 +9,7 @@ namespace EcommerceAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ShoppingCardController : ControllerBase
     {
         private readonly IShoppingCardService _cardService;
@@ -32,6 +34,32 @@ namespace EcommerceAPI.Controllers
             return Ok("Added to card!");
         }
 
+        [HttpDelete("RemoveFromCard")]
+        public async Task<IActionResult> RemoveProductFromCard(int shoppingCardItemId)
+        {
+            var userData = (ClaimsIdentity)User.Identity;
+            var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            if (userId == null) { return Unauthorized(); }
+            
+            await _cardService.RemoveProductFromCard(shoppingCardItemId);
+
+            return Ok("Removed from card!");
+        }
+
+        [HttpDelete("RemoveAllProductsFromCard")]
+        public async Task<IActionResult> RemoveAllProductsFromCard()
+        {
+            var userData = (ClaimsIdentity)User.Identity;
+            var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            if (userId == null) { return Unauthorized(); }
+
+            await _cardService.RemoveAllProductsFromCard(userId);
+
+            return Ok("All products removed from card!");
+        }
+
 
         [HttpGet("ShoppingCardContent")]
         public async Task<IActionResult> ShoppingCardContent()
@@ -45,30 +73,50 @@ namespace EcommerceAPI.Controllers
         }
 
         [HttpPost("IncreaseQuantityForProduct")]
-        public async Task<IActionResult> Plus(int? newQuantity, int shoppingCardItemId)
+        public async Task<IActionResult> IncreaseProductQuantity(int? newQuantity, int shoppingCardItemId)
         {
             var userData = (ClaimsIdentity)User.Identity;
             var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
 
             if (userId == null) { return Unauthorized(); }
 
-            await _cardService.Plus(shoppingCardItemId, newQuantity);
+            await _cardService.IncreaseProductQuantityInShoppingCard(shoppingCardItemId, newQuantity);
 
             return Ok();
         }
 
         [HttpPost("DecreaseQuantityForProduct")]
-        public async Task<IActionResult> Minus(int? newQuantity, int shoppingCardItemId)
+        public async Task<IActionResult> DecreaseProductQuantity(int? newQuantity, int shoppingCardItemId)
         {
             var userData = (ClaimsIdentity)User.Identity;
             var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
 
             if (userId == null) { return Unauthorized(); }
 
-            await _cardService.Minus(shoppingCardItemId, newQuantity);
+            await _cardService.DecreaseProductQuantityInShoppingCard(shoppingCardItemId, newQuantity);
 
             return Ok();
         }
-       
+
+        [HttpPost("ProductSummaryForOrder")]
+        public async Task<IActionResult> ProductSummary(ProductSummaryModel model)
+        {
+            try
+            {
+                var userData = (ClaimsIdentity)User.Identity;
+                var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+                model.AddressDetails.Email = userData.FindFirst(ClaimTypes.Email).Value;
+
+                if (userId == null) { return Unauthorized(); }
+
+                await _cardService.CreateOrder(userId, model.AddressDetails, model.ShoppingCardItems, model.PromoCode);
+
+                return Ok();
+            } catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

@@ -6,6 +6,9 @@ using EcommerceAPI.Validators;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
+using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
+using EcommerceAPI.Models.DTOs.Order;
 
 namespace EcommerceAPI.Controllers
 {
@@ -23,8 +26,25 @@ namespace EcommerceAPI.Controllers
             _productService = productService;
             _configuration = configuration;
             _productValidator = productValidator;
-            _logger - logger;
+            _logger = logger;
         }
+
+        [Authorize(Roles = "LifeUser")]
+        //CreateOrderForProduct(string userId, int productId, int count, AddressDetails addressDetails)
+        [HttpPost("CreateOrderForProduct")]
+        public async Task<IActionResult> CreateOrderForProduct(int productId, int count, AddressDetails addressDetails)
+        {
+            var userData = (ClaimsIdentity)User.Identity;
+            var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            if (userId == null) { return Unauthorized(); }
+
+            await _productService.CreateOrderForProduct(userId, productId, count, addressDetails);
+
+            return Ok("Order created!");
+        }
+
+
 
         // GET: api/products
         [HttpGet("GetFilterProducts")]
@@ -124,34 +144,14 @@ namespace EcommerceAPI.Controllers
 
         }
         [HttpGet("SearchElastic")]
-        public async Task<IActionResult> SearchElastic([FromQuery] SearchInputDto input, int pageIndex, int pageSize)
+        public async Task<IActionResult> SearchElastic([FromQuery] SearchInputDto input, int pageIndex = 1, int pageSize = 10)
         {
             var response = await _productService.SearchElastic(input, pageIndex, pageSize);
 
             return Ok(response);
         }
 
-        [HttpPost("AddProductElastic")]
-        public async Task<IActionResult> AddProductElastic([FromBody]ProductCreateElasticDto productToAdd)
-        {
-            var result = await _productService.AddProductElastic(productToAdd);
-            return Ok(result.Result);
-        }
-
-        [HttpGet("GetByIdElastic")]
-        public async Task<IActionResult> GetByIdElastic(int id, string index)
-        {
-            if (index == null)
-            {
-                index = "products";
-            }
-            var product = await _productService.GetByIdElastic(id, index);
-            if (product == null)
-            {
-                return NotFound();
-            }
-            return Ok(product);
-        }
+       
 
         [HttpGet("GetAllElastic")]
         public async Task<IActionResult> GetAllElastic()
@@ -160,24 +160,10 @@ namespace EcommerceAPI.Controllers
             return Ok(products);
         }
 
-        [HttpPost("AddBulkElastic")]
-        public async Task<IActionResult> AddBulkElastic([FromBody] List<ProductCreateElasticDto> productsToCreate)
-        {
-            try
-            {
-                await _productService.AddBulkElastic(productsToCreate);
-                return Ok("Products are added successfully!");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"An error happened: '{ex.Message}'");
-            }
-        }
-
-
+       
 
         [HttpPut("UpdateElastic")]
-        public async Task<IActionResult> UpdateElastic([FromBody] ProductCreateElasticDto product)
+        public async Task<IActionResult> UpdateElastic([FromBody] ProductDto product)
         {
             try
             {
@@ -203,11 +189,19 @@ namespace EcommerceAPI.Controllers
                 return BadRequest($"An error happened: '{ex.Message}'");
             }
         }
-        [HttpDelete("DeleteByIdElastic")]
-        public async Task<IActionResult> DeleteProductByIdInElastic(int id)
+      
+        [HttpPut("ProductDiscount")]
+        public async Task<IActionResult> ProductDiscount(int productId, [Range(1, 100, ErrorMessage = "Value for discount percentage must be between 1 and 100.")] int discountPercentage)
         {
-            await _productService.DeleteProductByIdInElastic(id);
-            return Ok("Product deleted successfully!");
+            await _productService.ProductDiscount(productId, discountPercentage);
+            return Ok("Product discounted successfully");
+        }
+
+        [HttpPut("RemoveProductDiscount")]
+        public async Task<IActionResult> RemoveProductDiscount(int productId)
+        {
+            await _productService.RemoveProductDiscount(productId);
+            return Ok("The product discount was removed successfully");
         }
     }
 }

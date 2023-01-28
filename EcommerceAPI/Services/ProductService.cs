@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using EcommerceAPI.Data.UnitOfWork;
+using EcommerceAPI.Helpers;
 using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Linq.Dynamic.Core;
 using Nest;
@@ -11,6 +13,10 @@ using EcommerceAPI.Helpers;
 using Microsoft.IdentityModel.Tokens;
 using Amazon.S3;
 using Amazon.S3.Model;
+using System.ComponentModel.DataAnnotations;
+using static Nest.JoinField;
+using EcommerceAPI.Models.DTOs.Order;
+using StackExchange.Redis;
 
 namespace EcommerceAPI.Services
 {
@@ -30,6 +36,90 @@ namespace EcommerceAPI.Services
             _configuration = configuration;
             _logger = logger;
             _elasticClient = elasticClient;
+        }
+
+
+        //create an order by using produvtid and count
+        public async Task CreateOrderForProduct(string userId, int productId, int count, AddressDetails addressDetails)
+        {
+
+            var product = await GetProduct(productId);
+            if (product == null)
+            {
+                throw new NullReferenceException("The product you're trying to order doesn't exist!");
+            }
+            var trackingId = Guid.NewGuid().ToString();
+            var orderDetailsList = new List<ProductOrderData>();
+            var order = new OrderData
+            {
+                OrderId = Guid.NewGuid().ToString(),
+                OrderDate = DateTime.Now,
+                ShippingDate = DateTime.Now.AddDays(7),
+                OrderFinalPrice = product.Price * count,
+                PhoheNumber = addressDetails.PhoheNumber,
+                StreetAddress = addressDetails.StreetAddress,
+                City = addressDetails.City,
+                Country = addressDetails.Country,
+                PostalCode = addressDetails.PostalCode,
+                Name = addressDetails.Name,
+                TrackingId = trackingId,
+                OrderStatus = StaticDetails.Created,
+                UserId = userId
+            };
+
+            var orderDetails = new ProductOrderData
+            {
+                OrderDataId = order.OrderId,
+                ProductId = productId,
+                Count = count,
+                Price = product.Price
+            };
+
+            orderDetailsList.Add(orderDetails);
+
+            _unitOfWork.Repository<OrderData>().Create(order);
+
+            _unitOfWork.Repository<ProductOrderData>().Create(orderDetails);
+
+            _unitOfWork.Complete();
+
+        }
+
+
+        public async Task ProductDiscount(int productId, int discountPercentage)
+        {
+            var product = await GetProduct(productId);
+            if (product == null)
+            {
+                throw new NullReferenceException("The product you're trying to make a discount doesn't exist!");
+            }
+            if (product.ListPrice - product.Price >= 0.01)
+            {
+                throw new Exception("The product it is at a discount, to make another discount, remove existing discount first.");
+            }
+            product.Price = product.ListPrice - (product.ListPrice * discountPercentage / 100);
+
+            _unitOfWork.Repository<Product>().Update(product);
+
+            _unitOfWork.Complete();
+        }
+        public async Task RemoveProductDiscount(int productId)
+        {
+            var product = await GetProduct(productId);
+            if (product == null)
+            {
+                throw new NullReferenceException("The product you're trying to make a discount doesn't exist!");
+            }
+            if (product.ListPrice - product.Price < 0.0001)
+            {
+                throw new Exception("This product is not discounted");
+            }
+
+            product.Price = product.ListPrice;
+
+            _unitOfWork.Repository<Product>().Update(product);
+
+            _unitOfWork.Complete();
         }
 
         public async Task<List<Product>> GetFilterProducts(ProductFilter filter, ProductSort sort)
@@ -80,7 +170,11 @@ namespace EcommerceAPI.Services
             return products.ToList();
         }
 
-
+        public async Task<List<Product>> GetProductsCreatedLast()
+        {
+            var products = _unitOfWork.Repository<Product>().GetByCondition(x => x.CreatedDateTime > DateTime.Now.AddHours(-1)).ToList();
+            return products;
+        }
         public async Task CreateProduct(ProductCreateDto productToCreate)
         {
             var product = _mapper.Map<Product>(productToCreate);
@@ -109,6 +203,7 @@ namespace EcommerceAPI.Services
                 throw new NullReferenceException("The product you're trying to delete doesn't exist.");
             }
 
+            await DeleteByIdElastic(id);
             _unitOfWork.Repository<Product>().Delete(product);
             _unitOfWork.Complete();
             _logger.LogInformation("Deleted product successfully!");
@@ -122,7 +217,7 @@ namespace EcommerceAPI.Services
             {
                 throw new NullReferenceException("The product you're trying to update doesn't exist!");
             }
-            product.Title = productToUpdate.Title;
+            product.Name = productToUpdate.Name;
 
             _unitOfWork.Repository<Product>().Update(product);
 
@@ -131,7 +226,7 @@ namespace EcommerceAPI.Services
 
         public async Task<PagedInfo<Product>> ProductsListView(string search, int page, int pageSize, int categoryId = 0)
         {
-            Expression<Func<Product, bool>> condition = x => x.Title.Contains(search);
+            Expression<Func<Product, bool>> condition = x => x.Name.Contains(search);
 
             IQueryable<Product> products;
 
@@ -166,47 +261,40 @@ namespace EcommerceAPI.Services
         // Elastic
         public async Task<List<Product>> SearchElastic(SearchInputDto input, int pageIndex, int pageSize)
         {
-            
+            var minPrice = (input.MinPrice <= 0) ? 0.1 : input.MinPrice;
+            var maxPrice = (input.MaxPrice <= 0) ? 10000 : input.MaxPrice;
+
             var response = await _elasticClient.SearchAsync<Product>(s => s
                .Index("products")
                .From((pageIndex - 1) * pageSize)
                .Size(pageSize)
                .Query(q => q
                     .Match(m => m
-                        .Field(f => f.Title)
+                        .Field(f => f.Name)
                             .Query(input.Title)
                  ) && q
                  .Range(r => r
                     .Field(f => f.Price)
-                        .GreaterThanOrEquals(input.MinPrice)
-                        .LessThanOrEquals(input.MaxPrice))
-                 )
+                        .GreaterThanOrEquals(minPrice)
+                        .LessThanOrEquals(maxPrice))
+                 ).Sort(sort =>
+                 {
+                     if (input.SortByPopularity != null)
+                     {
+                         bool sortAscending = input.SortByPopularity == "ascending";
+                         sort = sortAscending ? sort.Field(f => f.TotalSold, SortOrder.Ascending) : sort.Field(f => f.TotalSold, SortOrder.Descending);
+                     }
+                     if (input.SortByPrice != null)
+                     {
+                         bool sortAscending = input.SortByPrice == "ascending";
+                         sort = sortAscending ? sort.Field(f => f.Price, SortOrder.Ascending) : sort.Field(f => f.Price, SortOrder.Descending);
+                     }
+                     return sort;
+                 }
+                )
             );
             _logger.LogInformation("Searched for products using elastic successfully!");
             return response.Documents.ToList();
-        }
-
-        public async Task<IndexResponse> AddProductElastic(ProductCreateElasticDto productToCreate)
-        {
-            var product = _mapper.Map<Product>(productToCreate);
-            var result = await _elasticClient.IndexAsync
-              (product, x => x.Index("products").Id(product.Id));
-
-            if (result.IsValid)
-            {
-                _logger.LogInformation("Added product using elastic successfully!");
-            }
-            return result;
-        }
-
-        public async Task<Product> GetByIdElastic(int id, string index)
-        {
-            var response = await _elasticClient.GetAsync<Product>(id, x => x.Index(index));
-            if (response.Source != null)
-            {
-                _logger.LogInformation("Found product by id using elastic successfully!");
-            }
-            return response.Source;
         }
 
         public async Task<List<Product>> GetAllElastic()
@@ -219,22 +307,21 @@ namespace EcommerceAPI.Services
             return response.Documents.ToList();
         }
 
-        public async Task AddBulkElastic(List<ProductCreateElasticDto> products)
+        public async Task AddBulkElastic(List<Product> products)
         {
-            var productsToCreate = _mapper.Map<List<ProductCreateElasticDto>, List<Product>>(products);
             var result = await _elasticClient.BulkAsync(x =>
-                x.Index("products").IndexMany(productsToCreate));
+                x.Index("products").IndexMany(products));
             _logger.LogInformation("Added bulk of products in elastic successfully!");
         }
 
-        public async Task UpdateElastic(ProductCreateElasticDto productToCreate)
+        public async Task UpdateElastic(ProductDto productToCreate)
         {
             var product = _mapper.Map<Product>(productToCreate);
 
             var response = await _elasticClient.GetAsync<Product>(product.Id, x => x.Index("products"));
             var existingProduct = response.Source;
 
-            existingProduct.Title = product.Title;
+            existingProduct.Name = product.Name;
             existingProduct.Description = product.Description;
             existingProduct.Price = product.Price;
             existingProduct.Category = product.Category;
@@ -252,18 +339,22 @@ namespace EcommerceAPI.Services
                    .Index("products")
                    .Query(q => q.MatchAll())
                );
+
             _logger.LogInformation("Deleted all products from elastic successfully!");
         }
-        public async Task DeleteProductByIdInElastic(int id)
+
+        public async Task DeleteByIdElastic(int id)
         {
-            var deleteResponse = _elasticClient.Delete<Product>(id, d => d
-            .Index("products")
-            );
-            if (!deleteResponse.IsValid)
+            var deleteResponse = _elasticClient.Delete<Product>(id, d=> d.Index("products"));
+
+            if (deleteResponse.IsValid)
             {
-                throw new Exception("There isn't a product with that ID");
+                _logger.LogInformation($"{nameof(ProductService)} - Deleted product with Id: {id} from elastic successfully!");
+            }else
+            {
+                _logger.LogError($"{nameof(ProductService)} - Error during deletion of product with Id: {id} using elastic!", deleteResponse.DebugInformation);
             }
-        }
+        }   
 
         public async Task<string> UploadImage(IFormFile? file, int productId)
         {
@@ -309,5 +400,7 @@ namespace EcommerceAPI.Services
             _logger.LogInformation("File is uploaded to blob successfully!");
             return await s3Client.PutObjectAsync(request);
         }
+
+
     }
 }

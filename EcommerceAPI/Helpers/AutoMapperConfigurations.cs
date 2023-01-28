@@ -1,7 +1,8 @@
 ﻿using AutoMapper;
 using EcommerceAPI.Models.DTOs.Category;
-using EcommerceAPI.Models.DTOs.OrderDetails;
+using EcommerceAPI.Models.DTOs.Order;
 using EcommerceAPI.Models.DTOs.Product;
+using EcommerceAPI.Models.DTOs.Promotion;
 using EcommerceAPI.Models.DTOs.Review;
 using EcommerceAPI.Models.Entities;
 
@@ -11,11 +12,23 @@ namespace EcommerceAPI.Helpers
     {
         public AutoMapperConfigurations()
         {
+            CreateMap<Product, ProductDto>().ReverseMap();
             CreateMap<Product, ProductCreateDto>().ReverseMap();
-            CreateMap<Product, ProductCreateElasticDto>().ReverseMap();
+
+            CreateMap<Category, CategoryDto>().ReverseMap();
             CreateMap<Category, CategoryCreateDto>().ReverseMap();
-            CreateMap<OrderDetails, OrderDetailsCreateDto>().ReverseMap();
+
+            CreateMap<OrderData, OrderDataDto>().ReverseMap();
+            CreateMap<OrderData, OrderDataCreateDto>().ReverseMap();
+
+            CreateMap<ProductOrderData, ProductOrderDataDto>().ReverseMap();
+            CreateMap<ProductOrderData, ProductOrderDataCreateDto>().ReverseMap();
+
+            CreateMap <Promotion, PromotionDto>().ReverseMap();
+            CreateMap<Promotion, PromotionDetailsDto>().ReverseMap();
+
             CreateMap<Review, ReviewCreateDto>().ReverseMap();
+            CreateMap<Review, ReviewDetailsDto>().ReverseMap();
         }
     }
 }

@@ -21,16 +21,27 @@ using System.Security.Claims;
 using System.Text;
 using claims = System.Security.Claims;
 using EcommerceAPI.Validators;
+using Stripe;
+using EcommerceAPI;
+using EcommerceAPI.Infrastructure;
+using EcommerceAPI.Hubs;
+using EcommerceAPI.Workers;
+using FluentAssertions.Common;
+using EcommerceAPI.Models.DTOs.Promotion;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddScoped<IValidator<Category>, CategoryValidator>();
-builder.Services.AddScoped<IValidator<CoverType>, CoverTypeValidator>();
-builder.Services.AddScoped<IValidator<OrderDetails>, OrderDetailsValidator>();
-builder.Services.AddScoped<IValidator<Product>, ProductValidator>();
-builder.Services.AddScoped<IValidator<ReviewCreateDto>, ReviewValidator>();
+builder.Services.AddScoped<IValidator<EcommerceAPI.Models.Entities.Product>, ProductValidator>();
+//builder.Services.AddScoped<IValidator<OrderDetails>, OrderDetailsValidator>();
+builder.Services.AddScoped<IValidator<ReviewCreateDto>, ReviewCreateDtoValidator>();
+builder.Services.AddScoped<IValidator<ReviewUpdateDto>, ReviewUpdateDtoValidator>();
+builder.Services.AddScoped<IValidator<PromotionDto>, PromotionValidator>();
+
+
+
 
 builder.Services.AddAuthentication(options =>
 {
@@ -90,7 +101,7 @@ builder.Services.AddAuthentication(options =>
                               };
 
                               userService.Repository<User>().Create(userToBeAdded);
-                              
+
                               //var emailService = context.HttpContext.RequestServices.GetService<IEmailSender>();
                               //if(emailService != null) 
                               //{
@@ -144,6 +155,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Add Stripe Infrastructure
+builder.Services.AddStripeInfrastructure(builder.Configuration);
+
 
 var logger = new LoggerConfiguration()
         .ReadFrom.Configuration(builder.Configuration)
@@ -156,6 +170,7 @@ builder.Logging.AddSerilog(logger);
 builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(logger);
 
+builder.Services.AddHostedService<UpdateElasticBackgroundService>();
 
 
 
@@ -165,8 +180,22 @@ var smtpConfigurations = builder.Configuration.GetSection(nameof(SmtpConfigurati
 builder.Services.AddSingleton(smtpConfigurations);
 builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
 
+builder.Services.AddHttpClient();
 
 
+
+builder.Services.AddSignalR();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ClientPermission", policy =>
+    {
+        policy.AllowAnyHeader()
+            .AllowAnyMethod()
+            .WithOrigins("http://localhost:3000")
+            .AllowCredentials();
+    });
+});
 
 var mapperConfiguration = new MapperConfiguration(
     mc => mc.AddProfile(new AutoMapperConfigurations()));
@@ -194,6 +223,9 @@ builder.Services.AddSingleton(client);
 
 builder.Services.AddScoped<ICacheService, CacheService>();
 
+builder.Services.AddScoped<IWishlistService, WishlistService>();
+builder.Services.AddTransient<PaymentMethodService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -214,11 +246,23 @@ if (app.Environment.IsDevelopment())
 }
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
+app.UseCors("ClientPermission");
+
+
+app.UseRouting();
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+    endpoints.MapHub<ChatHub>("/hubs/chat");
+});
 
 app.Run();

@@ -13,26 +13,11 @@ namespace EcommerceAPI.Validators
                 .NotEmpty().WithMessage("{PropertyName} must not be empty!")
                 .GreaterThan(0).WithMessage("{PropertyName} must be positive");
 
-            RuleFor(p => p.Title)
+            RuleFor(p => p.Name)
                 .NotNull().WithMessage("{PropertyName} must not be null!")
                 .NotEmpty().WithMessage("{PropertyName} must not be empty!")
                 .MaximumLength(250).WithMessage("{PropertyName} can have maximum 250 characters");
-
-            RuleFor(p => p.Seller)
-                 .NotNull().WithMessage("{PropertyName} must not be null!")
-                 .NotEmpty().WithMessage("{PropertyName} must not be empty!")
-                 .MaximumLength(150).WithMessage("{PropertyName} can have maximum 150 characters");
-
-            RuleFor(p => p.ISBN)
-                .NotNull().WithMessage("{PropertyName} must not be null!")
-                .NotEmpty().WithMessage("{PropertyName} must not be empty!")
-                .MaximumLength(30).WithMessage("{PropertyName} can have maximum 30 characters");
-
-            RuleFor(p => p.Author)
-                .NotNull().WithMessage("{PropertyName} must not be null!")
-                .NotEmpty().WithMessage("{PropertyName} must not be empty!")
-                .MaximumLength(150).WithMessage("{PropertyName} can have maximum 150 characters");
-
+            
             RuleFor(p => p.ListPrice)
                .NotNull().WithMessage("{PropertyName} must not be null!")
                .NotEmpty().WithMessage("{PropertyName} must not be empty!")
@@ -43,26 +28,11 @@ namespace EcommerceAPI.Validators
                .NotEmpty().WithMessage("{PropertyName} must not be empty!")
                .ExclusiveBetween(0, 10000).WithMessage("Product {PropertyName} must be between 0 and 10000!");
 
-            RuleFor(p => p.Price50)
-              .NotNull().WithMessage("{PropertyName} must not be null!")
-              .NotEmpty().WithMessage("{PropertyName} must not be empty!")
-              .ExclusiveBetween(0, 10000).WithMessage("Product {PropertyName} must be between 0 and 10000!");
-
-            RuleFor(p => p.Price100)
-              .NotNull().WithMessage("{PropertyName} must not be null!")
-              .NotEmpty().WithMessage("{PropertyName} must not be empty!")
-              .ExclusiveBetween(0, 10000).WithMessage("Product {PropertyName} must be between 0 and 10000!");
-
-
             RuleFor(p => p.CategoryId)
                .NotNull().WithMessage("{PropertyName} must not be null!")
                .NotEmpty().WithMessage("{PropertyName} must not be empty!")
                .GreaterThan(0).WithMessage("{PropertyName} must be positive");
 
-            RuleFor(p => p.CoverTypeId)
-               .NotNull().WithMessage("{PropertyName} must not be null!")
-               .NotEmpty().WithMessage("{PropertyName} must not be empty!")
-               .GreaterThan(0).WithMessage("{PropertyName} must be positive");
         }
     }
 }

@@ -7,14 +7,13 @@ namespace EcommerceAPI.Models.Entities
     public class OrderData
     {
         [Key]
-        public int OrderId { get; set; }
-
+        public string OrderId { get; set; }
         [Required]
         public DateTime OrderDate { get; set; }
-       
         [Required]
         public DateTime ShippingDate { get; set; }
-        public double OrderTotal { get; set; }
+        public double OrderPrice { get; set; }
+        public double OrderFinalPrice { get; set; }
         public string TrackingId { get; set; }
         public string? Carrier { get; set; }
         public string? OrderStatus { get; set; }
@@ -38,5 +37,8 @@ namespace EcommerceAPI.Models.Entities
         public string Name { get; set; }
         public string? UserId { get; set; }
         public User? User { get; set; }
+        public int? PromotionId { get; set; }
+        public Promotion? Promotion { get; set; }
+        public ICollection<ProductOrderData> ProductOrderData { get; set; }
     }
 }

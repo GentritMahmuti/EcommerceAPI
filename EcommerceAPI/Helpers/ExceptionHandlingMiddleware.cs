@@ -44,7 +44,7 @@ namespace EcommerceAPI.Helpers
                 await HandleException(context, e);
             }
 
-        }
+}
 
         private Task HandleException(HttpContext context, Exception ex)
         {
