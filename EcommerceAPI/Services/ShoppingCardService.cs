@@ -260,6 +260,7 @@ namespace EcommerceAPI.Services
                 }
 
                 product.Stock -= item.ShopingCardProductCount;
+                product.TotalSold += 1;
 
                 _unitOfWork.Repository<Product>().Update(product);
 

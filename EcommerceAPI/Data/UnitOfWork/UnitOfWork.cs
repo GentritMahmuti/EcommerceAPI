@@ -2,7 +2,7 @@
 using EcommerceAPI.Data.Repository.IRepository;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Collections;
-using System.Data.Entity.Infrastructure;
+
 
 namespace EcommerceAPI.Data.UnitOfWork
 {
