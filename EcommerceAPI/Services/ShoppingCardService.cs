@@ -19,7 +19,7 @@ using System.Text;
 using static Amazon.S3.Util.S3EventNotification;
 using EcommerceAPI.Models.DTOs.Promotion;
 using EcommerceAPI.Models.DTOs.Product;
-
+using Microsoft.EntityFrameworkCore;
 
 namespace EcommerceAPI.Services
 {
@@ -67,7 +67,7 @@ namespace EcommerceAPI.Services
                 _unitOfWork.Complete();
 
 
-                //Gentrit
+                
                 var cartItem = await GetCardItem(shoppingCardItem.CartItemId);
 
                 //Check if the data is already in the cache
@@ -76,23 +76,10 @@ namespace EcommerceAPI.Services
                 //Store the data in the cache
                 var expirationTime = DateTimeOffset.Now.AddDays(1);
                 _cacheService.SetDataMember(key, cartItem);
-                //Gentrit
+                
                 
 
-                //Fatlinda
-                var key = $"CartKeys_UserId_{userId}_ProductId_{productId}";
-
-                var expirationTime = DateTimeOffset.Now.AddDays(1);
-                _cacheService.SetData(key, shoppingCardItem, expirationTime);
-
-                var _keys = _cacheService.GetData<List<string>>($"CartKeys_UserId_{userId}");
-                if (_keys == null)
-                {
-                    this._keys = new List<string>();
-                    _cacheService.SetData($"CartKeys_UserId_{userId}", _keys, expirationTime);
-                }
-                this._keys.Add(key);
-                //Fatlinda
+                
             }
             catch (Exception ex)
             {
@@ -105,7 +92,7 @@ namespace EcommerceAPI.Services
             try
             {
 
-                //Gentrit
+               
                 // Log the key
                 var key = $"CartItems_{userId}";
 
@@ -117,23 +104,9 @@ namespace EcommerceAPI.Services
                 {
                     usersShoppingCard = await _unitOfWork.Repository<CartItem>()
                     
-                 //Gentrit
+                 
 
-                 //Fatlinda  
-                var key = $"ShoppingCard_UserId_{userId}";
-                var shoppingCardDetails = _cacheService.GetData<ShoppingCardDetails>(key);
-                if (shoppingCardDetails != null)
-                {
-                    var cartItemCount = _unitOfWork.Repository<CartItem>()
-                                                                        .Count(x => x.UserId == userId);
-                    if (shoppingCardDetails.ItemCount == cartItemCount)
-                    {
-                        return shoppingCardDetails;
-                    }
-                }
-
-                var usersShoppingCard = await _unitOfWork.Repository<CartItem>()
-                //Fatlinda  
+                
 
                                                                         .GetByCondition(x => x.UserId == userId)
                                                                         .Include(x => x.Product)
@@ -142,29 +115,23 @@ namespace EcommerceAPI.Services
 
                 var shoppingCardList = new List<ShoppingCardViewDto>();
 
-                //Gentrit
+                
 
 
                 foreach (CartItem item in usersShoppingCard)
                 {
                     var currentProduct = item.Product;
                     
-                 //Gentrit   
+                   
 
-                //Fatlinda
-                double total = 0;
-
-                foreach (CartItem item in usersShoppingCard)
-                {
-                    var productId = item.Product;
-                //Fatlinda
+                
 
                     var model = new ShoppingCardViewDto
                     {
                         ShoppingCardItemId = item.CartItemId,
                         ProductId = item.ProductId,
 
-                        //Gentrit
+                       
                         ProductImage = currentProduct.ImageUrl,
                         ProductDescription = currentProduct.Description,
                         ProductName = currentProduct.Name,
@@ -181,31 +148,9 @@ namespace EcommerceAPI.Services
                     ShoppingCardItems = shoppingCardList,
                     CardTotal = shoppingCardList.Select(x => x.Total).Sum()
                 };
-                //Gentrit
+                
 
-                        //Fatlinda
-                        ProductImage = productId.ImageUrl,
-                        ProductDescription = productId.Description,
-                        ProductName = productId.Name,
-                        ProductPrice = productId.Price,
-                        ShopingCardProductCount = item.Count,
-                        Total = productId.Price * item.Count
-                    };
-
-                    shoppingCardList.Add(model);
-                    total += model.Total;
-                }
-
-                shoppingCardDetails = new ShoppingCardDetails()
-                {
-                    ShoppingCardItems = shoppingCardList,
-                    CardTotal = total,
-                    ItemCount = usersShoppingCard.Count
-                };
-
-                var expirationTime = DateTimeOffset.Now.AddDays(1);
-                _cacheService.SetData(key, shoppingCardDetails, expirationTime);
-                //Fatlinda
+                        
 
                 return shoppingCardDetails;
             }
@@ -218,31 +163,22 @@ namespace EcommerceAPI.Services
 
 
 
-//g
+
         public async Task RemoveProductFromCard(int shoppingCardItemId, string userId)
-        //g
-
-//Fatlinda
-
-        public async Task RemoveProductFromCard(int shoppingCardItemId)
-        //Fatlinda
-
         {
             try
             {
                 // Retrieve data from the cache
 
-//g
+
                 var cacheKey = $"CartItems_{userId}";
 
                 // Check if the data is already in the cache
                 var usersShoppingCard = _cacheService.GetDataSet<CartItem>(cacheKey);
-                //g
+                
                 
 
-//Fatlinda
-                string cacheKey = string.Format("CartItems_CartItemId_{0}", shoppingCardItemId);
-                //Fatlinda
+
 
 
 
