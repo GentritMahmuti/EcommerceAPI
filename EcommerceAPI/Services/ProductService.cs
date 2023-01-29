@@ -27,15 +27,17 @@ namespace EcommerceAPI.Services
         private readonly IConfiguration _configuration;
         private readonly ILogger<ProductService> _logger;
         private readonly ElasticClient _elasticClient;
+        private readonly ICacheService _cacheService;
 
 
-        public ProductService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, ILogger<ProductService> logger, ElasticClient elasticClient)
+        public ProductService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, ILogger<ProductService> logger, ElasticClient elasticClient, ICacheService cacheService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _configuration = configuration;
             _logger = logger;
             _elasticClient = elasticClient;
+            _cacheService = cacheService;
         }
 
 
@@ -98,7 +100,10 @@ namespace EcommerceAPI.Services
                 throw new Exception("The product it is at a discount, to make another discount, remove existing discount first.");
             }
             product.Price = product.ListPrice - (product.ListPrice * discountPercentage / 100);
-           
+
+            var key = $"Product_{productId}";
+            var expirationTime = DateTimeOffset.Now.AddDays(1);
+            _cacheService.SetUpdatedData<Product>(key, product, expirationTime);
             _unitOfWork.Repository<Product>().Update(product);
 
             _unitOfWork.Complete();
@@ -116,6 +121,10 @@ namespace EcommerceAPI.Services
             }
 
             product.Price = product.ListPrice;
+
+            var key = $"Product_{productId}";
+            var expirationTime = DateTimeOffset.Now.AddDays(1);
+            _cacheService.SetUpdatedData<Product>(key, product,expirationTime);
 
             _unitOfWork.Repository<Product>().Update(product);
 
@@ -158,9 +167,13 @@ namespace EcommerceAPI.Services
 
         public async Task<Product> GetProduct(int id)
         {
-            Expression<Func<Product, bool>> expression = x => x.Id == id;
-            var product = await _unitOfWork.Repository<Product>().GetById(expression).FirstOrDefaultAsync();
-
+            var key = $"Product_{id}";
+            var product = _cacheService.GetData<Product>(key);
+            if (product == null)
+            {
+                Expression<Func<Product, bool>> expression = x => x.Id == id;
+                product = await _unitOfWork.Repository<Product>().GetById(expression).FirstOrDefaultAsync();
+            }
             return product;
         }
 
@@ -181,6 +194,14 @@ namespace EcommerceAPI.Services
 
             _unitOfWork.Repository<Product>().Create(product);
             _unitOfWork.Complete();
+            var key = $"Product_{product.Id}";
+            var itemInCache = _cacheService.GetData<Product>(key);
+            if (itemInCache == null)
+            {
+                //Store the data in the cache
+                var expirationTime = DateTimeOffset.Now.AddDays(1);
+                _cacheService.SetData(key, product,expirationTime);
+            }
             _logger.LogInformation("Created product successfully!");
 
         }
@@ -202,7 +223,8 @@ namespace EcommerceAPI.Services
             {
                 throw new NullReferenceException("The product you're trying to delete doesn't exist.");
             }
-
+            var key = $"Product_{id}";
+            _cacheService.RemoveData(key);
             _unitOfWork.Repository<Product>().Delete(product);
             _unitOfWork.Complete();
             _logger.LogInformation("Deleted product successfully!");
