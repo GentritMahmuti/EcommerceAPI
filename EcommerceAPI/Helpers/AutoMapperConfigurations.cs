@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using EcommerceAPI.Models.DTOs.Category;
+using EcommerceAPI.Models.DTOs.Chat;
 using EcommerceAPI.Models.DTOs.Order;
 using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Models.DTOs.Promotion;
@@ -28,7 +29,12 @@ namespace EcommerceAPI.Helpers
             CreateMap<Promotion, PromotionDetailsDto>().ReverseMap();
 
             CreateMap<Review, ReviewCreateDto>().ReverseMap();
+
+
+            CreateMap<ChatMessage, ChatDTO>().ReverseMap();
+
             CreateMap<Review, ReviewDetailsDto>().ReverseMap();
+
         }
     }
 }

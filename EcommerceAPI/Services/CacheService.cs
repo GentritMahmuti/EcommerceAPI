@@ -24,6 +24,16 @@ namespace EcommerceAPI.Services
             return default;
         }
 
+        public List<T> GetDataSet<T>(string key)
+        {
+            var value = _cacheDb.SetMembers(key);
+            List<T> list = new List<T>();
+            foreach (var item in value) 
+            {
+                list.Add(JsonSerializer.Deserialize<T>(item));
+            }
+            return list;
+        }
         public object RemoveData(string key)
         {
             var _exist = _cacheDb.KeyExists(key);
@@ -38,6 +48,13 @@ namespace EcommerceAPI.Services
         {
             var expiryTime = expirationTime.DateTime.Subtract(DateTime.Now);
             return _cacheDb.StringSet(key, JsonSerializer.Serialize(value), expiryTime);
+        }
+
+
+        public bool SetDataMember<T>(string key, T value)
+        {
+
+            return _cacheDb.SetAdd(key, JsonSerializer.Serialize(value));
         }
 
 

@@ -93,11 +93,11 @@ builder.Services.AddAuthentication(options =>
 
                               userService.Repository<User>().Create(userToBeAdded);
 
-                              //var emailService = context.HttpContext.RequestServices.GetService<IEmailSender>();
-                              //if(emailService != null) 
-                              //{
-                              //    emailService.SendEmailAsync(userToBeAdded.Email, "Welcome", "Welcome To Life");
-                              //}
+                              var emailService = context.HttpContext.RequestServices.GetService<IEmailSender>();
+                              if (emailService != null)
+                              {
+                                  emailService.SendEmailAsync(userToBeAdded.Email, "Welcome", "Welcome To E-commerce Gjirafa");
+                              }
                           }
                           else
                           {

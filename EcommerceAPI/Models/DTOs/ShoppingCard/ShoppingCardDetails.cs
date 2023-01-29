@@ -5,5 +5,6 @@
         public double CardTotal { get; set; }
 
         public List<ShoppingCardViewDto> ShoppingCardItems { get; set; }
+        public int ItemCount { get; set; }
     }
 }
