@@ -44,6 +44,16 @@ namespace EcommerceAPI.Services
             return false;
         }
 
+        public object RemoveDataFromSet<T>(string key, T value)
+        {
+            var _exist = _cacheDb.KeyExists(key);
+            if (_exist)
+            {
+                return _cacheDb.SetRemove(key, JsonSerializer.Serialize(value));
+            }
+            return false;
+        }
+
         public bool SetData<T>(string key, T value, DateTimeOffset expirationTime)
         {
             var expiryTime = expirationTime.DateTime.Subtract(DateTime.Now);

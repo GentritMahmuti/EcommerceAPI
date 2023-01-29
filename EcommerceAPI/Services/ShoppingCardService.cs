@@ -46,6 +46,7 @@ namespace EcommerceAPI.Services
 
             var cartItem = await _unitOfWork.Repository<CartItem>()
                 .GetById(x => x.CartItemId == itemId)
+                .AsNoTracking()
                 .Include("Product")
                 .FirstOrDefaultAsync();
 
@@ -74,7 +75,6 @@ namespace EcommerceAPI.Services
                 var key = $"CartItems_{userId}";
                 
                 //Store the data in the cache
-                var expirationTime = DateTimeOffset.Now.AddDays(1);
                 _cacheService.SetDataMember(key, cartItem);
             }
             catch (Exception ex)
@@ -140,21 +140,12 @@ namespace EcommerceAPI.Services
         {
             try
             {
-                // Retrieve data from the cache
                 var cacheKey = $"CartItems_{userId}";
-
-                // Check if the data is already in the cache
-                var usersShoppingCard = _cacheService.GetDataSet<CartItem>(cacheKey);
-
-                // If the data is not found in the cache, retrieve it from the database
-
-                var shoppingCardItem = await _unitOfWork.Repository<CartItem>()
-                                                                        .GetById(x => x.CartItemId == shoppingCardItemId)
-                                                                        .FirstOrDefaultAsync();
+                var shoppingCardItem = await CheckRedisAndDatabaseForData(shoppingCardItemId, cacheKey);
 
                 _unitOfWork.Repository<CartItem>().Delete(shoppingCardItem);
-                _cacheService.RemoveData(cacheKey);
                 _unitOfWork.Complete();
+                       
             }
             catch (Exception ex)
             {
@@ -174,17 +165,13 @@ namespace EcommerceAPI.Services
             _unitOfWork.Complete();
 
         }
-        public async Task IncreaseProductQuantityInShoppingCard(int shoppingCardItemId, int? newQuantity)
+        public async Task IncreaseProductQuantityInShoppingCard(int shoppingCardItemId, string userId, int? newQuantity)
         {
 
             try
             {
-                string cacheKey = string.Format("CartItems_CartItemId_{0}", shoppingCardItemId);
-
-
-                var shoppingCardItem = await _unitOfWork.Repository<CartItem>()
-                                                        .GetById(x => x.CartItemId == shoppingCardItemId)
-                                                        .FirstOrDefaultAsync();
+                var cacheKey = $"CartItems_{userId}";
+                var shoppingCardItem = await CheckRedisAndDatabaseForData(shoppingCardItemId, cacheKey);
 
                 if (newQuantity == null)
                     shoppingCardItem.Count++;
@@ -193,7 +180,8 @@ namespace EcommerceAPI.Services
 
                 _unitOfWork.Repository<CartItem>().Update(shoppingCardItem);
                 _unitOfWork.Complete();
-                _cacheService.SetUpdatedData(cacheKey, shoppingCardItem, DateTimeOffset.Now.AddDays(1));
+                var cartItem = await GetCardItem(shoppingCardItem.CartItemId);
+                _cacheService.SetDataMember(cacheKey, cartItem);
             }
             catch (Exception ex)
             {
@@ -202,12 +190,13 @@ namespace EcommerceAPI.Services
 
             }
         }
-        public async Task DecreaseProductQuantityInShoppingCard(int shoppingCardItemId, int? newQuantity)
+        public async Task DecreaseProductQuantityInShoppingCard(int shoppingCardItemId,string userId, int? newQuantity)
         {
             try
             {
-                string cacheKey = string.Format("CartItems_CartItemId_{0}", shoppingCardItemId);
-                var shoppingCardItem = await _unitOfWork.Repository<CartItem>().GetById(x => x.CartItemId == shoppingCardItemId).FirstOrDefaultAsync();
+                var cacheKey = $"CartItems_{userId}";
+                var shoppingCardItem = await CheckRedisAndDatabaseForData(shoppingCardItemId, cacheKey);
+
                 if (shoppingCardItem == null)
                 {
                     throw new Exception("Cart item not found in the database.");
@@ -219,7 +208,8 @@ namespace EcommerceAPI.Services
 
                 _unitOfWork.Repository<CartItem>().Update(shoppingCardItem);
                 _unitOfWork.Complete();
-                _cacheService.SetUpdatedData(cacheKey, shoppingCardItem, DateTimeOffset.Now.AddDays(1));
+                var cartItem = await GetCardItem(shoppingCardItem.CartItemId);
+                _cacheService.SetDataMember(cacheKey, cartItem);
             }
             catch (Exception ex)
             {
@@ -228,7 +218,31 @@ namespace EcommerceAPI.Services
 
             }
         }
+        private async Task<CartItem> CheckRedisAndDatabaseForData(int shoppingCardItemId, string cachekey)
+        {
+            CartItem? shoppingCardItem = null;
+            var usersShoppingCard = _cacheService.GetDataSet<CartItem>(cachekey);
+            if (usersShoppingCard != null)
+            {
+                foreach (var item in usersShoppingCard)
+                {
+                    if (item.CartItemId == shoppingCardItemId)
+                    {
+                        shoppingCardItem = item;
+                        _cacheService.RemoveDataFromSet(cachekey, item);
+                    }
+                }
+            }
 
+            if (shoppingCardItem == null)
+            {
+                shoppingCardItem = await _unitOfWork.Repository<CartItem>()
+                                                    .GetById(x => x.CartItemId == shoppingCardItemId)
+                                                    .FirstOrDefaultAsync();
+            }
+            return shoppingCardItem;
+
+        }
         public async Task CreateOrder(string userId, AddressDetails addressDetails, List<ShoppingCardViewDto> shoppingCardItems, string? promoCode)
         {
             var orderId = Guid.NewGuid().ToString();
@@ -393,5 +407,6 @@ namespace EcommerceAPI.Services
                 _logger.LogInformation("Data for low-stock is published to the rabbit!");
             }
         }
+
     }
 }
