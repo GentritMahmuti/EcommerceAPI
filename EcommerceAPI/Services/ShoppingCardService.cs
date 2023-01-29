@@ -76,10 +76,6 @@ namespace EcommerceAPI.Services
                 //Store the data in the cache
                 var expirationTime = DateTimeOffset.Now.AddDays(1);
                 _cacheService.SetDataMember(key, cartItem);
-                
-                
-
-                
             }
             catch (Exception ex)
             {
@@ -90,9 +86,7 @@ namespace EcommerceAPI.Services
         public async Task<ShoppingCardDetails> GetShoppingCardContentForUser(string userId)
         {
             try
-            {
-
-               
+            { 
                 // Log the key
                 var key = $"CartItems_{userId}";
 
@@ -103,29 +97,15 @@ namespace EcommerceAPI.Services
                 if (usersShoppingCard == null)
                 {
                     usersShoppingCard = await _unitOfWork.Repository<CartItem>()
-                    
-                 
-
-                
-
                                                                         .GetByCondition(x => x.UserId == userId)
                                                                         .Include(x => x.Product)
                                                                         .ToListAsync();
                 }
 
                 var shoppingCardList = new List<ShoppingCardViewDto>();
-
-                
-
-
                 foreach (CartItem item in usersShoppingCard)
                 {
                     var currentProduct = item.Product;
-                    
-                   
-
-                
-
                     var model = new ShoppingCardViewDto
                     {
                         ShoppingCardItemId = item.CartItemId,
@@ -148,10 +128,6 @@ namespace EcommerceAPI.Services
                     ShoppingCardItems = shoppingCardList,
                     CardTotal = shoppingCardList.Select(x => x.Total).Sum()
                 };
-                
-
-                        
-
                 return shoppingCardDetails;
             }
             catch (Exception ex)
@@ -160,36 +136,21 @@ namespace EcommerceAPI.Services
                 return new ShoppingCardDetails();
             }
         }
-
-
-
-
         public async Task RemoveProductFromCard(int shoppingCardItemId, string userId)
         {
             try
             {
                 // Retrieve data from the cache
-
-
                 var cacheKey = $"CartItems_{userId}";
 
                 // Check if the data is already in the cache
                 var usersShoppingCard = _cacheService.GetDataSet<CartItem>(cacheKey);
-                
-                
-
-
-
-
 
                 // If the data is not found in the cache, retrieve it from the database
 
                 var shoppingCardItem = await _unitOfWork.Repository<CartItem>()
                                                                         .GetById(x => x.CartItemId == shoppingCardItemId)
                                                                         .FirstOrDefaultAsync();
-
-
-                // Delete data from both cache and database
 
                 _unitOfWork.Repository<CartItem>().Delete(shoppingCardItem);
                 _cacheService.RemoveData(cacheKey);
@@ -213,7 +174,6 @@ namespace EcommerceAPI.Services
             _unitOfWork.Complete();
 
         }
-
         public async Task IncreaseProductQuantityInShoppingCard(int shoppingCardItemId, int? newQuantity)
         {
 
