@@ -47,7 +47,7 @@ namespace EcommerceAPI.Services
             _logger.LogInformation("Created category successfully!");
 
         }
-
+            
         public async Task DeleteCategory(int id)
         {
             var category = await GetCategory(id);
