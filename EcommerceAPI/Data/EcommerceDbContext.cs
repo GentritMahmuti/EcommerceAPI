@@ -60,7 +60,7 @@ namespace EcommerceAPI.Data
         public DbSet<ChatMessage> ChatMessage { get; set; }
         public DbSet<PaymentMethodEntity> PaymentMethods { get; set; }
 
-
+        public DbSet<Inquiry> Inquiries { get; set; }
 
     }
 }

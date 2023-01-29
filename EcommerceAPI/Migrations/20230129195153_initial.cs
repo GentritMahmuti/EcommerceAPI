@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace EcommerceAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class CreateDb : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -41,6 +41,21 @@ namespace EcommerceAPI.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ChatMessage", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Inquiries",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Message = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SubmittedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Inquiries", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -340,6 +355,9 @@ namespace EcommerceAPI.Migrations
 
             migrationBuilder.DropTable(
                 name: "ChatMessage");
+
+            migrationBuilder.DropTable(
+                name: "Inquiries");
 
             migrationBuilder.DropTable(
                 name: "PaymentMethods");

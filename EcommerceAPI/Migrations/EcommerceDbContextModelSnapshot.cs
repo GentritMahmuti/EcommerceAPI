@@ -108,6 +108,30 @@ namespace EcommerceAPI.Migrations
                     b.ToTable("ChatMessage");
                 });
 
+            modelBuilder.Entity("EcommerceAPI.Models.Entities.Inquiry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Inquiries");
+                });
+
             modelBuilder.Entity("EcommerceAPI.Models.Entities.OrderData", b =>
                 {
                     b.Property<string>("OrderId")
