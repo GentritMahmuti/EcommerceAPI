@@ -47,6 +47,10 @@ namespace EcommerceAPI.Controllers
         [HttpPost("PostCategory")]
         public async Task<IActionResult> Post(CategoryCreateDto createCategory)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             await _categoryService.CreateCategory(createCategory);
 
             return Ok("Category created successfully!");

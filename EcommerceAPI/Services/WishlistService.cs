@@ -21,9 +21,21 @@ namespace EcommerceAPI.Services
 
         public async Task<List<Product>> GetWishlistContent(string userId)
         {
+            if (string.IsNullOrEmpty(userId))
+            {
+                _logger.LogError("UserId cannot be null or empty");
+                throw new ("UserId cannot be null or empty.");
+            }
+
             try
             {
                 var wishlist = await _unitOfWork.Repository<WishListItem>().GetByCondition(x => x.UserId == userId).ToListAsync();
+
+                if (!wishlist.Any())
+                {
+                    return new List<Product>();
+                }
+
                 var productsIds = wishlist.Select(x => x.ProductId).ToList();
                 var products = await _unitOfWork.Repository<Product>().GetByCondition(x => productsIds.Contains(x.Id)).ToListAsync();
                 return products;
@@ -31,9 +43,10 @@ namespace EcommerceAPI.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while getting the wishlist content for user");
-                throw new Exception("An error occurred while getting the wishlist content for user");
+                throw new ("An error occurred while getting the wishlist content for user", ex);
             }
         }
+
         public async Task AddProductToWishlist(string userId, int productId)
         {
             try
