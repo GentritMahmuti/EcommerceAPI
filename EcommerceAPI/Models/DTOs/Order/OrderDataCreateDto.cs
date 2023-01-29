@@ -4,9 +4,8 @@ namespace EcommerceAPI.Models.DTOs.Order
 {
     public class OrderDataCreateDto
     {
-        [Required]
+        
         public DateTime OrderDate { get; set; }
-        [Required]
         public DateTime ShippingDate { get; set; }
         public double OrderPrice { get; set; }
         public double OrderFinalPrice { get; set; }
@@ -19,17 +18,11 @@ namespace EcommerceAPI.Models.DTOs.Order
         public DateTime PaymentDate { get; set; }
         public DateTime PaymentDueDate { get; set; }
 
-        [Required]
         public string PhoheNumber { get; set; }
-        [Required]
         public string StreetAddress { get; set; }
-        [Required]
         public string City { get; set; }
-        [Required]
         public string Country { get; set; }
-        [Required]
         public string PostalCode { get; set; }
-        [Required]
         public string Name { get; set; }
     }
 }

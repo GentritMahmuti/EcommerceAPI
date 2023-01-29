@@ -52,9 +52,6 @@
     <Folder Include="Validators\DtoValidators\User\" />
     <Folder Include="Validators\DtoValidators\Stripe\" />
     <Folder Include="Validators\DtoValidators\ShoppingCard\" />
-    <Folder Include="Validators\DtoValidators\Review\" />
-    <Folder Include="Validators\DtoValidators\Promotion\" />
-    <Folder Include="Validators\DtoValidators\Product\" />
 
   </ItemGroup>
 
