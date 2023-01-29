@@ -8,7 +8,6 @@ using EcommerceAPI.Models.DTOs.ShoppingCard;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
 using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
@@ -18,7 +17,9 @@ using System;
 using System.Linq.Expressions;
 using System.Text;
 using static Amazon.S3.Util.S3EventNotification;
+using EcommerceAPI.Models.DTOs.Promotion;
 using EcommerceAPI.Models.DTOs.Product;
+
 
 namespace EcommerceAPI.Services
 {
@@ -40,6 +41,16 @@ namespace EcommerceAPI.Services
             _keys = new List<string>();
         }
 
+        private async Task<CartItem> GetCardItem(int itemId)
+        {
+
+            var cartItem = await _unitOfWork.Repository<CartItem>()
+                .GetById(x => x.CartItemId == itemId)
+                .Include("Product")
+                .FirstOrDefaultAsync();
+
+            return cartItem;
+        }
 
         public async Task AddProductToCard(string userId, int productId, int count)
         {
@@ -55,6 +66,20 @@ namespace EcommerceAPI.Services
                 _unitOfWork.Repository<CartItem>().Create(shoppingCardItem);
                 _unitOfWork.Complete();
 
+
+                //Gentrit
+                var cartItem = await GetCardItem(shoppingCardItem.CartItemId);
+
+                //Check if the data is already in the cache
+                var key = $"CartItems_{userId}";
+                
+                //Store the data in the cache
+                var expirationTime = DateTimeOffset.Now.AddDays(1);
+                _cacheService.SetDataMember(key, cartItem);
+                //Gentrit
+                
+
+                //Fatlinda
                 var key = $"CartKeys_UserId_{userId}_ProductId_{productId}";
 
                 var expirationTime = DateTimeOffset.Now.AddDays(1);
@@ -67,6 +92,7 @@ namespace EcommerceAPI.Services
                     _cacheService.SetData($"CartKeys_UserId_{userId}", _keys, expirationTime);
                 }
                 this._keys.Add(key);
+                //Fatlinda
             }
             catch (Exception ex)
             {
@@ -78,6 +104,22 @@ namespace EcommerceAPI.Services
         {
             try
             {
+
+                //Gentrit
+                // Log the key
+                var key = $"CartItems_{userId}";
+
+                // Check if the data is already in the cache
+                var usersShoppingCard = _cacheService.GetDataSet<CartItem>(key);
+
+                // If not, then get the data from the database
+                if (usersShoppingCard == null)
+                {
+                    usersShoppingCard = await _unitOfWork.Repository<CartItem>()
+                    
+                 //Gentrit
+
+                 //Fatlinda  
                 var key = $"ShoppingCard_UserId_{userId}";
                 var shoppingCardDetails = _cacheService.GetData<ShoppingCardDetails>(key);
                 if (shoppingCardDetails != null)
@@ -91,20 +133,57 @@ namespace EcommerceAPI.Services
                 }
 
                 var usersShoppingCard = await _unitOfWork.Repository<CartItem>()
+                //Fatlinda  
+
                                                                         .GetByCondition(x => x.UserId == userId)
                                                                         .Include(x => x.Product)
                                                                         .ToListAsync();
+                }
 
                 var shoppingCardList = new List<ShoppingCardViewDto>();
+
+                //Gentrit
+
+
+                foreach (CartItem item in usersShoppingCard)
+                {
+                    var currentProduct = item.Product;
+                    
+                 //Gentrit   
+
+                //Fatlinda
                 double total = 0;
 
                 foreach (CartItem item in usersShoppingCard)
                 {
                     var productId = item.Product;
+                //Fatlinda
+
                     var model = new ShoppingCardViewDto
                     {
                         ShoppingCardItemId = item.CartItemId,
                         ProductId = item.ProductId,
+
+                        //Gentrit
+                        ProductImage = currentProduct.ImageUrl,
+                        ProductDescription = currentProduct.Description,
+                        ProductName = currentProduct.Name,
+                        ProductPrice = currentProduct.Price,
+                        ShopingCardProductCount = item.Count,
+                        Total = currentProduct.Price * item.Count
+                    };
+
+                    shoppingCardList.Add(model);
+                }
+                
+                var shoppingCardDetails = new ShoppingCardDetails()
+                {
+                    ShoppingCardItems = shoppingCardList,
+                    CardTotal = shoppingCardList.Select(x => x.Total).Sum()
+                };
+                //Gentrit
+
+                        //Fatlinda
                         ProductImage = productId.ImageUrl,
                         ProductDescription = productId.Description,
                         ProductName = productId.Name,
@@ -126,6 +205,7 @@ namespace EcommerceAPI.Services
 
                 var expirationTime = DateTimeOffset.Now.AddDays(1);
                 _cacheService.SetData(key, shoppingCardDetails, expirationTime);
+                //Fatlinda
 
                 return shoppingCardDetails;
             }
@@ -138,12 +218,32 @@ namespace EcommerceAPI.Services
 
 
 
+//g
+        public async Task RemoveProductFromCard(int shoppingCardItemId, string userId)
+        //g
+
+//Fatlinda
+
         public async Task RemoveProductFromCard(int shoppingCardItemId)
+        //Fatlinda
+
         {
             try
             {
                 // Retrieve data from the cache
+
+//g
+                var cacheKey = $"CartItems_{userId}";
+
+                // Check if the data is already in the cache
+                var usersShoppingCard = _cacheService.GetDataSet<CartItem>(cacheKey);
+                //g
+                
+
+//Fatlinda
                 string cacheKey = string.Format("CartItems_CartItemId_{0}", shoppingCardItemId);
+                //Fatlinda
+
 
 
                 // If the data is not found in the cache, retrieve it from the database
@@ -233,7 +333,7 @@ namespace EcommerceAPI.Services
             }
         }
 
-        public async Task CreateOrder(string userId, AddressDetails addressDetails, List<ShoppingCardViewDto> shoppingCardItems, string promoCode)
+        public async Task CreateOrder(string userId, AddressDetails addressDetails, List<ShoppingCardViewDto> shoppingCardItems, string? promoCode)
         {
             var orderId = Guid.NewGuid().ToString();
             var trackingId = Guid.NewGuid().ToString();
@@ -291,15 +391,16 @@ namespace EcommerceAPI.Services
                 orderCalculatedPrice += item.Total;
             }
             order.OrderPrice = orderCalculatedPrice;
-            (int PromotionId, double orderFinalPrice) promotionData;
-            promotionData.orderFinalPrice = orderCalculatedPrice;
-            promotionData.PromotionId = 0;
+            PromotionDataDto promotionData = new () ;
+            promotionData.OrderFinalPrice = orderCalculatedPrice;
             if (!promoCode.IsNullOrEmpty())
             {
                 promotionData = await CheckPromoCode(promoCode, orderCalculatedPrice);
                 order.PromotionId = promotionData.PromotionId;
             }
-            order.OrderFinalPrice = promotionData.orderFinalPrice;
+
+            order.OrderFinalPrice = promotionData.OrderFinalPrice;
+            
 
 
             var shoppingCardItemIdsToRemove = shoppingCardItems.Select(x => x.ShoppingCardItemId).ToList();
@@ -331,7 +432,7 @@ namespace EcommerceAPI.Services
             PublishOrderConfirmation(orderConfirmationDto);
         }
 
-        async private Task<(int PromotionId, double orderTotal)> CheckPromoCode(string promoCode, double orderTotal)
+        async private Task<PromotionDataDto> CheckPromoCode(string promoCode, double orderTotal)
         {
             var promotion = await _unitOfWork.Repository<Promotion>().GetByCondition(x => x.Name.Equals(promoCode)).FirstOrDefaultAsync();
             if (promotion == null)
@@ -346,7 +447,9 @@ namespace EcommerceAPI.Services
             {
                 orderTotal = orderTotal - (orderTotal * promotion.DiscountAmount / 100);
             }
-            return (promotion.Id, orderTotal);
+
+            return new PromotionDataDto { OrderFinalPrice = orderTotal, PromotionId = promotion.Id };
+
 
 
         }

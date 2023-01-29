@@ -42,7 +42,7 @@ namespace EcommerceAPI.Controllers
 
             if (userId == null) { return Unauthorized(); }
             
-            await _cardService.RemoveProductFromCard(shoppingCardItemId);
+            await _cardService.RemoveProductFromCard(shoppingCardItemId, userId);
 
             return Ok("Removed from card!");
         }

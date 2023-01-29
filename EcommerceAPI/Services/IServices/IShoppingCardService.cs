@@ -6,7 +6,7 @@ namespace EcommerceAPI.Services.IServices
     public interface IShoppingCardService
     {
         Task AddProductToCard(string userId, int productId, int count);
-        Task RemoveProductFromCard(int shoppingCardItemId);
+        Task RemoveProductFromCard(int shoppingCardItemId, string userId);
         Task RemoveAllProductsFromCard(string userId);
         Task<ShoppingCardDetails> GetShoppingCardContentForUser(string userId);
         Task IncreaseProductQuantityInShoppingCard(int shoppingCardItemId, int? newQuantity);
