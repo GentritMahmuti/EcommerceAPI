@@ -1,9 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 
 namespace EcommerceAPI.Models.Entities
 {
     public class User
     {
+        public static ClaimsIdentity Identity { get; internal set; }
         public string Id { get; set; }
         public string FirsName { get; set; }
         public string LastName { get; set; }

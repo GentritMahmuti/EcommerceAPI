@@ -1,6 +1,7 @@
 ﻿using EcommerceAPI.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace EcommerceAPI.Data
 {
     public class EcommerceDbContext : DbContext
@@ -51,6 +52,7 @@ namespace EcommerceAPI.Data
         public DbSet<Review> Reviews { get; set; }
         public DbSet<WishListItem> WishListItems { get; set; }
         public DbSet<Promotion> Promotions { get; set; }
+        public DbSet<ChatMessage> ChatMessage { get; set; }
 
 
 
