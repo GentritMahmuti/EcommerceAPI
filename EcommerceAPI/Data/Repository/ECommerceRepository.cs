@@ -101,5 +101,9 @@ namespace EcommerceAPI.Data.Repository
 
             return query;
         }
+        public int Count(Expression<Func<Tentity, bool>> expression)
+        {
+            return _dbContext.Set<Tentity>().Count(expression);
+        }
     }
 }

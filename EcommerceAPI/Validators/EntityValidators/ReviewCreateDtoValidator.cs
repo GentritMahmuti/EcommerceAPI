@@ -1,14 +1,16 @@
-﻿using EcommerceAPI.Models.DTOs.Review;
+﻿using EcommerceAPI.Models.DTOs.Product;
+using EcommerceAPI.Models.DTOs.Review;
+using EcommerceAPI.Services.IServices;
 using FluentValidation;
 
-namespace EcommerceAPI.Validators
+
+namespace EcommerceAPI.Validators.EntityValidators
 {
-    public class ReviewUpdateDtoValidator : AbstractValidator<ReviewUpdateDto>
+    public class ReviewCreateDtoValidator : AbstractValidator<ReviewCreateDto>
     {
-        public ReviewUpdateDtoValidator()
+        public ReviewCreateDtoValidator()
         {
-            RuleFor(x => x.ReviewId).NotEmpty()
-                                    .WithMessage("ProductId is required");
+            RuleFor(x => x.ProductId).NotEmpty().WithMessage("ProductId is required");
 
             RuleFor(x => x.Rating).NotEmpty()
                                   .WithMessage("Rating is required")
@@ -21,4 +23,5 @@ namespace EcommerceAPI.Validators
                                          .WithMessage("ReviewComment must be 200 characters or less");
         }
     }
+
 }

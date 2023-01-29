@@ -4,6 +4,7 @@ using EcommerceAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EcommerceAPI.Migrations
 {
     [DbContext(typeof(EcommerceDbContext))]
-    partial class EcommerceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230126131551_CreateDatabase")]
+    partial class CreateDatabase
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -186,39 +189,6 @@ namespace EcommerceAPI.Migrations
                     b.ToTable("OrderData");
                 });
 
-            modelBuilder.Entity("EcommerceAPI.Models.Entities.PaymentMethodEntity", b =>
-                {
-                    b.Property<string>("PaymentMethodId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("CardBrand")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CardLastFour")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CustomerId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("ExpMonth")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("ExpYear")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("PaymentMethodId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("PaymentMethods");
-                });
-
             modelBuilder.Entity("EcommerceAPI.Models.Entities.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -254,9 +224,6 @@ namespace EcommerceAPI.Migrations
                         .HasColumnType("float");
 
                     b.Property<int>("Stock")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TotalSold")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -328,6 +295,7 @@ namespace EcommerceAPI.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("ReviewComment")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("ReviewPostedDate")
@@ -341,8 +309,7 @@ namespace EcommerceAPI.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.HasIndex("UserId", "ProductId")
-                        .IsUnique();
+                    b.HasIndex("UserId");
 
                     b.ToTable("Reviews");
                 });
@@ -436,15 +403,6 @@ namespace EcommerceAPI.Migrations
                         .HasForeignKey("UserId");
 
                     b.Navigation("Promotion");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("EcommerceAPI.Models.Entities.PaymentMethodEntity", b =>
-                {
-                    b.HasOne("EcommerceAPI.Models.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
 
                     b.Navigation("User");
                 });

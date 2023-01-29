@@ -84,7 +84,7 @@ namespace EcommerceAPI.Services
             _unitOfWork.Repository<ProductOrderData>().Create(orderDetails);
 
             _unitOfWork.Complete();
-            
+
         }
 
 
@@ -95,15 +95,17 @@ namespace EcommerceAPI.Services
             {
                 throw new NullReferenceException("The product you're trying to make a discount doesn't exist!");
             }
-            if(product.ListPrice - product.Price >= 0.01)
+            if (product.ListPrice - product.Price >= 0.01)
             {
                 throw new Exception("The product it is at a discount, to make another discount, remove existing discount first.");
             }
             product.Price = product.ListPrice - (product.ListPrice * discountPercentage / 100);
 
+
             var key = $"Product_{productId}";
             var expirationTime = DateTimeOffset.Now.AddDays(1);
             _cacheService.SetUpdatedData<Product>(key, product, expirationTime);
+
             _unitOfWork.Repository<Product>().Update(product);
 
             _unitOfWork.Complete();
@@ -115,7 +117,7 @@ namespace EcommerceAPI.Services
             {
                 throw new NullReferenceException("The product you're trying to make a discount doesn't exist!");
             }
-            if(product.ListPrice - product.Price < 0.0001)
+            if (product.ListPrice - product.Price < 0.0001)
             {
                 throw new Exception("This product is not discounted");
             }
@@ -130,40 +132,6 @@ namespace EcommerceAPI.Services
 
             _unitOfWork.Complete();
         }
-
-        public async Task<List<Product>> GetFilterProducts(ProductFilter filter, ProductSort sort)
-        {
-            var query = _unitOfWork.Repository<Product>().GetAll().AsQueryable();
-
-            // Apply the filters
-            if (filter.MinPrice.HasValue)
-            {
-                query = query.Where(p => p.Price >= filter.MinPrice.Value);
-            }
-            if (filter.MaxPrice.HasValue)
-            {
-                query = query.Where(p => p.Price <= filter.MaxPrice.Value);
-            }
-            if (filter.CategoryId.HasValue)
-            {
-                query = query.Where(p => p.CategoryId == filter.CategoryId.Value);
-            }
-
-            // Apply the sorting
-            if (!string.IsNullOrEmpty(sort.SortBy))
-            {
-                string sortExpression = sort.SortBy;
-                if (!sort.Ascending)
-                {
-                    sortExpression += " descending";
-                }
-                query = query.OrderBy(sortExpression);
-            }
-
-            // Execute the query and return the results
-            return await query.ToListAsync();
-        }
-
 
         public async Task<Product> GetProduct(int id)
         {
@@ -186,7 +154,7 @@ namespace EcommerceAPI.Services
         public async Task<List<Product>> GetProductsCreatedLast()
         {
             var products = _unitOfWork.Repository<Product>().GetByCondition(x => x.CreatedDateTime > DateTime.Now.AddHours(-1)).ToList();
-            return products;   
+            return products;
         }
         public async Task CreateProduct(ProductCreateDto productToCreate)
         {
@@ -223,15 +191,20 @@ namespace EcommerceAPI.Services
             {
                 throw new NullReferenceException("The product you're trying to delete doesn't exist.");
             }
+
             var key = $"Product_{id}";
             _cacheService.RemoveData(key);
+
+
+            await DeleteByIdElastic(id);
+
             _unitOfWork.Repository<Product>().Delete(product);
             _unitOfWork.Complete();
             _logger.LogInformation("Deleted product successfully!");
 
         }
 
-        public async Task UpdateProduct(Product productToUpdate)
+        public async Task UpdateProduct(ProductDto productToUpdate)
         {
             var product = await GetProduct(productToUpdate.Id);
             if (product == null)
@@ -282,7 +255,9 @@ namespace EcommerceAPI.Services
         // Elastic
         public async Task<List<Product>> SearchElastic(SearchInputDto input, int pageIndex, int pageSize)
         {
-            
+            var minPrice = (input.MinPrice <= 0) ? 0.1 : input.MinPrice;
+            var maxPrice = (input.MaxPrice <= 0) ? 10000 : input.MaxPrice;
+
             var response = await _elasticClient.SearchAsync<Product>(s => s
                .Index("products")
                .From((pageIndex - 1) * pageSize)
@@ -294,9 +269,23 @@ namespace EcommerceAPI.Services
                  ) && q
                  .Range(r => r
                     .Field(f => f.Price)
-                        .GreaterThanOrEquals(input.MinPrice)
-                        .LessThanOrEquals(input.MaxPrice))
-                 )
+                        .GreaterThanOrEquals(minPrice)
+                        .LessThanOrEquals(maxPrice))
+                 ).Sort(sort =>
+                 {
+                     if (input.SortByPopularity != null)
+                     {
+                         bool sortAscending = input.SortByPopularity == "ascending";
+                         sort = sortAscending ? sort.Field(f => f.TotalSold, SortOrder.Ascending) : sort.Field(f => f.TotalSold, SortOrder.Descending);
+                     }
+                     if (input.SortByPrice != null)
+                     {
+                         bool sortAscending = input.SortByPrice == "ascending";
+                         sort = sortAscending ? sort.Field(f => f.Price, SortOrder.Ascending) : sort.Field(f => f.Price, SortOrder.Descending);
+                     }
+                     return sort;
+                 }
+                )
             );
             _logger.LogInformation("Searched for products using elastic successfully!");
             return response.Documents.ToList();
@@ -347,7 +336,19 @@ namespace EcommerceAPI.Services
 
             _logger.LogInformation("Deleted all products from elastic successfully!");
         }
-       
+
+        public async Task DeleteByIdElastic(int id)
+        {
+            var deleteResponse = _elasticClient.Delete<Product>(id, d=> d.Index("products"));
+
+            if (deleteResponse.IsValid)
+            {
+                _logger.LogInformation($"{nameof(ProductService)} - Deleted product with Id: {id} from elastic successfully!");
+            }else
+            {
+                _logger.LogError($"{nameof(ProductService)} - Error during deletion of product with Id: {id} using elastic!", deleteResponse.DebugInformation);
+            }
+        }   
 
         public async Task<string> UploadImage(IFormFile? file, int productId)
         {
@@ -370,7 +371,7 @@ namespace EcommerceAPI.Services
 
 
         public async Task<PutObjectResponse> UploadToBlob(IFormFile? file, string name, string extension)
-        {
+        {   
             string serviceURL = _configuration.GetValue<string>("BlobConfig:serviceURL");
             string AWS_accessKey = _configuration.GetValue<string>("BlobConfig:accessKey");
             string AWS_secretKey = _configuration.GetValue<string>("BlobConfig:secretKey");
@@ -394,6 +395,6 @@ namespace EcommerceAPI.Services
             return await s3Client.PutObjectAsync(request);
         }
 
-        
+
     }
 }

@@ -24,5 +24,6 @@ namespace EcommerceAPI.Data.Repository.IRepository
 
         void Update(Tentity entity);
         void UpdateRange(List<Tentity> entity);
+        int Count(Expression<Func<Tentity, bool>> expression);
     }
 }
