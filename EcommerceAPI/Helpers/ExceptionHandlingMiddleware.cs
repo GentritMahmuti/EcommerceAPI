@@ -60,7 +60,7 @@ namespace EcommerceAPI.Helpers
 
             var customResponse = JsonConvert.SerializeObject(errorMessage);
 
-            context.Response.ContentType = "application/json";
+           // context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
             return context.Response.WriteAsync(customResponse);
