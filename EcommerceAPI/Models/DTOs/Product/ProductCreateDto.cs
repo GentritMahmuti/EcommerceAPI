@@ -4,10 +4,9 @@ namespace EcommerceAPI.Models.DTOs.Product
 {
     public class ProductCreateDto
     {
-        [Required, StringLength(100), Display(Name = "Name")]
         public string Name { get; set; }
 
-        [Required, StringLength(10000), Display(Name = "Product Description"), DataType(DataType.MultilineText)]
+        [Display(Name = "Product Description"), DataType(DataType.MultilineText)]
         public string Description { get; set; }
 
         public double ListPrice { get; set; }
@@ -17,11 +16,9 @@ namespace EcommerceAPI.Models.DTOs.Product
 
         public string ImageUrl { get; set; }
 
-        [Required]
         public int CategoryId { get; set; }
 
         public int Stock { get; set; }
 
-        //public DateTime CreatedDateTime { get; set; } = DateTime.Now;
     }
 }

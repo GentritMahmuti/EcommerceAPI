@@ -26,7 +26,7 @@ namespace EcommerceAPI.Models.Entities
         public Category Category { get; set; }
 
         public int Stock { get; set; }
-        public int TotalSold { get; set; }
+        public int TotalSold { get; set; } = 0;
         public DateTime CreatedDateTime { get; set; } = DateTime.Now;
 
         public ICollection<Review> SubmittedReviews { get; set; }
