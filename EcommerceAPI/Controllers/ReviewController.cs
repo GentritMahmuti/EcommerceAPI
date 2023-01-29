@@ -17,21 +17,37 @@ namespace EcommerceAPI.Controllers
     public class ReviewController : Controller
     {
         private readonly IReviewService _reviewService;
-        public ReviewController(IReviewService reviewService)
+        private readonly IValidator<ReviewCreateDto> _createReviewValidator;
+        public ReviewController(IReviewService reviewService, IValidator<ReviewCreateDto> createReviewValidator)
         {
             _reviewService = reviewService;
+            _createReviewValidator = createReviewValidator;
         }
+
+        [Authorize]
+        [HttpGet("GetUserReviews")]
+        public async Task<IActionResult> GetUserReviews(string userId)
+        {
+            var reviews = await _reviewService.GetUserReviews(userId);
+            return Ok(reviews);
+        }
+
+
         [Authorize(Roles = "LifeUser")]
+        [HttpGet("GetYourReviews")]
+        public async Task<IActionResult> GetYourReviews()
+        {
+            var userData = (ClaimsIdentity)User.Identity;
+            var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var reviews = await _reviewService.GetUserReviews(userId);
+            return Ok(reviews);
+        }
+
+        [Authorize]
         [HttpGet("GetProductReviews")]
         public async Task<IActionResult> GetProductReviews(int productId)
         {
             var reviews = await _reviewService.GetProductReviews(productId);
-
-            if (reviews == null)
-            {
-                return NotFound();
-            }
-
             return Ok(reviews);
         }
 
@@ -48,9 +64,10 @@ namespace EcommerceAPI.Controllers
         [HttpPost("PostReview")]
         public async Task<IActionResult> Post([FromForm] ReviewCreateDto ReviewToCreate)
         {
+            await _createReviewValidator.ValidateAndThrowAsync(ReviewToCreate);
             var userData = (ClaimsIdentity)User.Identity;
             var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
-            await _reviewService.CreateReview(ReviewToCreate);
+            await _reviewService.CreateReview(userId, ReviewToCreate);
 
             return Ok("Review created successfully!");
         }
@@ -82,6 +99,21 @@ namespace EcommerceAPI.Controllers
                 var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
                 await _reviewService.DeleteReview(id, userId);
                 return Ok("Review deleted successfully!");
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
+        }
+        [Authorize(Roles = "LifeAdmin")]
+        [HttpDelete("DeleteReviewComment")]
+        public async Task<IActionResult> DeleteReviewComment(int id)
+        {
+            try
+            {
+                
+                await _reviewService.DeleteReviewComment(id);
+                return Ok("Review comment deleted successfully!");
             }
             catch (Exception e)
             {

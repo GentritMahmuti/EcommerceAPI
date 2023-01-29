@@ -25,11 +25,16 @@ namespace EcommerceAPI.Helpers
             CreateMap<ProductOrderData, ProductOrderDataDto>().ReverseMap();
             CreateMap<ProductOrderData, ProductOrderDataCreateDto>().ReverseMap();
 
-            CreateMap <Promotion, PromotionCreateDto>().ReverseMap();
+            CreateMap <Promotion, PromotionDto>().ReverseMap();
+            CreateMap<Promotion, PromotionDetailsDto>().ReverseMap();
 
             CreateMap<Review, ReviewCreateDto>().ReverseMap();
 
+
             CreateMap<ChatMessage, ChatDTO>().ReverseMap();
+
+            CreateMap<Review, ReviewDetailsDto>().ReverseMap();
+
         }
     }
 }

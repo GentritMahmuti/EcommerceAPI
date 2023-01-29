@@ -13,6 +13,11 @@ namespace EcommerceAPI.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Review>(entity =>
+            {
+                entity.HasIndex(x => new { x.UserId, x.ProductId }).IsUnique();
+            });
+
             modelBuilder.Entity<CartItem>(entity =>
             {
                 entity.HasIndex(x => new { x.UserId, x.ProductId }).IsUnique();
@@ -53,7 +58,7 @@ namespace EcommerceAPI.Data
         public DbSet<WishListItem> WishListItems { get; set; }
         public DbSet<Promotion> Promotions { get; set; }
         public DbSet<ChatMessage> ChatMessage { get; set; }
-
+        public DbSet<PaymentMethodEntity> PaymentMethods { get; set; }
 
 
 

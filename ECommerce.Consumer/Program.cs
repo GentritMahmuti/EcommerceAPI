@@ -14,6 +14,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHostedService<OrderStatusEmailBackgroundService>();
 builder.Services.AddHostedService<OrderConfirmationEmailBackgroundService>();
+builder.Services.AddHostedService<LowStockEmailBackgroundService>();
 
 
 builder.Services.AddEmailSenders(builder.Configuration);

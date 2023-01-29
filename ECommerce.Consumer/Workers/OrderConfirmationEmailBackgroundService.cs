@@ -3,7 +3,7 @@ using RabbitMQ.Client.Events;
 using RabbitMQ.Client;
 using System.Text;
 using Newtonsoft.Json;
-using EcommerceAPI.Models.DTOs.Order;
+using ECommerce.Consumer.Entities;
 
 namespace ECommerce.Consumer.Workers
 {
@@ -12,10 +12,10 @@ namespace ECommerce.Consumer.Workers
         private IConnection _connection;
         private IModel _channel;
         private readonly IEmailSender _emailSender;
-        private readonly ILogger<OrderStatusEmailBackgroundService> _logger;
+        private readonly ILogger<OrderConfirmationEmailBackgroundService> _logger;
 
 
-        public OrderConfirmationEmailBackgroundService(IEmailSender emailSender, ILogger<OrderStatusEmailBackgroundService> logger)
+        public OrderConfirmationEmailBackgroundService(IEmailSender emailSender, ILogger<OrderConfirmationEmailBackgroundService> logger)
         {
             var factory = new ConnectionFactory() { HostName = "localhost" };
             _connection = factory.CreateConnection();
@@ -39,7 +39,7 @@ namespace ECommerce.Consumer.Workers
                 var data = JsonConvert.DeserializeObject<OrderConfirmationDto>(message);
 
                 _logger.LogInformation($"Data for the order with Id: '{data.OrderId}' is consumed successfully!");
-                SendStatusEmail(data);
+                SendConfirmationEmail(data);
             };
 
             _channel.BasicConsume(queue: "order-confirmations",
@@ -52,7 +52,7 @@ namespace ECommerce.Consumer.Workers
             }
         }
 
-        private void SendStatusEmail(OrderConfirmationDto data)
+        private void SendConfirmationEmail(OrderConfirmationDto data)
         {
             var pathToFile = "Templates/orderConfirmation.html";
 
@@ -62,15 +62,15 @@ namespace ECommerce.Consumer.Workers
                 htmlBody = streamReader.ReadToEnd();
             }
 
-            var contentData = new string[] { data.UserName, data.OrderDate.ToString(), data.Price.ToString(), data.OrderId};
+            var contentData = new string[] { data.UserName, data.OrderDate.ToString(), data.Price.ToString(), data.OrderId, data.StreetAddress, data.PhoheNumber, data.City, data.PostalCode};
 
             var content = string.Format(htmlBody, contentData);
 
             try
             {
                 _logger.LogInformation("Sending 'Order Confirmation' email!");
-                //_emailSender.SendEmailAsync(data.Email, "Order Status", content);
-                _emailSender.SendEmailAsync("elmedina.lahu@life.gjirafa.com", "Order Confirmation", content);
+                //_emailSender.SendEmailAsync(data.Email, "Order Confirmation", content);
+                _emailSender.SendEmailAsync("jetonsllamniku@gmail.com", "Order Confirmation", content);
             }
             catch (Exception ex)
             {

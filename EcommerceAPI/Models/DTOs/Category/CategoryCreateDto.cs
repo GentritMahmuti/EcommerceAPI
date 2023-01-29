@@ -6,12 +6,12 @@ namespace EcommerceAPI.Models.DTOs.Category
 {
     public class CategoryCreateDto
     {
-        [Required, StringLength(100), Display(Name = "Name")]
+        [Display(Name = "Name")]
         public string CategoryName { get; set; }
 
         [DisplayName("Display Order")]
         public int DisplayOrder { get; set; }
 
-       // public DateTime CreatedDateTime { get; set; } = DateTime.Now;
+        public DateTime CreatedDateTime { get; set; } = DateTime.Now;
     }
 }

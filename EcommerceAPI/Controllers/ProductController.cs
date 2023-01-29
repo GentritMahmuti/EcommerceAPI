@@ -17,20 +17,17 @@ namespace EcommerceAPI.Controllers
     public class ProductController : Controller
     {
         private readonly IProductService _productService;
-        private readonly IConfiguration _configuration;
         private readonly ILogger<ProductController> _logger;
         private readonly IValidator<Product> _productValidator;
 
-        public ProductController(IProductService productService, IConfiguration configuration, IValidator<Product> productValidator, ILogger<ProductController> logger)
+        public ProductController(IProductService productService, IValidator<Product> productValidator, ILogger<ProductController> logger)
         {
             _productService = productService;
-            _configuration = configuration;
             _productValidator = productValidator;
             _logger = logger;
         }
 
-        [Authorize(Roles = "LifeUser")]
-        //CreateOrderForProduct(string userId, int productId, int count, AddressDetails addressDetails)
+        [Authorize(Roles = "LifeUser, LifeAdmin")]
         [HttpPost("CreateOrderForProduct")]
         public async Task<IActionResult> CreateOrderForProduct(int productId, int count, AddressDetails addressDetails)
         {
@@ -45,16 +42,6 @@ namespace EcommerceAPI.Controllers
         }
 
 
-
-        // GET: api/products
-        [HttpGet("GetFilterProducts")]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProducts(
-            [FromQuery] ProductFilter filter,
-            [FromQuery] ProductSort sort)
-        {
-            return await _productService.GetFilterProducts(filter, sort);
-        }
-
         [HttpGet("GetProduct")]
         public async Task<IActionResult> Get(int id)
         {
@@ -68,18 +55,6 @@ namespace EcommerceAPI.Controllers
             return Ok(product);
         }
 
-        //[HttpGet("GetProductWithIncludes")]
-        //public async Task<IActionResult> GetIncludes(int id)
-        //{
-        //    var product = await _productService.GetWithIncludes(id);
-
-        //    if (product == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    return Ok(product);
-        //}
 
         [HttpGet("GetProducts")]
         public async Task<IActionResult> GetProducts()
@@ -89,29 +64,21 @@ namespace EcommerceAPI.Controllers
             return Ok(categories);
         }
 
-        //[HttpGet("ProductsListView")]
-        //public async Task<IActionResult> ProductsListView(string? search, int categoryId = 0, int page = 1, int pageSize = 10)
-        //{
-        //    var products = await _productService.ProductsListView(search, page, pageSize, categoryId);
-
-        //    return Ok(products);
-        //}
-
-        [HttpPost("PostProduct")]
-        public async Task<IActionResult> Post([FromForm] ProductCreateDto ProductToCreate)
+        [HttpPost("CreateProduct")]
+        public async Task<IActionResult> CreateProduct([FromBody] ProductCreateDto productToCreate)
         {
-            await _productService.CreateProduct(ProductToCreate);
+            await _productService.CreateProduct(productToCreate);
 
             return Ok("Product created successfully!");
         }
 
         [HttpPut("UpdateProduct")]
-        public async Task<IActionResult> Update(Product ProductToUpdate)
+        public async Task<IActionResult> Update(ProductDto productToUpdate)
         {
             try
             {
-                await _productValidator.ValidateAndThrowAsync(ProductToUpdate);
-                await _productService.UpdateProduct(ProductToUpdate);
+                //await _productValidator.ValidateAndThrowAsync(productToUpdate);
+                await _productService.UpdateProduct(productToUpdate);
                 return Ok("Product updated successfully!");
             }
             catch (Exception ex)
@@ -144,14 +111,14 @@ namespace EcommerceAPI.Controllers
 
         }
         [HttpGet("SearchElastic")]
-        public async Task<IActionResult> SearchElastic([FromQuery] SearchInputDto input, int pageIndex, int pageSize)
+        public async Task<IActionResult> SearchElastic([FromQuery] SearchInputDto input, int pageIndex = 1, int pageSize = 10)
         {
             var response = await _productService.SearchElastic(input, pageIndex, pageSize);
 
             return Ok(response);
         }
 
-       
+
 
         [HttpGet("GetAllElastic")]
         public async Task<IActionResult> GetAllElastic()
@@ -160,7 +127,7 @@ namespace EcommerceAPI.Controllers
             return Ok(products);
         }
 
-       
+
 
         [HttpPut("UpdateElastic")]
         public async Task<IActionResult> UpdateElastic([FromBody] ProductDto product)
@@ -189,7 +156,7 @@ namespace EcommerceAPI.Controllers
                 return BadRequest($"An error happened: '{ex.Message}'");
             }
         }
-      
+
         [HttpPut("ProductDiscount")]
         public async Task<IActionResult> ProductDiscount(int productId, [Range(1, 100, ErrorMessage = "Value for discount percentage must be between 1 and 100.")] int discountPercentage)
         {

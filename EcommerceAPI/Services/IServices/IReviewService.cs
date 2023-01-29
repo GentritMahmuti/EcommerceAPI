@@ -5,12 +5,13 @@ namespace EcommerceAPI.Services.IServices
 {
     public interface IReviewService
     {
-        Task<List<Review>> GetProductReviews(int productId);
-        Task<List<Review>> GetAllReviews();
-        Task <Review> CreateReview(ReviewCreateDto reviewToCreate);
+        Task<List<ReviewDetailsDto>> GetUserReviews(string userId);
+        Task<List<ReviewDetailsDto>> GetProductReviews(int productId);
+        Task<List<ReviewDetailsDto>> GetAllReviews();
+        Task <Review> CreateReview(string userId, ReviewCreateDto reviewToCreate);
         Task UpdateReview(ReviewUpdateDto reviewToUpdate, string userId);
         Task DeleteReview(int id, string userId);
-
+        Task DeleteReviewComment(int id);
 
     }
 }

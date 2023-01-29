@@ -18,8 +18,7 @@ using System;
 using System.Linq.Expressions;
 using System.Text;
 using static Amazon.S3.Util.S3EventNotification;
-
-
+using EcommerceAPI.Models.DTOs.Product;
 
 namespace EcommerceAPI.Services
 {
@@ -30,6 +29,7 @@ namespace EcommerceAPI.Services
         private readonly IEmailSender _emailSender;
         private readonly ILogger<ShoppingCardService> _logger;
         private readonly ICacheService _cacheService;
+        private List<string> _keys;
         public ShoppingCardService(IUnitOfWork unitOfWork, IMapper mapper, IEmailSender emailSender, ILogger<ShoppingCardService> logger, ICacheService cacheService)
         {
             _unitOfWork = unitOfWork;
@@ -37,6 +37,7 @@ namespace EcommerceAPI.Services
             _emailSender = emailSender;
             _logger = logger;
             _cacheService = cacheService;
+            _keys = new List<string>();
         }
 
 
@@ -52,17 +53,20 @@ namespace EcommerceAPI.Services
                 };
 
                 _unitOfWork.Repository<CartItem>().Create(shoppingCardItem);
-                _unitOfWork.Complete(); 
+                _unitOfWork.Complete();
 
-                //Check if the data is already in the cache
-                var key = $"UserId_{userId}_ProductId_{productId}";
-                var itemInCache = _cacheService.GetData<CartItem>(key);
-                if (itemInCache == null)
+                var key = $"CartKeys_UserId_{userId}_ProductId_{productId}";
+
+                var expirationTime = DateTimeOffset.Now.AddDays(1);
+                _cacheService.SetData(key, shoppingCardItem, expirationTime);
+
+                var _keys = _cacheService.GetData<List<string>>($"CartKeys_UserId_{userId}");
+                if (_keys == null)
                 {
-                    //Store the data in the cache
-                    var expirationTime = DateTimeOffset.Now.AddDays(1);
-                    _cacheService.SetData(key, shoppingCardItem, expirationTime);
+                    this._keys = new List<string>();
+                    _cacheService.SetData($"CartKeys_UserId_{userId}", _keys, expirationTime);
                 }
+                this._keys.Add(key);
             }
             catch (Exception ex)
             {
@@ -74,58 +78,64 @@ namespace EcommerceAPI.Services
         {
             try
             {
-                // Log the key
-                var key = $"UserId_{userId}";
-                _logger.LogInformation("The key passed to cache service is: " + key);
-
-                // Check if the data is already in the cache
-                ShoppingCardDetails shoppingCardDetails = _cacheService.GetData<ShoppingCardDetails>(key);
-
-                // If not, then get the data from the database
-                if (shoppingCardDetails == null)
+                var key = $"ShoppingCard_UserId_{userId}";
+                var shoppingCardDetails = _cacheService.GetData<ShoppingCardDetails>(key);
+                if (shoppingCardDetails != null)
                 {
-                    var usersShoppingCard = await _unitOfWork.Repository<CartItem>()
+                    var cartItemCount = _unitOfWork.Repository<CartItem>()
+                                                                        .Count(x => x.UserId == userId);
+                    if (shoppingCardDetails.ItemCount == cartItemCount)
+                    {
+                        return shoppingCardDetails;
+                    }
+                }
+
+                var usersShoppingCard = await _unitOfWork.Repository<CartItem>()
                                                                         .GetByCondition(x => x.UserId == userId)
                                                                         .Include(x => x.Product)
                                                                         .ToListAsync();
 
-                    var shoppingCardList = new List<ShoppingCardViewDto>();
+                var shoppingCardList = new List<ShoppingCardViewDto>();
+                double total = 0;
 
-                    foreach (CartItem item in usersShoppingCard)
+                foreach (CartItem item in usersShoppingCard)
+                {
+                    var productId = item.Product;
+                    var model = new ShoppingCardViewDto
                     {
-                        var currentProduct = item.Product;
+                        ShoppingCardItemId = item.CartItemId,
+                        ProductId = item.ProductId,
+                        ProductImage = productId.ImageUrl,
+                        ProductDescription = productId.Description,
+                        ProductName = productId.Name,
+                        ProductPrice = productId.Price,
+                        ShopingCardProductCount = item.Count,
+                        Total = productId.Price * item.Count
+                    };
 
-                        var model = new ShoppingCardViewDto
-                        {
-                            ShoppingCardItemId = item.CartItemId,
-                            ProductId = item.ProductId,
-                            ProductImage = currentProduct.ImageUrl,
-                            ProductDescription = currentProduct.Description,
-                            ProductName = currentProduct.Name,
-                            ProductPrice = currentProduct.Price,
-                            ShopingCardProductCount = item.Count,
-                            Total = currentProduct.Price * item.Count
-                        };
-
-                        shoppingCardList.Add(model);
-                        shoppingCardDetails = new ShoppingCardDetails()
-                        {
-                            ShoppingCardItems = shoppingCardList,
-                            CardTotal = shoppingCardList.Select(x => x.Total).Sum()
-                        };
-
-                        // Store the data in the cache using the same key
-                        _cacheService.SetData<ShoppingCardDetails>(key, shoppingCardDetails, DateTimeOffset.Now.AddDays(1));
-                    }
+                    shoppingCardList.Add(model);
+                    total += model.Total;
                 }
+
+                shoppingCardDetails = new ShoppingCardDetails()
+                {
+                    ShoppingCardItems = shoppingCardList,
+                    CardTotal = total,
+                    ItemCount = usersShoppingCard.Count
+                };
+
+                var expirationTime = DateTimeOffset.Now.AddDays(1);
+                _cacheService.SetData(key, shoppingCardDetails, expirationTime);
+
                 return shoppingCardDetails;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "There was an error while tryng to get the shopping card content!");
+                _logger.LogError(ex, "There was an error while trying to get the shopping card content!");
                 return new ShoppingCardDetails();
             }
         }
+
 
 
         public async Task RemoveProductFromCard(int shoppingCardItemId)
@@ -133,20 +143,20 @@ namespace EcommerceAPI.Services
             try
             {
                 // Retrieve data from the cache
-                string cacheKey = string.Format("CartItem_{0}", shoppingCardItemId);
-                var shoppingCardItem = _cacheService.GetData<CartItem>(cacheKey);
+                string cacheKey = string.Format("CartItems_CartItemId_{0}", shoppingCardItemId);
+
 
                 // If the data is not found in the cache, retrieve it from the database
-                if (shoppingCardItem == null)
-                {
-                    shoppingCardItem = await _unitOfWork.Repository<CartItem>()
+
+                var shoppingCardItem = await _unitOfWork.Repository<CartItem>()
                                                                         .GetById(x => x.CartItemId == shoppingCardItemId)
                                                                         .FirstOrDefaultAsync();
-                }
+
 
                 // Delete data from both cache and database
-                _cacheService.RemoveData(cacheKey);
+
                 _unitOfWork.Repository<CartItem>().Delete(shoppingCardItem);
+                _cacheService.RemoveData(cacheKey);
                 _unitOfWork.Complete();
             }
             catch (Exception ex)
@@ -168,17 +178,17 @@ namespace EcommerceAPI.Services
 
         }
 
-        public async Task Plus(int shoppingCardItemId, int? newQuantity)
+        public async Task IncreaseProductQuantityInShoppingCard(int shoppingCardItemId, int? newQuantity)
         {
+
             try
             {
-                var shoppingCardItem = _cacheService.GetData<CartItem>(shoppingCardItemId.ToString());
-                if (shoppingCardItem == null)
-                {
-                    shoppingCardItem = await _unitOfWork.Repository<CartItem>()
-                                                            .GetById(x => x.CartItemId == shoppingCardItemId)
-                                                            .FirstOrDefaultAsync();
-                }
+                string cacheKey = string.Format("CartItems_CartItemId_{0}", shoppingCardItemId);
+
+
+                var shoppingCardItem = await _unitOfWork.Repository<CartItem>()
+                                                        .GetById(x => x.CartItemId == shoppingCardItemId)
+                                                        .FirstOrDefaultAsync();
 
                 if (newQuantity == null)
                     shoppingCardItem.Count++;
@@ -187,7 +197,7 @@ namespace EcommerceAPI.Services
 
                 _unitOfWork.Repository<CartItem>().Update(shoppingCardItem);
                 _unitOfWork.Complete();
-                _cacheService.SetUpdatedData(shoppingCardItemId.ToString(), shoppingCardItem, DateTimeOffset.Now.AddDays(1));
+                _cacheService.SetUpdatedData(cacheKey, shoppingCardItem, DateTimeOffset.Now.AddDays(1));
             }
             catch (Exception ex)
             {
@@ -196,23 +206,16 @@ namespace EcommerceAPI.Services
 
             }
         }
-        public async Task Minus(int shoppingCardItemId, int? newQuantity)
+        public async Task DecreaseProductQuantityInShoppingCard(int shoppingCardItemId, int? newQuantity)
         {
             try
             {
-                var cacheKey = $"cart-item-{shoppingCardItemId}";
-                var shoppingCardItem = _cacheService.GetData<CartItem>(cacheKey);
-
+                string cacheKey = string.Format("CartItems_CartItemId_{0}", shoppingCardItemId);
+                var shoppingCardItem = await _unitOfWork.Repository<CartItem>().GetById(x => x.CartItemId == shoppingCardItemId).FirstOrDefaultAsync();
                 if (shoppingCardItem == null)
                 {
-                    var itemInDb = await _unitOfWork.Repository<CartItem>().GetById(x => x.CartItemId == shoppingCardItemId).FirstOrDefaultAsync();
-                    if (itemInDb == null)
-                    {
-                        throw new Exception("Cart item not found in the database.");
-                    }
-                    shoppingCardItem = itemInDb;
+                    throw new Exception("Cart item not found in the database.");
                 }
-
                 if (newQuantity == null)
                     shoppingCardItem.Count--;
                 else
@@ -220,7 +223,7 @@ namespace EcommerceAPI.Services
 
                 _unitOfWork.Repository<CartItem>().Update(shoppingCardItem);
                 _unitOfWork.Complete();
-                _cacheService.RemoveData(cacheKey);
+                _cacheService.SetUpdatedData(cacheKey, shoppingCardItem, DateTimeOffset.Now.AddDays(1));
             }
             catch (Exception ex)
             {
@@ -230,7 +233,7 @@ namespace EcommerceAPI.Services
             }
         }
 
-        public async Task CreateOrder(AddressDetails addressDetails, List<ShoppingCardViewDto> shoppingCardItems, string promoCode)
+        public async Task CreateOrder(string userId, AddressDetails addressDetails, List<ShoppingCardViewDto> shoppingCardItems, string promoCode)
         {
             var orderId = Guid.NewGuid().ToString();
             var trackingId = Guid.NewGuid().ToString();
@@ -247,7 +250,8 @@ namespace EcommerceAPI.Services
                 Country = addressDetails.Country,
                 PostalCode = addressDetails.PostalCode,
                 Name = addressDetails.Name,
-                TrackingId = trackingId
+                TrackingId = trackingId,
+                UserId = userId
             };
 
             var orderDetailsList = new List<ProductOrderData>();
@@ -266,6 +270,12 @@ namespace EcommerceAPI.Services
                 }
 
                 product.Stock -= item.ShopingCardProductCount;
+                product.TotalSold += item.ShopingCardProductCount;
+
+                if (product.Stock == 1 || product.Stock == 10)
+                {
+                    PublishForLowStock(new LowStockDto { ProductId = product.Id, CurrStock = product.Stock });
+                }
 
                 _unitOfWork.Repository<Product>().Update(product);
 
@@ -290,7 +300,7 @@ namespace EcommerceAPI.Services
                 order.PromotionId = promotionData.PromotionId;
             }
             order.OrderFinalPrice = promotionData.orderFinalPrice;
-            
+
 
             var shoppingCardItemIdsToRemove = shoppingCardItems.Select(x => x.ShoppingCardItemId).ToList();
             var shoppingCardItemsToRemove = await _unitOfWork.Repository<CartItem>()
@@ -313,18 +323,22 @@ namespace EcommerceAPI.Services
                 Price = totalPrice,
                 OrderId = orderId,
                 Email = addressDetails.Email,
+                PhoheNumber = addressDetails.PhoheNumber,
+                StreetAddress = addressDetails.StreetAddress,
+                City = addressDetails.City,
+                PostalCode = addressDetails.PostalCode,
             };
             PublishOrderConfirmation(orderConfirmationDto);
         }
 
         async private Task<(int PromotionId, double orderTotal)> CheckPromoCode(string promoCode, double orderTotal)
         {
-            var promotion = await _unitOfWork.Repository<Promotion>().GetByCondition(x=>x.Name.Equals(promoCode)).FirstOrDefaultAsync();
-            if(promotion == null)
-            {  
+            var promotion = await _unitOfWork.Repository<Promotion>().GetByCondition(x => x.Name.Equals(promoCode)).FirstOrDefaultAsync();
+            if (promotion == null)
+            {
                 throw new NullReferenceException("Promotion code is incorrect.");
             }
-            if(!promotion.IsActive())
+            if (!promotion.IsActive())
             {
                 throw new NullReferenceException("This promotion code is not active anymore.");
             }
@@ -333,8 +347,8 @@ namespace EcommerceAPI.Services
                 orderTotal = orderTotal - (orderTotal * promotion.DiscountAmount / 100);
             }
             return (promotion.Id, orderTotal);
-           
-            
+
+
         }
 
         public void PublishOrderConfirmation(OrderConfirmationDto rabbitData)
@@ -359,5 +373,26 @@ namespace EcommerceAPI.Services
             }
         }
 
+        public void PublishForLowStock(LowStockDto data)
+        {
+            var factory = new ConnectionFactory() { HostName = "localhost" };
+            using (var connection = factory.CreateConnection())
+            using (var channel = connection.CreateModel())
+            {
+                channel.QueueDeclare(queue: "low-stock",
+                                     durable: true,
+                                     exclusive: false,
+                                     autoDelete: false,
+                                     arguments: null);
+
+                var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data));
+
+                channel.BasicPublish(exchange: "",
+                                     routingKey: "low-stock",
+                                     basicProperties: null,
+                                     body: body);
+                _logger.LogInformation("Data for low-stock is published to the rabbit!");
+            }
+        }
     }
 }

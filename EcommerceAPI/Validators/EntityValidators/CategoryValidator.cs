@@ -1,7 +1,7 @@
 ﻿using EcommerceAPI.Models.Entities;
 using FluentValidation;
 
-namespace EcommerceAPI.Validators
+namespace EcommerceAPI.Validators.EntityValidators
 {
     public class CategoryValidator : AbstractValidator<Category>
     {

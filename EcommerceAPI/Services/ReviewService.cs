@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using EcommerceAPI.Data.UnitOfWork;
 using EcommerceAPI.Models.DTOs.Product;
+using EcommerceAPI.Models.DTOs.Promotion;
 using EcommerceAPI.Models.DTOs.Review;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
@@ -23,32 +24,36 @@ namespace EcommerceAPI.Services
             _mapper = mapper;
         }
 
-        private async Task<Review> GetReview(int id)
+        
+        public async Task<List<ReviewDetailsDto>> GetUserReviews(string userId)
         {
-            Expression<Func<Review, bool>> expression = x => x.Id == id;
-            var review = await _unitOfWork.Repository<Review>().GetById(expression).FirstOrDefaultAsync();
-
-            return review;
+            var reviews = _unitOfWork.Repository<Review>().GetByCondition(x=>x.UserId.Equals(userId)).ToList();
+            var reviewsDetails = _mapper.Map<List<Review>, List<ReviewDetailsDto>>(reviews);
+            return reviewsDetails;
         }
-        public async Task<List<Review>> GetProductReviews(int productId)
+
+        public async Task<List<ReviewDetailsDto>> GetProductReviews(int productId)
         {
             Expression<Func<Review, bool>> expression = x => x.ProductId == productId;
             var reviews = _unitOfWork.Repository<Review>().GetByCondition(expression).ToList();
+            var reviewsDetails = _mapper.Map<List<Review>, List<ReviewDetailsDto>>(reviews);
 
-            return reviews;
+            return reviewsDetails;
         }
 
-        public async Task<List<Review>> GetAllReviews()
+        public async Task<List<ReviewDetailsDto>> GetAllReviews()
         {
-            var reviews = _unitOfWork.Repository<Review>().GetAll();
-            return reviews.ToList();
+            var reviews = _unitOfWork.Repository<Review>().GetAll().ToList();
+            var reviewsDetails = _mapper.Map<List<Review>, List<ReviewDetailsDto>>(reviews);
+            return reviewsDetails;
         }
 
 
-        public async Task<Review> CreateReview(ReviewCreateDto reviewToCreate)
+        public async Task<Review> CreateReview(string userId, ReviewCreateDto reviewToCreate)
         {
             
             var review = _mapper.Map<Review>(reviewToCreate);
+            review.UserId = userId;
 
             _unitOfWork.Repository<Review>().Create(review);
             _unitOfWork.Complete();
@@ -56,7 +61,7 @@ namespace EcommerceAPI.Services
         }
         public async Task UpdateReview(ReviewUpdateDto reviewToUpdate, string userId)
         {
-            var review = await GetReview(reviewToUpdate.Id);        
+            var review = await GetReview(reviewToUpdate.ReviewId);        
             if (review == null)
             {
                 throw new NullReferenceException("The review you're trying to update doesn't exist!");
@@ -93,6 +98,26 @@ namespace EcommerceAPI.Services
                 throw new Exception("You cannot delete this review.");
             }
             
-        } 
+        }
+        public async Task DeleteReviewComment(int id)
+        {
+            var review = await GetReview(id);
+            if (review == null)
+            {
+                throw new NullReferenceException("The review you're trying to delete doesn't exist.");
+            }
+            review.ReviewComment = null;
+            _unitOfWork.Repository<Review>().Update(review);
+
+            _unitOfWork.Complete();
+
+        }
+
+        private async Task<Review> GetReview(int id)
+        {
+            Expression<Func<Review, bool>> expression = x => x.Id == id;
+            var review = await _unitOfWork.Repository<Review>().GetById(expression).FirstOrDefaultAsync();
+            return review;
+        }
     }
 }
