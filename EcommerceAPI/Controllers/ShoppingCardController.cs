@@ -80,7 +80,7 @@ namespace EcommerceAPI.Controllers
 
             if (userId == null) { return Unauthorized(); }
 
-            await _cardService.IncreaseProductQuantityInShoppingCard(shoppingCardItemId, newQuantity);
+            await _cardService.IncreaseProductQuantityInShoppingCard(shoppingCardItemId, userId, newQuantity);
 
             return Ok();
         }
@@ -93,7 +93,7 @@ namespace EcommerceAPI.Controllers
 
             if (userId == null) { return Unauthorized(); }
 
-            await _cardService.DecreaseProductQuantityInShoppingCard(shoppingCardItemId, newQuantity);
+            await _cardService.DecreaseProductQuantityInShoppingCard(shoppingCardItemId, userId, newQuantity);
 
             return Ok();
         }

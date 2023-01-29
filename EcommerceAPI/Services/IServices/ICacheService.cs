@@ -11,7 +11,7 @@ namespace EcommerceAPI.Services.IServices
         bool SetData<T>(string key, T value, DateTimeOffset expirationTime);
         bool SetDataMember<T>(string key, T value);
         object RemoveData(string key);
+        object RemoveDataFromSet<T>(string key, T value);
         bool SetUpdatedData<T>(string key, T value, DateTimeOffset expirationTime);
-
     }
 }

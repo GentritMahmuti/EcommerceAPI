@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace EcommerceAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class CreateDatabase : Migration
+    public partial class CreateDb : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -89,6 +89,7 @@ namespace EcommerceAPI.Migrations
                     ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CategoryId = table.Column<int>(type: "int", nullable: false),
                     Stock = table.Column<int>(type: "int", nullable: false),
+                    TotalSold = table.Column<int>(type: "int", nullable: false),
                     CreatedDateTime = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -143,6 +144,28 @@ namespace EcommerceAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PaymentMethods",
+                columns: table => new
+                {
+                    PaymentMethodId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CustomerId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CardBrand = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CardLastFour = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ExpMonth = table.Column<long>(type: "bigint", nullable: false),
+                    ExpYear = table.Column<long>(type: "bigint", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PaymentMethods", x => x.PaymentMethodId);
+                    table.ForeignKey(
+                        name: "FK_PaymentMethods_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "CardItems",
                 columns: table => new
                 {
@@ -179,7 +202,7 @@ namespace EcommerceAPI.Migrations
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ProductId = table.Column<int>(type: "int", nullable: false),
                     Rating = table.Column<int>(type: "int", nullable: false),
-                    ReviewComment = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ReviewComment = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ReviewPostedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -272,6 +295,11 @@ namespace EcommerceAPI.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PaymentMethods_UserId",
+                table: "PaymentMethods",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ProductOrderDatas_OrderDataId",
                 table: "ProductOrderDatas",
                 column: "OrderDataId");
@@ -287,9 +315,10 @@ namespace EcommerceAPI.Migrations
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Reviews_UserId",
+                name: "IX_Reviews_UserId_ProductId",
                 table: "Reviews",
-                column: "UserId");
+                columns: new[] { "UserId", "ProductId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_WishListItems_ProductId",
@@ -311,6 +340,9 @@ namespace EcommerceAPI.Migrations
 
             migrationBuilder.DropTable(
                 name: "ChatMessage");
+
+            migrationBuilder.DropTable(
+                name: "PaymentMethods");
 
             migrationBuilder.DropTable(
                 name: "ProductOrderDatas");
