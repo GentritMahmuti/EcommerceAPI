@@ -1,23 +1,11 @@
 ﻿using EcommerceAPI.Helpers.EmailSender;
-using EcommerceAPI.Services;
-using EcommerceAPI.Services.IServices;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using SendGrid;
 
-namespace EcommerceAPI.Helpers
+namespace EcommerceAPI.Extensions
 {
-    public static class StartupHelper
+    public static class EmailExtensions
     {
-        public static void AddServices(this IServiceCollection services)
-        {
-            services.AddTransient<IProductService, ProductService>();
-            services.AddTransient<ICategoryService, CategoryService>();
-            services.AddTransient<IUserService, UserService>();
-            services.AddTransient<IShoppingCardService, ShoppingCardService>();
-            services.AddTransient<IOrderService, OrderService>();
-            services.AddTransient<IReviewService, ReviewService>();
-            services.AddTransient<IPromotionService, PromotionService>();
-        }
         public static void AddEmailSenders(this IServiceCollection services, IConfiguration configuration)
         {
             var smtpConfiguration = configuration.GetSection(nameof(SmtpConfiguration)).Get<SmtpConfiguration>();
@@ -39,6 +27,5 @@ namespace EcommerceAPI.Helpers
                 services.AddSingleton<IEmailSender, LogEmailSender>();
             }
         }
-
     }
 }

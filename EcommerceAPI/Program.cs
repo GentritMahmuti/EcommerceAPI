@@ -9,7 +9,6 @@ using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
 using EcommerceAPI.Services;
 using Elasticsearch.Net;
-using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +19,6 @@ using Serilog;
 using System.Security.Claims;
 using System.Text;
 using claims = System.Security.Claims;
-using EcommerceAPI.Validators;
 using Stripe;
 using EcommerceAPI;
 using EcommerceAPI.Infrastructure;
@@ -28,19 +26,12 @@ using EcommerceAPI.Hubs;
 using EcommerceAPI.Workers;
 using FluentAssertions.Common;
 using EcommerceAPI.Models.DTOs.Promotion;
+using EcommerceAPI.Validators.EntityValidators;
+using EcommerceAPI.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
-builder.Services.AddScoped<IValidator<Category>, CategoryValidator>();
-builder.Services.AddScoped<IValidator<EcommerceAPI.Models.Entities.Product>, ProductValidator>();
-//builder.Services.AddScoped<IValidator<OrderDetails>, OrderDetailsValidator>();
-builder.Services.AddScoped<IValidator<ReviewCreateDto>, ReviewCreateDtoValidator>();
-builder.Services.AddScoped<IValidator<ReviewUpdateDto>, ReviewUpdateDtoValidator>();
-builder.Services.AddScoped<IValidator<PromotionDto>, PromotionValidator>();
-
-
 
 
 builder.Services.AddAuthentication(options =>
@@ -167,13 +158,11 @@ var logger = new LoggerConfiguration()
 builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(logger);
 
-builder.Logging.ClearProviders();
-builder.Logging.AddSerilog(logger);
 
 builder.Services.AddHostedService<UpdateElasticBackgroundService>();
 
 
-
+builder.Services.AddFluentValidations();
 builder.Services.AddEmailSenders(builder.Configuration);
 
 var smtpConfigurations = builder.Configuration.GetSection(nameof(SmtpConfiguration)).Get<SmtpConfiguration>();

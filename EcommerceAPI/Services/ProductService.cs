@@ -122,40 +122,6 @@ namespace EcommerceAPI.Services
             _unitOfWork.Complete();
         }
 
-        public async Task<List<Product>> GetFilterProducts(ProductFilter filter, ProductSort sort)
-        {
-            var query = _unitOfWork.Repository<Product>().GetAll().AsQueryable();
-
-            // Apply the filters
-            if (filter.MinPrice.HasValue)
-            {
-                query = query.Where(p => p.Price >= filter.MinPrice.Value);
-            }
-            if (filter.MaxPrice.HasValue)
-            {
-                query = query.Where(p => p.Price <= filter.MaxPrice.Value);
-            }
-            if (filter.CategoryId.HasValue)
-            {
-                query = query.Where(p => p.CategoryId == filter.CategoryId.Value);
-            }
-
-            // Apply the sorting
-            if (!string.IsNullOrEmpty(sort.SortBy))
-            {
-                string sortExpression = sort.SortBy;
-                if (!sort.Ascending)
-                {
-                    sortExpression += " descending";
-                }
-                query = query.OrderBy(sortExpression);
-            }
-
-            // Execute the query and return the results
-            return await query.ToListAsync();
-        }
-
-
         public async Task<Product> GetProduct(int id)
         {
             Expression<Func<Product, bool>> expression = x => x.Id == id;
@@ -210,7 +176,7 @@ namespace EcommerceAPI.Services
 
         }
 
-        public async Task UpdateProduct(Product productToUpdate)
+        public async Task UpdateProduct(ProductDto productToUpdate)
         {
             var product = await GetProduct(productToUpdate.Id);
             if (product == null)
@@ -377,7 +343,7 @@ namespace EcommerceAPI.Services
 
 
         public async Task<PutObjectResponse> UploadToBlob(IFormFile? file, string name, string extension)
-        {
+        {   
             string serviceURL = _configuration.GetValue<string>("BlobConfig:serviceURL");
             string AWS_accessKey = _configuration.GetValue<string>("BlobConfig:accessKey");
             string AWS_secretKey = _configuration.GetValue<string>("BlobConfig:secretKey");

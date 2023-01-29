@@ -7,7 +7,7 @@ namespace EcommerceAPI.Models.DTOs.Category
     {
         public int CategoryId { get; set; }
 
-        [Required, StringLength(100), Display(Name = "Name")]
+        [Display(Name = "Name")]
         public string CategoryName { get; set; }
 
         [DisplayName("Display Order")]
