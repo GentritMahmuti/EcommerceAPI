@@ -18,8 +18,7 @@ using System;
 using System.Linq.Expressions;
 using System.Text;
 using static Amazon.S3.Util.S3EventNotification;
-
-
+using EcommerceAPI.Models.DTOs.Product;
 
 namespace EcommerceAPI.Services
 {
@@ -145,17 +144,17 @@ namespace EcommerceAPI.Services
             {
                 // Retrieve data from the cache
                 string cacheKey = string.Format("CartItems_CartItemId_{0}", shoppingCardItemId);
-                
+
 
                 // If the data is not found in the cache, retrieve it from the database
-               
+
                 var shoppingCardItem = await _unitOfWork.Repository<CartItem>()
                                                                         .GetById(x => x.CartItemId == shoppingCardItemId)
                                                                         .FirstOrDefaultAsync();
-                
+
 
                 // Delete data from both cache and database
-                
+
                 _unitOfWork.Repository<CartItem>().Delete(shoppingCardItem);
                 _cacheService.RemoveData(cacheKey);
                 _unitOfWork.Complete();
@@ -185,8 +184,8 @@ namespace EcommerceAPI.Services
             try
             {
                 string cacheKey = string.Format("CartItems_CartItemId_{0}", shoppingCardItemId);
-                
-                
+
+
                 var shoppingCardItem = await _unitOfWork.Repository<CartItem>()
                                                         .GetById(x => x.CartItemId == shoppingCardItemId)
                                                         .FirstOrDefaultAsync();
@@ -271,7 +270,12 @@ namespace EcommerceAPI.Services
                 }
 
                 product.Stock -= item.ShopingCardProductCount;
-                product.TotalSold += 1;
+                product.TotalSold += item.ShopingCardProductCount;
+
+                if (product.Stock == 1 || product.Stock == 10)
+                {
+                    PublishForLowStock(new LowStockDto { ProductId = product.Id, CurrStock = product.Stock });
+                }
 
                 _unitOfWork.Repository<Product>().Update(product);
 
@@ -296,7 +300,7 @@ namespace EcommerceAPI.Services
                 order.PromotionId = promotionData.PromotionId;
             }
             order.OrderFinalPrice = promotionData.orderFinalPrice;
-            
+
 
             var shoppingCardItemIdsToRemove = shoppingCardItems.Select(x => x.ShoppingCardItemId).ToList();
             var shoppingCardItemsToRemove = await _unitOfWork.Repository<CartItem>()
@@ -319,18 +323,22 @@ namespace EcommerceAPI.Services
                 Price = totalPrice,
                 OrderId = orderId,
                 Email = addressDetails.Email,
+                PhoheNumber = addressDetails.PhoheNumber,
+                StreetAddress = addressDetails.StreetAddress,
+                City = addressDetails.City,
+                PostalCode = addressDetails.PostalCode,
             };
             PublishOrderConfirmation(orderConfirmationDto);
         }
 
         async private Task<(int PromotionId, double orderTotal)> CheckPromoCode(string promoCode, double orderTotal)
         {
-            var promotion = await _unitOfWork.Repository<Promotion>().GetByCondition(x=>x.Name.Equals(promoCode)).FirstOrDefaultAsync();
-            if(promotion == null)
-            {  
+            var promotion = await _unitOfWork.Repository<Promotion>().GetByCondition(x => x.Name.Equals(promoCode)).FirstOrDefaultAsync();
+            if (promotion == null)
+            {
                 throw new NullReferenceException("Promotion code is incorrect.");
             }
-            if(!promotion.IsActive())
+            if (!promotion.IsActive())
             {
                 throw new NullReferenceException("This promotion code is not active anymore.");
             }
@@ -339,8 +347,8 @@ namespace EcommerceAPI.Services
                 orderTotal = orderTotal - (orderTotal * promotion.DiscountAmount / 100);
             }
             return (promotion.Id, orderTotal);
-           
-            
+
+
         }
 
         public void PublishOrderConfirmation(OrderConfirmationDto rabbitData)
@@ -365,5 +373,26 @@ namespace EcommerceAPI.Services
             }
         }
 
+        public void PublishForLowStock(LowStockDto data)
+        {
+            var factory = new ConnectionFactory() { HostName = "localhost" };
+            using (var connection = factory.CreateConnection())
+            using (var channel = connection.CreateModel())
+            {
+                channel.QueueDeclare(queue: "low-stock",
+                                     durable: true,
+                                     exclusive: false,
+                                     autoDelete: false,
+                                     arguments: null);
+
+                var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data));
+
+                channel.BasicPublish(exchange: "",
+                                     routingKey: "low-stock",
+                                     basicProperties: null,
+                                     body: body);
+                _logger.LogInformation("Data for low-stock is published to the rabbit!");
+            }
+        }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using EcommerceAPI.Models.Entities;
 using FluentValidation;
 
-namespace EcommerceAPI.Validators
+namespace EcommerceAPI.Validators.EntityValidators
 {
     public class ProductValidator : AbstractValidator<Product>
     {
@@ -17,7 +17,7 @@ namespace EcommerceAPI.Validators
                 .NotNull().WithMessage("{PropertyName} must not be null!")
                 .NotEmpty().WithMessage("{PropertyName} must not be empty!")
                 .MaximumLength(250).WithMessage("{PropertyName} can have maximum 250 characters");
-            
+
             RuleFor(p => p.ListPrice)
                .NotNull().WithMessage("{PropertyName} must not be null!")
                .NotEmpty().WithMessage("{PropertyName} must not be empty!")

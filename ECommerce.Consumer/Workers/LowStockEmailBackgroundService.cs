@@ -1,21 +1,21 @@
 ﻿using Microsoft.AspNetCore.Identity.UI.Services;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client;
+using Ecommerce.Consumer.Entities;
 using System.Text;
 using Newtonsoft.Json;
-using ECommerce.Consumer.Entities;
 
 namespace ECommerce.Consumer.Workers
 {
-    public class OrderConfirmationEmailBackgroundService : BackgroundService
+    public class LowStockEmailBackgroundService : BackgroundService
     {
         private IConnection _connection;
         private IModel _channel;
         private readonly IEmailSender _emailSender;
-        private readonly ILogger<OrderConfirmationEmailBackgroundService> _logger;
+        private readonly ILogger<LowStockEmailBackgroundService> _logger;
 
 
-        public OrderConfirmationEmailBackgroundService(IEmailSender emailSender, ILogger<OrderConfirmationEmailBackgroundService> logger)
+        public LowStockEmailBackgroundService(IEmailSender emailSender, ILogger<LowStockEmailBackgroundService> logger)
         {
             var factory = new ConnectionFactory() { HostName = "localhost" };
             _connection = factory.CreateConnection();
@@ -26,7 +26,7 @@ namespace ECommerce.Consumer.Workers
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _channel.QueueDeclare("order-confirmations", exclusive: false, durable: true, autoDelete: false, arguments: null);
+            _channel.QueueDeclare("low-stock", exclusive: false, durable: true, autoDelete: false, arguments: null);
 
             var consumer = new EventingBasicConsumer(_channel);
             consumer.Received += (model, args) =>
@@ -36,13 +36,13 @@ namespace ECommerce.Consumer.Workers
 
                 var body = args.Body;
                 var message = Encoding.UTF8.GetString(body.ToArray());
-                var data = JsonConvert.DeserializeObject<OrderConfirmationDto>(message);
+                var data = JsonConvert.DeserializeObject<LowStockDto>(message);
 
-                _logger.LogInformation($"Data for the order with Id: '{data.OrderId}' is consumed successfully!");
-                SendConfirmationEmail(data);
+                _logger.LogInformation($"Data for the product with Id: '{data.ProductId}' with low stock is consumed successfully!");
+                SendEmail(data);
             };
 
-            _channel.BasicConsume(queue: "order-confirmations",
+            _channel.BasicConsume(queue: "low-stock",
                                   autoAck: true,
                                   consumer: consumer);
 
@@ -52,9 +52,9 @@ namespace ECommerce.Consumer.Workers
             }
         }
 
-        private void SendConfirmationEmail(OrderConfirmationDto data)
+        private void SendEmail(LowStockDto data)
         {
-            var pathToFile = "Templates/orderConfirmation.html";
+            var pathToFile = "Templates/lowStock.html";
 
             string htmlBody = "";
             using (StreamReader streamReader = File.OpenText(pathToFile))
@@ -62,19 +62,18 @@ namespace ECommerce.Consumer.Workers
                 htmlBody = streamReader.ReadToEnd();
             }
 
-            var contentData = new string[] { data.UserName, data.OrderDate.ToString(), data.Price.ToString(), data.OrderId, data.StreetAddress, data.PhoheNumber, data.City, data.PostalCode};
+            var contentData = new string[] { data.ProductId.ToString(), data.CurrStock.ToString(), DateTime.Now.ToString()};
 
             var content = string.Format(htmlBody, contentData);
 
             try
             {
-                _logger.LogInformation("Sending 'Order Confirmation' email!");
-                //_emailSender.SendEmailAsync(data.Email, "Order Confirmation", content);
-                _emailSender.SendEmailAsync("jetonsllamniku@gmail.com", "Order Confirmation", content);
+                _logger.LogInformation("Sending 'Low Stock' email!");
+                _emailSender.SendEmailAsync("jetonsllamniku@gmail.com", "Alert: Low Stock", content);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error sending email for order confirmation!");
+                _logger.LogError(ex, "Error sending email for low stock!");
             }
         }
         public override void Dispose()
