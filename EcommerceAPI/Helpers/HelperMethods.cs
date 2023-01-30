@@ -25,15 +25,5 @@ namespace EcommerceAPI.Helpers
 
             return query.Skip((page - 1) * pageSize).Take(pageSize);
         }
-
-        public static double GetPriceByQuantity(int quantity, double price)
-        {
-            if (quantity < 1)
-            {
-                throw new Exception("Quantity must be greater than 0.");
-            }
-
-            return quantity * price;
-        }
     }
 }

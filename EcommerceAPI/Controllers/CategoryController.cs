@@ -9,33 +9,58 @@ using System.Data;
 
 namespace EcommerceAPI.Controllers
 {
+    [ApiController]
+    [Route("[controller]")]
     public class CategoryController : Controller
     {
         private readonly ICategoryService _categoryService;
-        private readonly IConfiguration _configuration;
         private readonly IValidator<Category> _categoryValidator;
 
-        public CategoryController(ICategoryService categoryService, IConfiguration configuration, IValidator<Category> categoryValidator)
+        public CategoryController(ICategoryService categoryService, IValidator<Category> categoryValidator)
         {
             _categoryService = categoryService;
-            _configuration = configuration;
             _categoryValidator = categoryValidator;
+        }
+
+        [HttpPost("PostCategory")]
+        public async Task<IActionResult> Post(CategoryCreateDto createCategory)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                await _categoryService.CreateCategory(createCategory);
+                return Ok("Category created successfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet("GetCategory")]
         public async Task<IActionResult> Get(int id)
         {
-            var category = await _categoryService.GetCategory(id);
-
-            if (category == null)
+            try
             {
-                return NotFound();
-            }
+                var category = await _categoryService.GetCategory(id);
 
-            return Ok(category);
+                if (category == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(category);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
-        //[Authorize(Roles = "LifeAdmin")]
         [HttpGet("GetCategories")]
         public async Task<IActionResult> GetCategories()
         {
@@ -44,32 +69,23 @@ namespace EcommerceAPI.Controllers
             return Ok(categories);
         }
 
-        [HttpPost("PostCategory")]
-        public async Task<IActionResult> Post(CategoryCreateDto createCategory)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            await _categoryService.CreateCategory(createCategory);
-
-            return Ok("Category created successfully!");
-        }
-
         [HttpPut("UpdateCategory/{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] CategoryDto categoryDto)
         {
             try
             {
                 var category = await _categoryService.GetCategory(id);
+                
                 if (category == null)
                 {
                     return NotFound($"Category with id {id} not found");
                 }
                 category.CategoryName = categoryDto.CategoryName;
                 category.DisplayOrder = categoryDto.DisplayOrder;
+               
                 await _categoryValidator.ValidateAndThrowAsync(category);
-                await _categoryService.UpdateCategory(category);
+                await _categoryService.UpdateCategory(categoryDto);
+                
                 return Ok("Category updated successfully!");
             }
             catch (Exception ex)

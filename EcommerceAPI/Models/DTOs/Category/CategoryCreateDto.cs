@@ -12,6 +12,5 @@ namespace EcommerceAPI.Models.DTOs.Category
         [DisplayName("Display Order")]
         public int DisplayOrder { get; set; }
 
-        public DateTime CreatedDateTime { get; set; } = DateTime.Now;
     }
 }

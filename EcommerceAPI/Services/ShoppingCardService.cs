@@ -243,7 +243,8 @@ namespace EcommerceAPI.Services
             return shoppingCardItem;
 
         }
-        public async Task CreateOrder(string userId, AddressDetails addressDetails, List<ShoppingCardViewDto> shoppingCardItems, string? promoCode)
+
+        public async Task CreateOrder(string userId, AddressDetails addressDetails, string? promoCode)
         {
             var orderId = Guid.NewGuid().ToString();
             var trackingId = Guid.NewGuid().ToString();
@@ -264,9 +265,15 @@ namespace EcommerceAPI.Services
                 UserId = userId
             };
 
+            var shoppingCardItems = await _unitOfWork.Repository<CartItem>().GetByCondition(x => x.UserId == userId).ToListAsync();
+            if (!shoppingCardItems.Any())
+            {
+                throw new Exception("Shopping cart is empty.");
+            }
+
             var orderDetailsList = new List<ProductOrderData>();
 
-            foreach (ShoppingCardViewDto item in shoppingCardItems)
+            foreach (var item in shoppingCardItems)
             {
                 var product = await _unitOfWork.Repository<Product>().GetById(x => x.Id == item.ProductId).FirstOrDefaultAsync();
                 if (product == null)
@@ -274,13 +281,13 @@ namespace EcommerceAPI.Services
                     throw new Exception("Product not found.");
                 }
 
-                if (product.Stock < item.ShopingCardProductCount)
+                if (product.Stock < item.Count)
                 {
                     throw new Exception("Stock is not sufficient.");
                 }
 
-                product.Stock -= item.ShopingCardProductCount;
-                product.TotalSold += item.ShopingCardProductCount;
+                product.Stock -= item.Count;
+                product.TotalSold += item.Count;
 
                 if (product.Stock == 1 || product.Stock == 10)
                 {
@@ -293,15 +300,16 @@ namespace EcommerceAPI.Services
                 {
                     OrderDataId = orderId,
                     ProductId = item.ProductId,
-                    Count = item.ShopingCardProductCount,
-                    Price = item.Total
+                    Count = item.Count,
+                    Price = item.Price
                 };
 
                 orderDetailsList.Add(orderDetails);
-                orderCalculatedPrice += item.Total;
+                orderCalculatedPrice += item.Price;
             }
             order.OrderPrice = orderCalculatedPrice;
-            PromotionDataDto promotionData = new () ;
+
+            PromotionDataDto promotionData = new();
             promotionData.OrderFinalPrice = orderCalculatedPrice;
             if (!promoCode.IsNullOrEmpty())
             {
@@ -310,22 +318,16 @@ namespace EcommerceAPI.Services
             }
 
             order.OrderFinalPrice = promotionData.OrderFinalPrice;
-            
-
-
-            var shoppingCardItemIdsToRemove = shoppingCardItems.Select(x => x.ShoppingCardItemId).ToList();
-            var shoppingCardItemsToRemove = await _unitOfWork.Repository<CartItem>()
-                                                     .GetByCondition(x => shoppingCardItemIdsToRemove.Contains(x.CartItemId))
-                                                     .ToListAsync();
 
             _unitOfWork.Repository<OrderData>().Create(order);
-            _unitOfWork.Repository<CartItem>().DeleteRange(shoppingCardItemsToRemove);
+            _unitOfWork.Repository<CartItem>().DeleteRange(shoppingCardItems);
             _unitOfWork.Repository<ProductOrderData>().CreateRange(orderDetailsList);
 
             _unitOfWork.Complete();
 
+
             double totalPrice = 0;
-            totalPrice = shoppingCardItems.Select(x => x.Total).Sum();
+            totalPrice = shoppingCardItems.Select(x => x.Price).Sum();
 
             var orderConfirmationDto = new OrderConfirmationDto
             {
