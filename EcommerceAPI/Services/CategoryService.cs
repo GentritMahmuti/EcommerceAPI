@@ -34,21 +34,18 @@ namespace EcommerceAPI.Services
                 throw new ArgumentException("Category name must not be empty");
             }
 
+            if(categoryToCreate.DisplayOrder <= 0)
+            {
+                throw new ArgumentException("DisplayOrder must be a positive number");
+            }
+
             var category = _mapper.Map<Category>(categoryToCreate);
 
-            try
-            {
-                _unitOfWork.Repository<Category>().Create(category);
-                _unitOfWork.Complete();
-                _logger.LogInformation("Created category successfully!");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to create category");
-                throw;
-            }
+            _unitOfWork.Repository<Category>().Create(category);
+            _unitOfWork.Complete();
+            _logger.LogInformation("Created category successfully!");
         }
-        
+
         public async Task<Category> GetCategory(int id)
         {
             if (id <= 0)

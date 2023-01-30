@@ -69,31 +69,20 @@ namespace EcommerceAPI.Controllers
             return Ok(categories);
         }
 
-        [HttpPut("UpdateCategory/{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] CategoryDto categoryDto)
+        [HttpPut("UpdateCategory")]
+        public async Task<IActionResult> Update(CategoryDto categoryToUpdate)
         {
             try
             {
-                var category = await _categoryService.GetCategory(id);
-                
-                if (category == null)
-                {
-                    return NotFound($"Category with id {id} not found");
-                }
-                category.CategoryName = categoryDto.CategoryName;
-                category.DisplayOrder = categoryDto.DisplayOrder;
-               
-                await _categoryValidator.ValidateAndThrowAsync(category);
-                await _categoryService.UpdateCategory(categoryDto);
-                
+                await _categoryService.UpdateCategory(categoryToUpdate);
                 return Ok("Category updated successfully!");
             }
             catch (Exception ex)
             {
-                return BadRequest($"The update failed: '{ex.Message}'");
+                return BadRequest(ex.Message);
             }
         }
-
+        
         [HttpDelete("DeleteCategory")]
         public async Task<IActionResult> Delete(int id)
         {
