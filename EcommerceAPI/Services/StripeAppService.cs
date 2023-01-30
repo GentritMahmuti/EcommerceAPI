@@ -95,6 +95,7 @@ namespace EcommerceAPI.Services
                 orderData.TransactionId = createdPayment.Id;
                 orderData.PaymentDate = DateTime.Now;
                 orderData.PaymentDueDate = DateTime.Now.AddDays(30);
+                orderData.PaymentMethodId = createdPayment.PaymentMethod;
 
                 _unitOfWork.Complete();
 

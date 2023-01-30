@@ -113,7 +113,8 @@ namespace EcommerceAPI.Controllers
                 await _cardService.CreateOrder(userId, model.AddressDetails, model.PromoCode);
 
                 return Ok();
-            } catch (Exception ex)
+            } 
+            catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }

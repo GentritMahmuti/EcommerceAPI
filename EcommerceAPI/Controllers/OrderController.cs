@@ -20,26 +20,40 @@ namespace EcommerceAPI.Controllers
             _configuration = configuration;
         }
 
-        //[Authorize(Roles = "LifeAdmin")]
-        [HttpPost("ProcessOrder")]
-        public async Task<IActionResult> ProcessOrder(string orderId, string status)
+        [Authorize(Roles = "LifeAdmin")]
+        [HttpPost("ChangeOrderStatus")]
+        public async Task<IActionResult> ChangeOrderStatus(string orderId, string status)
         {
-            await _orderService.ProcessOrder(orderId, status);
-            return Ok($"Now selected order is in new status: {status}");
+            try
+            {
+                await _orderService.ChangeOrderStatus(orderId, status);
+                return Ok("Order status changed!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [Authorize(Roles = "LifeUser")]
-        [HttpGet("GetOrderHistory")]
-        public async Task<IActionResult> GetOrderHistory()
+        [HttpGet("GetCustomerOrderHistory")]
+        public async Task<IActionResult> GetCustomerOrderHistory()
         {
-            var userData = (ClaimsIdentity)User.Identity;
-            var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+            try
+            {
+                var userData = (ClaimsIdentity)User.Identity;
+                var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-            if (userId == null) { return Unauthorized(); }
+                if (userId == null) { return Unauthorized(); }
 
-            List<OrderData> orderHistory = _orderService.GetOrderHistory(userId);
+                List<OrderData> orderHistory = _orderService.GetCustomerOrderHistory(userId);
 
-            return Ok(orderHistory);
+                return Ok(orderHistory);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

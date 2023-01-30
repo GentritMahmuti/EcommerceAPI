@@ -14,11 +14,13 @@ namespace EcommerceAPI.Controllers
     public class CategoryController : Controller
     {
         private readonly ICategoryService _categoryService;
+        private readonly IConfiguration _configuration;
         private readonly IValidator<Category> _categoryValidator;
 
-        public CategoryController(ICategoryService categoryService, IValidator<Category> categoryValidator)
+        public CategoryController(ICategoryService categoryService, IConfiguration _configuration, IValidator<Category> categoryValidator)
         {
             _categoryService = categoryService;
+            _configuration = _configuration;
             _categoryValidator = categoryValidator;
         }
 
@@ -83,6 +85,7 @@ namespace EcommerceAPI.Controllers
             }
         }
         
+
         [HttpDelete("DeleteCategory")]
         public async Task<IActionResult> Delete(int id)
         {

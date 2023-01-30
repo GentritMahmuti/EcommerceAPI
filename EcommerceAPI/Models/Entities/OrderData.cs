@@ -19,10 +19,11 @@ namespace EcommerceAPI.Models.Entities
         public string? OrderStatus { get; set; }
         public string? PaymentStatus { get; set; }
         public string? TransactionId { get; set; }
-
+        public string PaymentMethodId { get; set; }
+        [ForeignKey("PaymentMethodId")]
+        public PaymentMethodEntity PaymentMethodEntity { get; set; }
         public DateTime? PaymentDate { get; set; }
         public DateTime? PaymentDueDate { get; set; }
-
         [Required]
         public string PhoheNumber { get; set; }
         [Required]

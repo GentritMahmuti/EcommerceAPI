@@ -4,9 +4,9 @@ namespace EcommerceAPI.Services.IServices
 {
     public interface IOrderService
     {
-        Task ProcessOrder(string orderId, string status);
+        Task ChangeOrderStatus(string orderId, string status);
+        List<OrderData> GetCustomerOrderHistory(string userId);
         Task<OrderData> GetOrder(string orderId);
-        List<OrderData> GetOrderHistory(string userId);
         Task UpdateOrder(OrderData order);
     }
 }

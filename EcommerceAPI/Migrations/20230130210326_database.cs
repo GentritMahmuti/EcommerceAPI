@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace EcommerceAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class database : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -119,46 +119,6 @@ namespace EcommerceAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "OrderData",
-                columns: table => new
-                {
-                    OrderId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    OrderDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ShippingDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    OrderPrice = table.Column<double>(type: "float", nullable: false),
-                    OrderFinalPrice = table.Column<double>(type: "float", nullable: false),
-                    TrackingId = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Carrier = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    OrderStatus = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PaymentStatus = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    TransactionId = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PaymentDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    PaymentDueDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    PhoheNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    StreetAddress = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    City = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Country = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PostalCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    PromotionId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_OrderData", x => x.OrderId);
-                    table.ForeignKey(
-                        name: "FK_OrderData_Promotions_PromotionId",
-                        column: x => x.PromotionId,
-                        principalTable: "Promotions",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_OrderData_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "PaymentMethods",
                 columns: table => new
                 {
@@ -264,6 +224,53 @@ namespace EcommerceAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "OrderData",
+                columns: table => new
+                {
+                    OrderId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    OrderDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ShippingDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    OrderPrice = table.Column<double>(type: "float", nullable: false),
+                    OrderFinalPrice = table.Column<double>(type: "float", nullable: false),
+                    TrackingId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Carrier = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    OrderStatus = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PaymentStatus = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TransactionId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PaymentMethodId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    PaymentDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    PaymentDueDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    PhoheNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    StreetAddress = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    City = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Country = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PostalCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    PromotionId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OrderData", x => x.OrderId);
+                    table.ForeignKey(
+                        name: "FK_OrderData_PaymentMethods_PaymentMethodId",
+                        column: x => x.PaymentMethodId,
+                        principalTable: "PaymentMethods",
+                        principalColumn: "PaymentMethodId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_OrderData_Promotions_PromotionId",
+                        column: x => x.PromotionId,
+                        principalTable: "Promotions",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_OrderData_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ProductOrderDatas",
                 columns: table => new
                 {
@@ -298,6 +305,11 @@ namespace EcommerceAPI.Migrations
                 table: "CardItems",
                 columns: new[] { "UserId", "ProductId" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderData_PaymentMethodId",
+                table: "OrderData",
+                column: "PaymentMethodId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderData_PromotionId",
@@ -360,9 +372,6 @@ namespace EcommerceAPI.Migrations
                 name: "Inquiries");
 
             migrationBuilder.DropTable(
-                name: "PaymentMethods");
-
-            migrationBuilder.DropTable(
                 name: "ProductOrderDatas");
 
             migrationBuilder.DropTable(
@@ -378,13 +387,16 @@ namespace EcommerceAPI.Migrations
                 name: "Products");
 
             migrationBuilder.DropTable(
+                name: "PaymentMethods");
+
+            migrationBuilder.DropTable(
                 name: "Promotions");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "Categories");
 
             migrationBuilder.DropTable(
-                name: "Categories");
+                name: "Users");
         }
     }
 }

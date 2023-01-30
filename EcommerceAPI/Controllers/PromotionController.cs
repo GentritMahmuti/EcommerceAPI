@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EcommerceAPI.Controllers
 {
+    [Route("api/[controller]")]
+    [ApiController]
     public class PromotionController : Controller
     {
         private readonly IPromotionService _promotionService;
@@ -56,6 +58,7 @@ namespace EcommerceAPI.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        
         [Authorize(Roles = "LifeAdmin")]
         [HttpPost("PostPromotion")]
         public async Task<IActionResult> Post(PromotionDto createPromotion)
@@ -72,6 +75,7 @@ namespace EcommerceAPI.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        
         [Authorize(Roles = "LifeAdmin")]
         [HttpPut("UpdatePromotion/{id}")]
         public async Task<IActionResult> Update(int id, PromotionDto updatePromotion)
@@ -86,6 +90,7 @@ namespace EcommerceAPI.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        
         [Authorize(Roles = "LifeAdmin")]
         [HttpDelete("DeletePromotion")]
         public async Task<IActionResult> Delete(int id)

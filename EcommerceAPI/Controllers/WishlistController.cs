@@ -100,11 +100,6 @@ namespace EcommerceAPI.Controllers
                 return BadRequest(ex.Message);
             }
         }
-
-
-
-
-
     }
 }
 

@@ -170,6 +170,10 @@ namespace EcommerceAPI.Migrations
                     b.Property<DateTime?>("PaymentDueDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("PaymentMethodId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("PaymentStatus")
                         .HasColumnType("nvarchar(max)");
 
@@ -202,6 +206,8 @@ namespace EcommerceAPI.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("OrderId");
+
+                    b.HasIndex("PaymentMethodId");
 
                     b.HasIndex("PromotionId");
 
@@ -450,6 +456,12 @@ namespace EcommerceAPI.Migrations
 
             modelBuilder.Entity("EcommerceAPI.Models.Entities.OrderData", b =>
                 {
+                    b.HasOne("EcommerceAPI.Models.Entities.PaymentMethodEntity", "PaymentMethodEntity")
+                        .WithMany()
+                        .HasForeignKey("PaymentMethodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("EcommerceAPI.Models.Entities.Promotion", "Promotion")
                         .WithMany("OrderDatas")
                         .HasForeignKey("PromotionId")
@@ -458,6 +470,8 @@ namespace EcommerceAPI.Migrations
                     b.HasOne("EcommerceAPI.Models.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId");
+
+                    b.Navigation("PaymentMethodEntity");
 
                     b.Navigation("Promotion");
 

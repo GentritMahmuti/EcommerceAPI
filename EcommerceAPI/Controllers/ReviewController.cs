@@ -71,6 +71,7 @@ namespace EcommerceAPI.Controllers
 
             return Ok("Review created successfully!");
         }
+        
         [Authorize(Roles = "LifeUser")]
         [HttpPut("UpdateReview")]
         public async Task<IActionResult> Update(ReviewUpdateDto ReviewToUpdate)
@@ -111,7 +112,6 @@ namespace EcommerceAPI.Controllers
         {
             try
             {
-                
                 await _reviewService.DeleteReviewComment(id);
                 return Ok("Review comment deleted successfully!");
             }

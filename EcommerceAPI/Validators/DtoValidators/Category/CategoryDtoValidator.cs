@@ -18,8 +18,6 @@ namespace EcommerceAPI.Validators.DtoValidators.Category
                 .Length(1, 100).WithMessage("{PropertyName} must be between 1 and 100 characters!")
                 .Matches(@"^[A-Za-z\s]*$").WithMessage("{PropertyName} contains invalid characters!");
 
-            RuleFor(c => c.CreatedDateTime)
-                .Must(BeAValidDate).WithMessage("{PropertyName} cannot be older than year 2000!");
         }
 
         protected bool BeAValidDate(DateTime date)

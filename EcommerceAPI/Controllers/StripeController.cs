@@ -17,7 +17,6 @@ namespace EcommerceAPI.Controllers
         private readonly IStripeAppService _stripeService;
         private readonly PaymentMethodService _paymentMethodService;
 
-
         public StripeController(IStripeAppService stripeService, PaymentMethodService paymentMethodService)
         {
             _stripeService = stripeService;
@@ -45,7 +44,6 @@ namespace EcommerceAPI.Controllers
             return StatusCode(StatusCodes.Status200OK, paymentId);
         }
 
-        //List<PaymentMethodEntity> GetPaymentMethodsByCustomer(string customerId)
         [HttpGet("payment/methods")]
         public ActionResult<List<PaymentMethodEntity>> GetPaymentMethodsByCustomer(string customerId)
         {
@@ -60,7 +58,6 @@ namespace EcommerceAPI.Controllers
             await _stripeService.DeletePaymentMethod(paymentMethodId);
         }
 
-        //UpdatePaymentMethodExpiration(string paymentMethodId, int expYear, int expMonth)
         [HttpPut("payment/method/update")]
         public async Task UpdatePaymentMethodExpiration(string paymentMethodId, int expYear, int expMonth)
         {
