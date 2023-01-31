@@ -57,6 +57,7 @@ namespace EcommerceAPI.Data
         public DbSet<WishListItem> WishListItems { get; set; }
         public DbSet<Promotion> Promotions { get; set; }
         public DbSet<PaymentMethodEntity> PaymentMethods { get; set; }
+        public DbSet<TextMessage> TextMessages { get; set; }
 
 
     }

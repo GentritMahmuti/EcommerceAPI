@@ -12,11 +12,14 @@ namespace EcommerceAPI.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<WishListItem> _logger;
+        private readonly ShoppingCardService _shoppingCardService;
 
-        public WishlistService(IUnitOfWork unitOfWork, ILogger<WishListItem> logger)
+
+        public WishlistService(IUnitOfWork unitOfWork, ILogger<WishListItem> logger, ShoppingCardService shoppingCardService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _shoppingCardService = shoppingCardService;
         }
 
         public async Task<List<Product>> GetWishlistContent(string userId)
@@ -105,7 +108,7 @@ namespace EcommerceAPI.Services
             }
         }
 
-        public async Task AddToCard(string userId, int productId)
+        public async Task AddToCardFromWishlist(string userId, int productId)
         {
             try
             {
@@ -119,15 +122,10 @@ namespace EcommerceAPI.Services
 
                 if (wishlist.Any(x => x.ProductId == productId))
                 {
-                    var item = new CartItem
-                    {
-                        UserId = userId,
-                        ProductId = productId,
-                        Count = 1
-                    };
+                    // call the AddProductToCard method with count 1
 
-                    _unitOfWork.Repository<CartItem>().Create(item);
-                    _unitOfWork.Complete();
+                    await _shoppingCardService.AddProductToCard(userId, productId, 1);
+
                     _unitOfWork.Repository<WishListItem>().Delete(wishlist.FirstOrDefault(x => x.ProductId == productId));
                     _unitOfWork.Complete();
                 }

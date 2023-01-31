@@ -4,6 +4,6 @@ namespace EcommerceAPI.Hubs.IHubs
 {
     public interface IChatClient
     {
-        Task ReceiveMessage(ChatMessage message);
+        Task SendMessage(string sender, string receiver, string message);
     }
 }

@@ -28,6 +28,9 @@ using EcommerceAPI.Hubs;
 using EcommerceAPI.Workers;
 using FluentAssertions.Common;
 using EcommerceAPI.Models.DTOs.Promotion;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore;
+using EcommerceAPI.Hubs.IHubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +42,11 @@ builder.Services.AddScoped<IValidator<EcommerceAPI.Models.Entities.Product>, Pro
 builder.Services.AddScoped<IValidator<ReviewCreateDto>, ReviewCreateDtoValidator>();
 builder.Services.AddScoped<IValidator<ReviewUpdateDto>, ReviewUpdateDtoValidator>();
 builder.Services.AddScoped<IValidator<PromotionDto>, PromotionValidator>();
+
+
+
+
+
 
 
 
@@ -179,12 +187,14 @@ builder.Services.AddEmailSenders(builder.Configuration);
 var smtpConfigurations = builder.Configuration.GetSection(nameof(SmtpConfiguration)).Get<SmtpConfiguration>();
 builder.Services.AddSingleton(smtpConfigurations);
 builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
+builder.Services.AddSingleton<IConnections, Connections>();
 
 builder.Services.AddHttpClient();
 
 
 
 builder.Services.AddSignalR();
+
 
 builder.Services.AddCors(options =>
 {
@@ -225,6 +235,7 @@ builder.Services.AddScoped<ICacheService, CacheService>();
 
 builder.Services.AddScoped<IWishlistService, WishlistService>();
 builder.Services.AddTransient<PaymentMethodService>();
+builder.Services.AddScoped<ShoppingCardService>();
 
 var app = builder.Build();
 
@@ -262,7 +273,20 @@ app.MapControllers();
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
-    endpoints.MapHub<ChatHub>("/hubs/chat");
+    endpoints.MapHub<ChatHub>("/hubs-chat");
 });
+static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+    WebHost.CreateDefaultBuilder(args)
+        .UseStartup<Program>()
+        .UseUrls("http://localhost:5000");
+
+static void Main(string[] args)
+{
+    CreateWebHostBuilder(args).Build().Run();
+}
+
+
+
+
 
 app.Run();

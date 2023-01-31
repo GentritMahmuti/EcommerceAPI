@@ -1,14 +1,63 @@
 ﻿using EcommerceAPI.Hubs.IHubs;
-using EcommerceAPI.Models.Entities;
 using Microsoft.AspNetCore.SignalR;
+using System.Security.Claims;
 
-namespace EcommerceAPI.Hubs
+public class ChatHub : Hub
 {
-    public class ChatHub : Hub<IChatClient>
+    private readonly IConnections _connections;
+    private readonly IChatHubRepository _repository;
+
+    private readonly ILogger<ChatHub> _logger;
+
+    public ChatHub(IConnections connections, IChatHubRepository repository, ILogger<ChatHub> logger)
     {
-        public async Task SendMessage(ChatMessage message)
+        _connections = connections;
+        _repository = repository;
+        _logger = logger;
+    }
+
+    public async Task SendMessageToAdmin(ClaimsPrincipal user, string message)
+    {
+        if (user.IsAdmin())
         {
-            await Clients.All.ReceiveMessage(message);
+            var adminConnectionId = _connections.GetConnectionId(ClaimsPrincipalExtensions.AdminRole);
+            if (adminConnectionId != null)
+            {
+                await Clients.Client(adminConnectionId).SendAsync("ReceiveMessage", user, message);
+                try
+                {
+                    await _repository.SaveMessage(user.Identity.Name, ClaimsPrincipalExtensions.AdminRole, message);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "An error occurred while saving the message to the database");
+                }
+            }
         }
     }
+
+    public async Task SendMessageToUser(ClaimsPrincipal admin, string message)
+    {
+        if (!admin.IsAdmin())
+        {
+            return;
+        }
+
+        var userConnectionId = _connections.GetConnectionId("user");
+        if (userConnectionId != null)
+        {
+            await Clients.Client(userConnectionId).SendAsync("ReceiveMessage", admin, message);
+            await _repository.SaveMessage(ClaimsPrincipalExtensions.AdminRole, "user", message);
+        }
+    }
+       public void AddConnection(string userId, string connectionId)
+    {
+        _connections.AddConnection(userId, connectionId);
+    }
+
+    public void RemoveConnection(string userId, string connectionId)
+    {
+        _connections.RemoveConnection(userId, connectionId);
+    }
 }
+

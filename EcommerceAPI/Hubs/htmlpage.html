@@ -1,0 +1,24 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>SignalR Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@aspnet/signalr@3.1.7/dist/browser/signalr.min.js"></script>
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("5000/hubs-chat")
+            .build();
+
+        connection.on("ReceiveMessage", (user, message) => {
+            console.log(`Received message from ${user}: ${message}`);
+        });
+
+        connection.start().then(() => {
+            console.log("Connected to the chat hub");
+            connection.invoke("SendMessageToAdmin", "client", "Hello Admin").catch(err => console.error(err.toString()));
+        }).catch(err => console.error(err.toString()));
+    </script>
+</head>
+<body>
+</body>
+</html>
+
