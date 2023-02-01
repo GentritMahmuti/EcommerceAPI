@@ -180,6 +180,13 @@ namespace EcommerceAPI.Services
             var products = _mapper.Map<List<ProductCreateDto>, List<Product>>(productsToCreate);
             _unitOfWork.Repository<Product>().CreateRange(products);
             _unitOfWork.Complete();
+            
+            foreach (var product in products)
+            {
+                var key = $"Product_{product.Id}";
+                var expirationTime = DateTimeOffset.Now.AddDays(1);
+                _cacheService.SetData(key, product, expirationTime);
+            }
             _logger.LogInformation("Created products successfully!");
 
         }
@@ -210,8 +217,11 @@ namespace EcommerceAPI.Services
             if (product == null)
             {
                 throw new NullReferenceException("The product you're trying to update doesn't exist!");
-            }
+            };
             product.Name = productToUpdate.Name;
+            var key = $"Product_{product.Id}";
+            var expirationTime = DateTimeOffset.Now.AddDays(1);
+            _cacheService.SetUpdatedData<Product>(key, product, expirationTime);
 
             _unitOfWork.Repository<Product>().Update(product);
 

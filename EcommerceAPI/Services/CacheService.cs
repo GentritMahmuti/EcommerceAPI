@@ -57,6 +57,7 @@ namespace EcommerceAPI.Services
         public bool SetData<T>(string key, T value, DateTimeOffset expirationTime)
         {
             var expiryTime = expirationTime.DateTime.Subtract(DateTime.Now);
+
             return _cacheDb.StringSet(key, JsonSerializer.Serialize(value), expiryTime);
         }
 
