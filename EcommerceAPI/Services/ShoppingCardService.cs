@@ -16,6 +16,7 @@ using System.Text;
 using EcommerceAPI.Models.DTOs.Promotion;
 using EcommerceAPI.Models.DTOs.Product;
 using Microsoft.EntityFrameworkCore;
+using Nest;
 
 namespace EcommerceAPI.Services
 {
@@ -28,6 +29,7 @@ namespace EcommerceAPI.Services
         private readonly ICacheService _cacheService;
         private readonly IProductService _productService;
         private List<string> _keys;
+
         public ShoppingCardService(IUnitOfWork unitOfWork, IMapper mapper, IEmailSender emailSender, ILogger<ShoppingCardService> logger, ICacheService cacheService, IProductService productService)
         {
             _unitOfWork = unitOfWork;
@@ -53,8 +55,14 @@ namespace EcommerceAPI.Services
 
         public async Task AddProductToCard(string userId, int productId, int count)
         {
-            try
-            {
+            
+                var product = await _productService.GetProduct(productId);
+
+                 if (product.Stock < count)
+                 {
+                     throw new Exception("Stock is not sufficient.");
+                 }
+
                 var shoppingCardItem = new CartItem
                 {
                     UserId = userId,
@@ -74,11 +82,8 @@ namespace EcommerceAPI.Services
                 
                 //Store the data in the cache
                 _cacheService.SetDataMember(key, cartItem);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occured while trying to add a product to card");
-            }
+            
+            
         }
 
         public async Task<ShoppingCardDetails> GetShoppingCardContentForUser(string userId)

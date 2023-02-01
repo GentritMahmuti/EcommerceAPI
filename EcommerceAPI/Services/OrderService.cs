@@ -233,6 +233,7 @@ namespace EcommerceAPI.Services
                 OrderId = Guid.NewGuid().ToString(),
                 OrderDate = DateTime.Now,
                 ShippingDate = DateTime.Now.AddDays(7),
+                OrderPrice = product.Price * count,
                 OrderFinalPrice = product.Price * count,
                 PhoheNumber = addressDetails.PhoheNumber,
                 StreetAddress = addressDetails.StreetAddress,
@@ -261,6 +262,12 @@ namespace EcommerceAPI.Services
 
             product.Stock -= count;
             product.TotalSold += count;
+
+            if (product.Stock == 0 || product.Stock == 10)
+            {
+                PublishForLowStock(new LowStockDto { ProductId = product.Id, CurrStock = product.Stock });
+            }
+
             _unitOfWork.Repository<Product>().Update(product);
             _unitOfWork.Complete();
             await _productService.UpdateSomeElastic(product.Id, product.Stock, product.TotalSold);
@@ -303,7 +310,7 @@ namespace EcommerceAPI.Services
             {
                 throw new Exception("Stock is not sufficient.");
             }
-            if (product.Stock == 1 || product.Stock == 10)
+            if (product.Stock == 0 || product.Stock == 10)
             {
                 PublishForLowStock(new LowStockDto { ProductId = product.Id, CurrStock = product.Stock });
             }

@@ -14,11 +14,13 @@ namespace EcommerceAPI.Controllers
     {
         private readonly IShoppingCardService _cardService;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<ShoppingCardController> _logger;
 
-        public ShoppingCardController(IShoppingCardService cardService, IConfiguration configuration)
+        public ShoppingCardController(IShoppingCardService cardService, IConfiguration configuration, ILogger<ShoppingCardController> logger)
         {
             _cardService = cardService;
             _configuration = configuration;
+            _logger = logger;
         }
 
         [HttpPost("AddToCard")]
@@ -29,9 +31,17 @@ namespace EcommerceAPI.Controllers
 
             if (userId == null) { return Unauthorized(); }
 
-            await _cardService.AddProductToCard(userId, productId, count);
+            try 
+            { 
+                await _cardService.AddProductToCard(userId, productId, count);
 
-            return Ok("Added to card!");
+                return Ok("Added to card!");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occured while trying to add a product to card");
+                return BadRequest("An error happened: " + ex.Message);
+            }
         }
 
         [HttpDelete("RemoveFromCard")]

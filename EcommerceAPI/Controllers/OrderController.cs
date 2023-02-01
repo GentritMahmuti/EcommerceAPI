@@ -92,7 +92,7 @@ namespace EcommerceAPI.Controllers
         {
             try
             {
-                await _addressDetailsValidator.ValidateAndThrowAsync(addressDetails);
+               // await _addressDetailsValidator.ValidateAndThrowAsync(addressDetails);
                 var userData = (ClaimsIdentity)User.Identity;
                 var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
 
