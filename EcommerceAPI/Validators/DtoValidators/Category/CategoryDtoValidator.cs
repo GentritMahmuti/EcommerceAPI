@@ -19,11 +19,5 @@ namespace EcommerceAPI.Validators.DtoValidators.Category
                 .Matches(@"^[A-Za-z\s]*$").WithMessage("{PropertyName} contains invalid characters!");
 
         }
-
-        protected bool BeAValidDate(DateTime date)
-        {
-            int createdDateTimeYear = date.Year;
-            return createdDateTimeYear >= 2000;
-        }
     }
 }

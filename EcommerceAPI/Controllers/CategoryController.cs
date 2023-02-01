@@ -15,13 +15,16 @@ namespace EcommerceAPI.Controllers
     {
         private readonly ICategoryService _categoryService;
         private readonly IConfiguration _configuration;
-        private readonly IValidator<Category> _categoryValidator;
+        private readonly IValidator<CategoryDto> _categoryValidator;
+        private readonly IValidator<CategoryCreateDto> _categoryCreateValidator;
 
-        public CategoryController(ICategoryService categoryService, IConfiguration _configuration, IValidator<Category> categoryValidator)
+
+        public CategoryController(ICategoryService categoryService, IConfiguration _configuration, IValidator<CategoryDto> categoryValidator, IValidator<CategoryCreateDto> categoryCreateValidator)
         {
             _categoryService = categoryService;
             _configuration = _configuration;
             _categoryValidator = categoryValidator;
+            _categoryCreateValidator = categoryCreateValidator;
         }
 
         [HttpPost("PostCategory")]
@@ -33,7 +36,7 @@ namespace EcommerceAPI.Controllers
                 {
                     return BadRequest(ModelState);
                 }
-
+                await _categoryCreateValidator.ValidateAndThrowAsync(createCategory);
                 await _categoryService.CreateCategory(createCategory);
                 return Ok("Category created successfully!");
             }
@@ -76,6 +79,7 @@ namespace EcommerceAPI.Controllers
         {
             try
             {
+                await _categoryValidator.ValidateAndThrowAsync(categoryToUpdate);
                 await _categoryService.UpdateCategory(categoryToUpdate);
                 return Ok("Category updated successfully!");
             }
