@@ -59,11 +59,20 @@ namespace EcommerceAPI.Controllers
         [HttpGet("GetProducts")]
         public async Task<IActionResult> GetProducts()
         {
-            var categories = await _productService.GetAllProducts();
+            var products = await _productService.GetAllProducts();
 
-            return Ok(categories);
+            return Ok(products);
         }
 
+        [Authorize(Roles = "LifeUser, LifeAdmin")]
+        [HttpGet("GetRecommendedProducts")]
+        public async Task<IActionResult> GetRecommendedProducts(int pageIndex = 1, int pageSize = 10)
+        {
+            var userData = (ClaimsIdentity)User.Identity;
+            var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var products = await _productService.GetRecommendedProducts(userId, pageIndex, pageSize);
+            return Ok(products);
+        }
         [HttpPost("CreateProduct")]
         public async Task<IActionResult> CreateProduct([FromBody] ProductCreateDto productToCreate)
         {

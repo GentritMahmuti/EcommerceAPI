@@ -12,11 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using Product = EcommerceAPI.Models.Entities.Product;
-using Stripe;
-using System;
-using System.Linq.Expressions;
 using System.Text;
-using static Amazon.S3.Util.S3EventNotification;
 using EcommerceAPI.Models.DTOs.Promotion;
 using EcommerceAPI.Models.DTOs.Product;
 using Microsoft.EntityFrameworkCore;
@@ -30,8 +26,9 @@ namespace EcommerceAPI.Services
         private readonly IEmailSender _emailSender;
         private readonly ILogger<ShoppingCardService> _logger;
         private readonly ICacheService _cacheService;
+        private readonly IProductService _productService;
         private List<string> _keys;
-        public ShoppingCardService(IUnitOfWork unitOfWork, IMapper mapper, IEmailSender emailSender, ILogger<ShoppingCardService> logger, ICacheService cacheService)
+        public ShoppingCardService(IUnitOfWork unitOfWork, IMapper mapper, IEmailSender emailSender, ILogger<ShoppingCardService> logger, ICacheService cacheService, IProductService productService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -39,6 +36,7 @@ namespace EcommerceAPI.Services
             _logger = logger;
             _cacheService = cacheService;
             _keys = new List<string>();
+            _productService = productService;
         }
 
         private async Task<CartItem> GetCardItem(int itemId)
@@ -157,11 +155,11 @@ namespace EcommerceAPI.Services
 
         public async Task RemoveAllProductsFromCard(string userId)
         {
-            var shoppingCardItems = _unitOfWork.Repository<CartItem>()
-                                                                .GetByCondition(x => x.UserId.Equals(userId))
-                                                                .ToList();
+            var key = $"CartItems_{userId}";
 
-            _unitOfWork.Repository<CartItem>().DeleteRange(shoppingCardItems);
+            var usersShoppingCard = _cacheService.GetDataSet<CartItem>(key);
+            _cacheService.RemoveData(key);
+            _unitOfWork.Repository<CartItem>().DeleteRange(usersShoppingCard);
             _unitOfWork.Complete();
 
         }
@@ -177,7 +175,7 @@ namespace EcommerceAPI.Services
                     shoppingCardItem.Count++;
                 else
                     shoppingCardItem.Count = (int)newQuantity;
-
+                
                 _unitOfWork.Repository<CartItem>().Update(shoppingCardItem);
                 _unitOfWork.Complete();
                 var cartItem = await GetCardItem(shoppingCardItem.CartItemId);
@@ -265,36 +263,13 @@ namespace EcommerceAPI.Services
                 UserId = userId
             };
 
-            var shoppingCardItems = await _unitOfWork.Repository<CartItem>().GetByCondition(x => x.UserId == userId).ToListAsync();
-            if (!shoppingCardItems.Any())
-            {
-                throw new Exception("Shopping cart is empty.");
-            }
-
+            var shoppingCardItems = await GetShoppingCardItems(userId);
+            
             var orderDetailsList = new List<ProductOrderData>();
 
             foreach (var item in shoppingCardItems)
             {
-                var product = await _unitOfWork.Repository<Product>().GetById(x => x.Id == item.ProductId).FirstOrDefaultAsync();
-                if (product == null)
-                {
-                    throw new Exception("Product not found.");
-                }
-
-                if (product.Stock < item.Count)
-                {
-                    throw new Exception("Stock is not sufficient.");
-                }
-
-                product.Stock -= item.Count;
-                product.TotalSold += item.Count;
-
-                if (product.Stock == 1 || product.Stock == 10)
-                {
-                    PublishForLowStock(new LowStockDto { ProductId = product.Id, CurrStock = product.Stock });
-                }
-
-                _unitOfWork.Repository<Product>().Update(product);
+                var product = await GetAndUpdateProduct(item);
 
                 var orderDetails = new ProductOrderData
                 {
@@ -305,7 +280,7 @@ namespace EcommerceAPI.Services
                 };
 
                 orderDetailsList.Add(orderDetails);
-                orderCalculatedPrice += item.Price;
+                orderCalculatedPrice += product.Price;
             }
             order.OrderPrice = orderCalculatedPrice;
 
@@ -326,8 +301,8 @@ namespace EcommerceAPI.Services
             _unitOfWork.Complete();
 
 
-            double totalPrice = 0;
-            totalPrice = shoppingCardItems.Select(x => x.Price).Sum();
+           
+            double totalPrice = shoppingCardItems.Select(x => x.Price).Sum();
 
             var orderConfirmationDto = new OrderConfirmationDto
             {
@@ -344,7 +319,39 @@ namespace EcommerceAPI.Services
             PublishOrderConfirmation(orderConfirmationDto);
         }
 
-        async private Task<PromotionDataDto> CheckPromoCode(string promoCode, double orderTotal)
+        private async Task<List<CartItem>> GetShoppingCardItems(string userId)
+        {
+            var shoppingCardItems = await _unitOfWork.Repository<CartItem>().GetByCondition(x => x.UserId == userId).ToListAsync();
+            if (!shoppingCardItems.Any())
+            {
+                throw new Exception("Shopping cart is empty.");
+            }
+            return shoppingCardItems;
+        }
+        private async Task<Product> GetAndUpdateProduct(CartItem item)
+        {
+            var product = await _unitOfWork.Repository<Product>().GetById(x => x.Id == item.ProductId).FirstOrDefaultAsync();
+            if (product == null)
+            {
+                throw new Exception("Product not found.");
+            }
+            if (product.Stock < item.Count)
+            {
+                throw new Exception("Stock is not sufficient.");
+            }
+            if (product.Stock == 1 || product.Stock == 10)
+            {
+                PublishForLowStock(new LowStockDto { ProductId = product.Id, CurrStock = product.Stock });
+            }
+
+            product.Stock -= item.Count;
+            product.TotalSold += item.Count;
+            _unitOfWork.Repository<Product>().Update(product);
+            _unitOfWork.Complete();
+            await _productService.UpdateSomeElastic(product.Id, product.Stock, product.TotalSold);
+            return product;
+        }
+        private async  Task<PromotionDataDto> CheckPromoCode(string promoCode, double orderTotal)
         {
             var promotion = await _unitOfWork.Repository<Promotion>().GetByCondition(x => x.Name.Equals(promoCode)).FirstOrDefaultAsync();
             if (promotion == null)

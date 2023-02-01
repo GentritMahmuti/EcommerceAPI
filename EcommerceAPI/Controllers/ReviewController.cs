@@ -18,10 +18,12 @@ namespace EcommerceAPI.Controllers
     {
         private readonly IReviewService _reviewService;
         private readonly IValidator<ReviewCreateDto> _createReviewValidator;
-        public ReviewController(IReviewService reviewService, IValidator<ReviewCreateDto> createReviewValidator)
+        private readonly IValidator<ReviewUpdateDto> _updateReviewValidator;
+        public ReviewController(IReviewService reviewService, IValidator<ReviewCreateDto> createReviewValidator, IValidator<ReviewUpdateDto> updateReviewValidator)
         {
             _reviewService = reviewService;
             _createReviewValidator = createReviewValidator;
+            _updateReviewValidator = updateReviewValidator;
         }
 
         [Authorize]
@@ -78,6 +80,7 @@ namespace EcommerceAPI.Controllers
         {
             try
             {
+                await _updateReviewValidator.ValidateAndThrowAsync(ReviewToUpdate);
                 var userData = (ClaimsIdentity)User.Identity;
                 var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
                 await _reviewService.UpdateReview(ReviewToUpdate, userId);

@@ -17,6 +17,11 @@ using System.ComponentModel.DataAnnotations;
 using static Nest.JoinField;
 using EcommerceAPI.Models.DTOs.Order;
 using StackExchange.Redis;
+using System.Threading.Tasks;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using System.Drawing.Printing;
+using Elasticsearch.Net;
+
 
 namespace EcommerceAPI.Services
 {
@@ -41,7 +46,7 @@ namespace EcommerceAPI.Services
         }
 
 
-        //create an order by using produvtid and count
+        //create an order by using productId and count
         public async Task CreateOrderForProduct(string userId, int productId, int count, AddressDetails addressDetails)
         {
 
@@ -126,7 +131,7 @@ namespace EcommerceAPI.Services
 
             var key = $"Product_{productId}";
             var expirationTime = DateTimeOffset.Now.AddDays(1);
-            _cacheService.SetUpdatedData<Product>(key, product,expirationTime);
+            _cacheService.SetUpdatedData<Product>(key, product, expirationTime);
 
             _unitOfWork.Repository<Product>().Update(product);
 
@@ -139,8 +144,7 @@ namespace EcommerceAPI.Services
             var product = _cacheService.GetData<Product>(key);
             if (product == null)
             {
-                Expression<Func<Product, bool>> expression = x => x.Id == id;
-                product = await _unitOfWork.Repository<Product>().GetById(expression).FirstOrDefaultAsync();
+                product = await _unitOfWork.Repository<Product>().GetById(x => x.Id == id).FirstOrDefaultAsync();
             }
             return product;
         }
@@ -168,11 +172,12 @@ namespace EcommerceAPI.Services
             {
                 //Store the data in the cache
                 var expirationTime = DateTimeOffset.Now.AddDays(1);
-                _cacheService.SetData(key, product,expirationTime);
+                _cacheService.SetData(key, product, expirationTime);
             }
             _logger.LogInformation("Created product successfully!");
 
         }
+
 
 
         public async Task CreateProducts(List<ProductCreateDto> productsToCreate)
@@ -180,6 +185,13 @@ namespace EcommerceAPI.Services
             var products = _mapper.Map<List<ProductCreateDto>, List<Product>>(productsToCreate);
             _unitOfWork.Repository<Product>().CreateRange(products);
             _unitOfWork.Complete();
+            
+            foreach (var product in products)
+            {
+                var key = $"Product_{product.Id}";
+                var expirationTime = DateTimeOffset.Now.AddDays(1);
+                _cacheService.SetData(key, product, expirationTime);
+            }
             _logger.LogInformation("Created products successfully!");
 
         }
@@ -210,12 +222,19 @@ namespace EcommerceAPI.Services
             if (product == null)
             {
                 throw new NullReferenceException("The product you're trying to update doesn't exist!");
-            }
+            };
             product.Name = productToUpdate.Name;
+            product.Price = productToUpdate.Price;
 
+            var key = $"Product_{product.Id}";
+            var expirationTime = DateTimeOffset.Now.AddDays(1);
+            _cacheService.SetUpdatedData<Product>(key, product, expirationTime);
+
+           
             _unitOfWork.Repository<Product>().Update(product);
-
             _unitOfWork.Complete();
+            await UpdateElastic(productToUpdate);
+
         }
 
         public async Task<PagedInfo<Product>> ProductsListView(string search, int page, int pageSize, int categoryId = 0)
@@ -251,6 +270,35 @@ namespace EcommerceAPI.Services
             return categoriesPaged;
         }
 
+
+        public async Task<List<Product>> GetRecommendedProducts(string userId, int pageIndex, int pageSize)
+        {
+            var reviewedCategories = _unitOfWork.Repository<Review>().GetAll().Select(r => r.Product.CategoryId).ToList();
+           
+            var searchResponse = await _elasticClient.SearchAsync<Product>(s => s
+            .Index("products")
+                .From((pageIndex - 1) * pageSize)
+                .Size(pageSize)
+                .Query(q => q
+                    .Bool(b => b
+                        .Should(sh => sh
+                            .Terms(t => t
+                                .Field(f => f.CategoryId)
+                                .Terms(reviewedCategories)
+                                .Boost(1.5)
+                            )
+                        )
+                    )
+
+                )
+                .Sort(sort => sort
+                      .Field("_score", SortOrder.Descending)
+                      .Field(f => f.TotalSold, SortOrder.Descending)
+                )
+            );
+           
+            return searchResponse.Documents.ToList();
+        }
 
         // Elastic
         public async Task<List<Product>> SearchElastic(SearchInputDto input, int pageIndex, int pageSize)
@@ -295,6 +343,7 @@ namespace EcommerceAPI.Services
         {
             var response = await _elasticClient.SearchAsync<Product>(s =>
             s.Index("products")
+                .Size(1000)
                .Query(q => q
                   .MatchAll())
                );
@@ -312,21 +361,40 @@ namespace EcommerceAPI.Services
         {
             var product = _mapper.Map<Product>(productToCreate);
 
-            var response = await _elasticClient.GetAsync<Product>(product.Id, x => x.Index("products"));
-            var existingProduct = response.Source;
-
-            existingProduct.Name = product.Name;
-            existingProduct.Description = product.Description;
-            existingProduct.Price = product.Price;
-            existingProduct.Category = product.Category;
-
             var updatedResponse = _elasticClient.Update<Product>(product.Id, x => x
                         .Index("products")
-                        .Doc(existingProduct));
-            _logger.LogInformation("Updated product from elastic successfully!");
+                        .Doc(product));
+
+            if (!updatedResponse.IsValid)
+            {
+                _logger.LogError($"{nameof(ProductService)} - Update failed: " + updatedResponse.DebugInformation);
+            }
+            else
+            {
+                _logger.LogInformation($"{nameof(ProductService)} - Updated product in elastic successfully!");
+            }
 
         }
+        public async Task UpdateSomeElastic(int productId, int stock, int totalSold)
+        {
+            var updateResponse = _elasticClient.Update<Product>(productId, u => u
+                .Index("products")
+                .Doc(new Product
+                {
+                    Stock = stock,
+                    TotalSold = totalSold
+                })
+            );
 
+            if (!updateResponse.IsValid)
+            {
+                _logger.LogError($"{nameof(ProductService)} - Update failed: " + updateResponse.DebugInformation);
+            }
+            else
+            {
+                _logger.LogInformation($"{nameof(ProductService)} - Updated product in elastic successfully!");
+            }
+        }
         public async Task DeleteAllElastic()
         {
             var deleteResponse = _elasticClient.DeleteByQuery<Product>(del => del
@@ -339,16 +407,17 @@ namespace EcommerceAPI.Services
 
         public async Task DeleteByIdElastic(int id)
         {
-            var deleteResponse = _elasticClient.Delete<Product>(id, d=> d.Index("products"));
+            var deleteResponse = _elasticClient.Delete<Product>(id, d => d.Index("products"));
 
             if (deleteResponse.IsValid)
             {
                 _logger.LogInformation($"{nameof(ProductService)} - Deleted product with Id: {id} from elastic successfully!");
-            }else
+            }
+            else
             {
                 _logger.LogError($"{nameof(ProductService)} - Error during deletion of product with Id: {id} using elastic!", deleteResponse.DebugInformation);
             }
-        }   
+        }
 
         public async Task<string> UploadImage(IFormFile? file, int productId)
         {
@@ -371,7 +440,7 @@ namespace EcommerceAPI.Services
 
 
         public async Task<PutObjectResponse> UploadToBlob(IFormFile? file, string name, string extension)
-        {   
+        {
             string serviceURL = _configuration.GetValue<string>("BlobConfig:serviceURL");
             string AWS_accessKey = _configuration.GetValue<string>("BlobConfig:accessKey");
             string AWS_secretKey = _configuration.GetValue<string>("BlobConfig:secretKey");
