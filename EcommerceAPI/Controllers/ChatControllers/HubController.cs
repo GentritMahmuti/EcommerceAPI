@@ -27,7 +27,7 @@ namespace EcommerceAPI.Controllers.ChatControllers
                 ClaimsPrincipal sender = User;
                 if (sender.IsUser())
                 {
-                    await _hub.Clients.User(recipientId).SendAsync("ReceiveMessage", sender.Identity.Name, message);
+                    await _hub.Clients.User(recipientId).SendAsync("ReceiveMessage", sender.Identity.Name, message);    
                 }
                 return Ok();
             }

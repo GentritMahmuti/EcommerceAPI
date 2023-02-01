@@ -86,6 +86,11 @@ namespace EcommerceAPI.Controllers
         {
             var categories = await _productService.GetAllProducts();
 
+            if (categories == null || !categories.Any())
+            {
+                return NotFound();
+            }
+
             return Ok(categories);
         }
 
@@ -106,23 +111,26 @@ namespace EcommerceAPI.Controllers
         }
 
         [HttpPut("UpdateProduct")]
-        public async Task<IActionResult> Update(Product ProductToUpdate)
+        public async Task<IActionResult> Update(Product productToUpdate)
         {
-            try
+            var validationResult = await _productValidator.ValidateAsync(productToUpdate);
+            if (!validationResult.IsValid)
             {
-                await _productValidator.ValidateAndThrowAsync(ProductToUpdate);
-                await _productService.UpdateProduct(ProductToUpdate);
-                return Ok("Product updated successfully!");
+                return BadRequest(validationResult.Errors);
             }
-            catch (Exception ex)
-            {
-                return BadRequest($"An error happened: '{ex.Message}'");
-            }
-        }
 
+            await _productService.UpdateProduct(productToUpdate);
+            return Ok(productToUpdate);
+        }
+    
         [HttpDelete("DeleteProduct")]
         public async Task<IActionResult> Delete(int id)
         {
+            if (id <= 0)
+            {
+                return BadRequest("The product ID must be a positive integer.");
+            }
+
             await _productService.DeleteProduct(id);
 
             return Ok("Product deleted successfully!");
@@ -143,6 +151,7 @@ namespace EcommerceAPI.Controllers
             }
 
         }
+
         [HttpGet("SearchElastic")]
         public async Task<IActionResult> SearchElastic([FromQuery] SearchInputDto input, int pageIndex = 1, int pageSize = 10)
         {

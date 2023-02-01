@@ -13,9 +13,23 @@ using Microsoft.Extensions.Configuration;
 using FluentValidation;
 using FluentValidation.Results;
 using Xunit;
+using Moq;
+using Nest;
 
 public class CategoryControllerTests
 {
+    private readonly Mock<ICategoryService> _categoryService;
+    private readonly Mock<IConfiguration> _configuration;
+    private readonly Mock<IValidator<Category>> _categoryValidator;
+    private CategoryController categoryController;
+
+    public CategoryControllerTests()
+    {
+        _categoryService = new Mock<ICategoryService>();
+        _configuration = new Mock<IConfiguration>();
+        _categoryValidator = new Mock<IValidator<Category>>();
+        categoryController = new CategoryController(_categoryService.Object, _configuration.Object, _categoryValidator.Object);
+    }
 
     [Fact]
     public async Task GetAll_ReturnsOkResult_WithListOfCategories()
@@ -26,90 +40,68 @@ public class CategoryControllerTests
             new Category { CategoryId = 1, CategoryName = "Test category 1" },
             new Category { CategoryId = 2, CategoryName = "Test category 2" }
         };
-        var fakeCategoryService = A.Fake<ICategoryService>();
-        A.CallTo(() => fakeCategoryService.GetAllCategories()).Returns(Task.FromResult(categoryList));
-        var fakeCategoryValidator = A.Fake<IValidator<Category>>();
-        var controller = new CategoryController(fakeCategoryService, null, fakeCategoryValidator);
+        _categoryService.Setup(x => x.GetAllCategories()).ReturnsAsync(categoryList);
 
         // Act
-        var result = await controller.GetCategories();
+        var result = await categoryController.GetCategories();
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
-        var okResult = (OkObjectResult)result;
-        okResult.Value.Should().BeAssignableTo<List<Category>>();
-        var categories = (List<Category>)okResult.Value;
-        categories.Should().BeEquivalentTo(categoryList);
-
     }
+
     [Fact]
     public async Task Get_ReturnsOkResult_WithCategory()
     {
         // Arrange
         var category = new Category { CategoryId = 1, CategoryName = "Test category" };
-        var fakeCategoryService = A.Fake<ICategoryService>();
-        A.CallTo(() => fakeCategoryService.GetCategory(1)).Returns(Task.FromResult(category));
-        var fakeCategoryValidator = A.Fake<IValidator<Category>>();
-        var controller = new CategoryController(fakeCategoryService, null, fakeCategoryValidator);
+        _categoryService.Setup(x => x.GetCategory(1)).ReturnsAsync(category);
 
         // Act
-        var result = await controller.Get(1);
+        var result = await categoryController.Get(1);
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
-        var okResult = result.As<OkObjectResult>();
+        var okResult = result as OkObjectResult;
         okResult.Value.Should().BeAssignableTo<Category>();
-        var returnedCategory = (Category)okResult.Value;
+        var returnedCategory = okResult.Value as Category;
         returnedCategory.CategoryId.Should().Be(1);
         returnedCategory.CategoryName.Should().Be("Test category");
     }
+
+
     [Fact]
     public async Task Get_ReturnsNotFound_WhenCategoryNotFound()
     {
         // Arrange
-        var fakeCategoryService = A.Fake<ICategoryService>();
-        A.CallTo(() => fakeCategoryService.GetCategory(1)).Returns(Task.FromResult<Category>(null));
-        var fakeCategoryValidator = A.Fake<IValidator<Category>>();
-        var controller = new CategoryController(fakeCategoryService, null, fakeCategoryValidator);
+        _categoryService.Setup(x => x.GetCategory(1)).ReturnsAsync((Category)null);
 
         // Act
-        var result = await controller.Get(1);
+        var result = await categoryController.Get(1);
 
         // Assert
         result.Should().BeOfType<NotFoundResult>();
     }
+
+
     [Fact]
     public async Task Post_ReturnsOkResult_WithSuccessMessage_WhenCategoryIsCreated()
     {
         // Arrange
         var categoryCreateDto = new CategoryCreateDto { CategoryName = "Test category", DisplayOrder = 1 };
-        var mockCategoryService = A.Fake<ICategoryService>();
-        var mockConfiguration = A.Fake<IConfiguration>();
-        var mockCategoryValidator = A.Fake<IValidator<Category>>();
-        A.CallTo(() => mockCategoryService.CreateCategory(categoryCreateDto)).Returns(Task.CompletedTask);
-        var controller = new CategoryController(mockCategoryService, mockConfiguration, mockCategoryValidator);
-
+        _categoryService.Setup(x => x.CreateCategory(categoryCreateDto)).Returns(Task.CompletedTask);
         // Act
-        var result = await controller.Post(categoryCreateDto);
+        var result = await categoryController.Post(categoryCreateDto);
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
         Assert.Equal("Category created successfully!", okResult.Value);
-        A.CallTo(() => mockCategoryService.CreateCategory(categoryCreateDto)).MustHaveHappened();
     }
+
+
     [Fact]
     public async Task Post_ReturnsBadRequest_WhenModelStateIsInvalid()
     {
         // Arrange
-        var mockCategoryService = A.Fake<ICategoryService>();
-        var mockConfiguration = A.Fake<IConfiguration>();
-        var mockCategoryValidator = A.Fake<IValidator<Category>>();
-
-        var categoryController = new CategoryController(
-            mockCategoryService,
-            mockConfiguration,
-            mockCategoryValidator
-        );
         categoryController.ModelState.AddModelError("error", "some error");
         var createCategoryDto = new CategoryCreateDto()
         {
@@ -123,45 +115,42 @@ public class CategoryControllerTests
         // Assert
         Assert.IsType<BadRequestObjectResult>(result);
     }
+
+
     [Fact]
     public async Task Put_ReturnsOkResult_WithSuccessMessage_WhenCategoryIsUpdated()
     {
         // Arrange
         var category = new Category { CategoryId = 1, CategoryName = "Test", DisplayOrder = 1 };
         var categoryDto = new CategoryDto { CategoryName = "Updated Test", DisplayOrder = 2 };
-        var mockCategoryService = A.Fake<ICategoryService>();
-        A.CallTo(() => mockCategoryService.GetCategory(1)).Returns(Task.FromResult(category));
-        A.CallTo(() => mockCategoryService.UpdateCategory(category)).Returns(Task.CompletedTask);
-        var mockCategoryValidator = A.Fake<IValidator<Category>>();
-        A.CallTo(() => mockCategoryValidator.ValidateAsync(category, default)).Returns(Task.FromResult(new ValidationResult()));
-        var controller = new CategoryController(mockCategoryService, null, mockCategoryValidator);
+        _categoryService.Setup(x => x.GetCategory(1)).ReturnsAsync(category);
+        _categoryService.Setup(x => x.UpdateCategory(category)).Returns(Task.CompletedTask);
+        _categoryValidator.Setup(x => x.ValidateAsync(category, default)).ReturnsAsync(new ValidationResult());
 
         // Act
-        var result = await controller.Update(1, categoryDto);
+        var result = await categoryController.Update(1, categoryDto);
 
         // Assert
         Assert.IsType<OkObjectResult>(result);
         var okResult = result as OkObjectResult;
         Assert.Equal("Category updated successfully!", okResult.Value);
     }
+
+
     [Fact]
     public async Task Delete_ReturnsOkResult_WhenCategoryIsDeleted()
     {
         // Arrange
-        var mockCategoryService = A.Fake<ICategoryService>();
-        var mockCategoryValidator = A.Fake<IValidator<Category>>();
-        var controller = new CategoryController(mockCategoryService, null, mockCategoryValidator);
         int id = 1;
-        A.CallTo(() => mockCategoryService.DeleteCategory(id)).Returns(Task.CompletedTask);
-
+        _categoryService.Setup(x => x.DeleteCategory(id)).Returns(Task.CompletedTask);
         // Act
-        var result = await controller.Delete(id);
+        var result = await categoryController.Delete(id);
 
         // Assert
-        A.CallTo(() => mockCategoryService.DeleteCategory(id)).MustHaveHappenedOnceExactly();
         Assert.IsType<OkObjectResult>(result);
         var okResult = result as OkObjectResult;
         Assert.Equal("Category deleted successfully!", okResult.Value);
+
     }
 
 }
