@@ -1,4 +1,5 @@
 ﻿using EcommerceAPI.Data.UnitOfWork;
+using EcommerceAPI.Models.DTOs.User;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
 using Microsoft.EntityFrameworkCore;
@@ -32,6 +33,27 @@ namespace EcommerceAPI.Services
             }
 
             return user;
+        }
+
+        public async Task UpdateUser(UserDto userToUpdate)
+        {
+            User? user = await GetUser(userToUpdate.UserId);
+
+            if (user == null)
+            {
+                throw new Exception("A user with this ID doesn't exist.");
+            }
+
+            user.FirsName = userToUpdate.FirsName;
+            user.LastName = userToUpdate.LastName;
+            user.Email = userToUpdate.Email;
+            user.Gender = userToUpdate.Gender;
+            user.PhoneNumber = userToUpdate.PhoneNumber;
+
+
+            _unitOfWork.Repository<User>().Update(user);
+
+            _unitOfWork.Complete();
         }
         public async Task DeleteUser(string id)
         {

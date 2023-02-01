@@ -12,11 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using Product = EcommerceAPI.Models.Entities.Product;
-using Stripe;
-using System;
-using System.Linq.Expressions;
 using System.Text;
-using static Amazon.S3.Util.S3EventNotification;
 using EcommerceAPI.Models.DTOs.Promotion;
 using EcommerceAPI.Models.DTOs.Product;
 using Microsoft.EntityFrameworkCore;
@@ -159,11 +155,11 @@ namespace EcommerceAPI.Services
 
         public async Task RemoveAllProductsFromCard(string userId)
         {
-            var shoppingCardItems = _unitOfWork.Repository<CartItem>()
-                                                                .GetByCondition(x => x.UserId.Equals(userId))
-                                                                .ToList();
+            var key = $"CartItems_{userId}";
 
-            _unitOfWork.Repository<CartItem>().DeleteRange(shoppingCardItems);
+            var usersShoppingCard = _cacheService.GetDataSet<CartItem>(key);
+            _cacheService.RemoveData(key);
+            _unitOfWork.Repository<CartItem>().DeleteRange(usersShoppingCard);
             _unitOfWork.Complete();
 
         }
