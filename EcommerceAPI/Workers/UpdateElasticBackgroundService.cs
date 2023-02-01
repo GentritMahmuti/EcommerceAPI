@@ -31,7 +31,7 @@ namespace EcommerceAPI.Workers
 
         private async void AddProductsCreatedLast(object? state)
         {
-            using var scope = _serviceProvider.CreateScope();
+           using var scope = _serviceProvider.CreateScope();
             var productService = scope.ServiceProvider.GetRequiredService<IProductService>();
 
             try

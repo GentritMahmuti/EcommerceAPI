@@ -16,6 +16,7 @@ namespace EcommerceAPI.Services.IServices
         Task<List<Product>> GetProductsCreatedLast();
         Task<List<Product>> GetAllProducts();
         Task<Product> GetProduct(int id);
+        Task<List<Product>> GetRecommendedProducts(string userId, int pageIndex, int pageSize);
         Task UpdateProduct(ProductDto productToUpdate);
         Task<string> UploadImage(IFormFile? file, int productId);
         
@@ -25,6 +26,8 @@ namespace EcommerceAPI.Services.IServices
         Task<List<Product>> GetAllElastic();
         Task AddBulkElastic(List<Product> productsToCreate);
         Task UpdateElastic(ProductDto productToCreate);
+        Task UpdateSomeElastic(int productId, int stock, int totalSold);
+
         Task DeleteAllElastic();
         
     }
