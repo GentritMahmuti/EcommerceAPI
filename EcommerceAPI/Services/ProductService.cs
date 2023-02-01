@@ -1,26 +1,16 @@
-﻿using AutoMapper;
+﻿using Amazon.S3;
+using Amazon.S3.Model;
+using AutoMapper;
 using EcommerceAPI.Data.UnitOfWork;
 using EcommerceAPI.Helpers;
+using EcommerceAPI.Models.DTOs.Order;
 using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Linq.Dynamic.Core;
 using Nest;
-using EcommerceAPI.Helpers;
-using Microsoft.IdentityModel.Tokens;
-using Amazon.S3;
-using Amazon.S3.Model;
-using System.ComponentModel.DataAnnotations;
-using static Nest.JoinField;
-using EcommerceAPI.Models.DTOs.Order;
-using StackExchange.Redis;
-using System.Threading.Tasks;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using System.Drawing.Printing;
-using Elasticsearch.Net;
+using System.Linq.Dynamic.Core;
+using System.Linq.Expressions;
 
 
 namespace EcommerceAPI.Services
@@ -46,53 +36,15 @@ namespace EcommerceAPI.Services
         }
 
 
-        //create an order by using productId and count
-        public async Task CreateOrderForProduct(string userId, int productId, int count, AddressDetails addressDetails)
-        {
-
-            var product = await GetProduct(productId);
-            if (product == null)
-            {
-                throw new NullReferenceException("The product you're trying to order doesn't exist!");
-            }
-            var trackingId = Guid.NewGuid().ToString();
-            var orderDetailsList = new List<ProductOrderData>();
-            var order = new OrderData
-            {
-                OrderId = Guid.NewGuid().ToString(),
-                OrderDate = DateTime.Now,
-                ShippingDate = DateTime.Now.AddDays(7),
-                OrderFinalPrice = product.Price * count,
-                PhoheNumber = addressDetails.PhoheNumber,
-                StreetAddress = addressDetails.StreetAddress,
-                City = addressDetails.City,
-                Country = addressDetails.Country,
-                PostalCode = addressDetails.PostalCode,
-                Name = addressDetails.Name,
-                TrackingId = trackingId,
-                OrderStatus = StaticDetails.Created,
-                UserId = userId
-            };
-
-            var orderDetails = new ProductOrderData
-            {
-                OrderDataId = order.OrderId,
-                ProductId = productId,
-                Count = count,
-                Price = product.Price
-            };
-
-            orderDetailsList.Add(orderDetails);
-
-            _unitOfWork.Repository<OrderData>().Create(order);
-
-            _unitOfWork.Repository<ProductOrderData>().Create(orderDetails);
-
-            _unitOfWork.Complete();
-
-        }
-
-
+        
+        /// <summary>
+        /// Sets a discount to the product with specific id if it isn't null, else throws exception!
+        /// </summary>
+        /// <param name="productId"></param>
+        /// <param name="discountPercentage"></param>
+        /// <returns></returns>
+        /// <exception cref="NullReferenceException"></exception>
+        /// <exception cref="Exception"></exception>
         public async Task ProductDiscount(int productId, int discountPercentage)
         {
             var product = await GetProduct(productId);
@@ -113,8 +65,16 @@ namespace EcommerceAPI.Services
 
             _unitOfWork.Repository<Product>().Update(product);
 
-            _unitOfWork.Complete();
+            await _unitOfWork.CompleteAsync();
         }
+
+        /// <summary>
+        /// Removes the discount from a specific product if it exists and has discount, else throws exception
+        /// </summary>
+        /// <param name="productId"></param>
+        /// <returns></returns>
+        /// <exception cref="NullReferenceException"></exception>
+        /// <exception cref="Exception"></exception>
         public async Task RemoveProductDiscount(int productId)
         {
             var product = await GetProduct(productId);
@@ -130,12 +90,12 @@ namespace EcommerceAPI.Services
             product.Price = product.ListPrice;
 
             var key = $"Product_{productId}";
-            var expirationTime = DateTimeOffset.Now.AddDays(1);
+            var expirationTime = DateTimeOffset.Now.AddMinutes(30);
             _cacheService.SetUpdatedData<Product>(key, product, expirationTime);
 
             _unitOfWork.Repository<Product>().Update(product);
 
-            _unitOfWork.Complete();
+            await _unitOfWork.CompleteAsync();
         }
 
         public async Task<Product> GetProduct(int id)
@@ -149,23 +109,40 @@ namespace EcommerceAPI.Services
             return product;
         }
 
+
+        /// <summary>
+        /// Gets products in paginated form! 
+        /// </summary>
+        /// <param name="pageIndex"></param>
+        /// <param name="pageSize"></param>
+        /// <returns></returns>
+        public async Task<List<Product>> GetProductsPaginated(int pageIndex, int pageSize)
+        {
+            return await _unitOfWork.Repository<Product>().GetAll().Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
+        }
         public async Task<List<Product>> GetAllProducts()
         {
             var products = _unitOfWork.Repository<Product>().GetAll();
-            return products.ToList();
+            return await products.ToListAsync();
         }
 
+
+        /// <summary>
+        /// Gets products which are created in the last hour!
+        /// </summary>
+        /// <returns>List of products</returns>
         public async Task<List<Product>> GetProductsCreatedLast()
         {
-            var products = _unitOfWork.Repository<Product>().GetByCondition(x => x.CreatedDateTime > DateTime.Now.AddHours(-1)).ToList();
+            var products = await _unitOfWork.Repository<Product>().GetByCondition(x => x.CreatedDateTime > DateTime.Now.AddHours(-1)).ToListAsync();
             return products;
         }
+
         public async Task CreateProduct(ProductCreateDto productToCreate)
         {
             var product = _mapper.Map<Product>(productToCreate);
 
             _unitOfWork.Repository<Product>().Create(product);
-            _unitOfWork.Complete();
+            await _unitOfWork.CompleteAsync();
             var key = $"Product_{product.Id}";
             var itemInCache = _cacheService.GetData<Product>(key);
             if (itemInCache == null)
@@ -178,22 +155,63 @@ namespace EcommerceAPI.Services
 
         }
 
-
-
         public async Task CreateProducts(List<ProductCreateDto> productsToCreate)
         {
             var products = _mapper.Map<List<ProductCreateDto>, List<Product>>(productsToCreate);
             _unitOfWork.Repository<Product>().CreateRange(products);
-            _unitOfWork.Complete();
-            
+
+            await _unitOfWork.CompleteAsync();
+
             foreach (var product in products)
             {
                 var key = $"Product_{product.Id}";
                 var expirationTime = DateTimeOffset.Now.AddDays(1);
                 _cacheService.SetData(key, product, expirationTime);
             }
+
             _logger.LogInformation("Created products successfully!");
 
+        }
+
+        public async Task CreateProductsFromCsv(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                throw new Exception("The file given is null or empty!");
+            }
+
+            var csvRecords = new List<string>();
+            using (var reader = new StreamReader(file.OpenReadStream()))
+            {
+                while (reader.Peek() >= 0)
+                {
+                    csvRecords.Add(reader.ReadLine().Replace("\"", ""));
+                }
+            }
+
+            List<Product> productsToCreate = new();
+            csvRecords.RemoveAt(0); // Remove the first line 
+            foreach (var line in csvRecords)
+            {
+                var csvLine = line.Split(",");
+                Product product = new Product
+                {
+                    Name = csvLine[0],
+                    Description = csvLine[1],
+                    ListPrice = double.Parse(csvLine[2]),
+                    Price = double.Parse(csvLine[3]),
+                    ImageUrl = csvLine[4],
+                    CategoryId = int.Parse(csvLine[5]),
+                    Stock = int.Parse(csvLine[6]),
+                    TotalSold = int.Parse(csvLine[7]),
+                    CreatedDateTime = DateTime.Parse(csvLine[8])
+                };
+                productsToCreate.Add(product);
+            }
+            _unitOfWork.Repository<Product>().CreateRange(productsToCreate);
+            await _unitOfWork.CompleteAsync();
+            await AddBulkElastic(productsToCreate);
+            _logger.LogInformation($"{nameof(ProductService)} - Created products from csv file successfully!");
         }
 
         public async Task DeleteProduct(int id)
@@ -211,11 +229,17 @@ namespace EcommerceAPI.Services
             await DeleteByIdElastic(id);
 
             _unitOfWork.Repository<Product>().Delete(product);
-            _unitOfWork.Complete();
-            _logger.LogInformation("Deleted product successfully!");
+            await _unitOfWork.CompleteAsync();
+            _logger.LogInformation($"{nameof(ProductService)} - Deleted product successfully!");
 
         }
 
+        /// <summary>
+        /// Updates a product if it exists, else throws exception!
+        /// </summary>
+        /// <param name="productToUpdate"></param>
+        /// <returns></returns>
+        /// <exception cref="NullReferenceException"></exception>
         public async Task UpdateProduct(ProductDto productToUpdate)
         {
             var product = await GetProduct(productToUpdate.Id);
@@ -232,75 +256,69 @@ namespace EcommerceAPI.Services
 
            
             _unitOfWork.Repository<Product>().Update(product);
-            _unitOfWork.Complete();
+            await _unitOfWork.CompleteAsync();
             await UpdateElastic(productToUpdate);
-
-        }
-
-        public async Task<PagedInfo<Product>> ProductsListView(string search, int page, int pageSize, int categoryId = 0)
-        {
-            Expression<Func<Product, bool>> condition = x => x.Name.Contains(search);
-
-            IQueryable<Product> products;
-
-
-            if (categoryId is not 0)
-            {
-                Expression<Func<Product, bool>> conditionByCategory = x => x.CategoryId == categoryId;
-                products = _unitOfWork.Repository<Product>()
-                                             .GetByCondition(conditionByCategory).WhereIf(!string.IsNullOrEmpty(search), condition);
-            }
-            else // dismiss category
-            {
-                products = _unitOfWork.Repository<Product>().GetAll().WhereIf(!string.IsNullOrEmpty(search), condition);
-            }
-
-            var count = await products.CountAsync();
-
-            var categoriesPaged = new PagedInfo<Product>()
-            {
-                TotalCount = count,
-                Page = page,
-                PageSize = pageSize,
-                Data = await products
-                            .Skip((page - 1) * pageSize)
-                            .Take(pageSize).ToListAsync()
-            };
-
-            return categoriesPaged;
+            _logger.LogInformation($"{nameof(ProductService)} - Updated product successfully!");
         }
 
 
+        /// <summary>
+        /// Gets recommended products based on userId.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="pageIndex"></param>
+        /// <param name="pageSize"></param>
+        /// <returns>Paginated list of products</returns>
         public async Task<List<Product>> GetRecommendedProducts(string userId, int pageIndex, int pageSize)
         {
-            var reviewedCategories = _unitOfWork.Repository<Review>().GetAll().Select(r => r.Product.CategoryId).ToList();
-           
-            var searchResponse = await _elasticClient.SearchAsync<Product>(s => s
-            .Index("products")
-                .From((pageIndex - 1) * pageSize)
-                .Size(pageSize)
-                .Query(q => q
-                    .Bool(b => b
-                        .Should(sh => sh
-                            .Terms(t => t
-                                .Field(f => f.CategoryId)
-                                .Terms(reviewedCategories)
-                                .Boost(1.5)
+            var reviewedCategories = await _unitOfWork.Repository<Review>().GetByCondition(x => x.UserId == userId).Select(r => r.Product.CategoryId).ToListAsync();
+            if (reviewedCategories.Count > 0)
+            {
+                var searchResponse = await _elasticClient.SearchAsync<Product>(s => s
+                .Index("products")
+                    .From((pageIndex - 1) * pageSize)
+                    .Size(pageSize)
+                    .Query(q => q
+                        .Bool(b => b
+                            .Should(sh => sh
+                                .Terms(t => t
+                                    .Field(f => f.CategoryId)
+                                    .Terms(reviewedCategories)
+                                    .Boost(1.5)
+                                )
                             )
                         )
-                    )
 
-                )
-                .Sort(sort => sort
-                      .Field("_score", SortOrder.Descending)
-                      .Field(f => f.TotalSold, SortOrder.Descending)
-                )
-            );
-           
-            return searchResponse.Documents.ToList();
+                    )
+                    .Sort(sort => sort
+                          .Field("_score", SortOrder.Descending)
+                          .Field(f => f.TotalSold, SortOrder.Descending)
+                    )
+                );
+                return searchResponse.Documents.ToList();
+            }
+
+            var sortedProducts = await _elasticClient.SearchAsync<Product>(s => s
+                .Index("products")
+                    .From((pageIndex - 1) * pageSize)
+                    .Size(pageSize)
+                    .Query(q => q
+                        .MatchAll())
+                    .Sort(
+                        sort => sort
+                            .Field(f => f.TotalSold, SortOrder.Descending))
+                    );
+            return sortedProducts.Documents.ToList();
         }
 
-        // Elastic
+        
+        /// <summary>
+        /// Searches products based on title, filters based on price, sorts by price and\or popularity
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="pageIndex"></param>
+        /// <param name="pageSize"></param>
+        /// <returns>Paginated list of products!</returns>
         public async Task<List<Product>> SearchElastic(SearchInputDto input, int pageIndex, int pageSize)
         {
             var minPrice = (input.MinPrice <= 0) ? 0.1 : input.MinPrice;
@@ -335,7 +353,7 @@ namespace EcommerceAPI.Services
                  }
                 )
             );
-            _logger.LogInformation("Searched for products using elastic successfully!");
+            _logger.LogInformation($"{nameof(ProductService)} - Searched for products using elastic successfully!");
             return response.Documents.ToList();
         }
 
@@ -350,13 +368,24 @@ namespace EcommerceAPI.Services
             return response.Documents.ToList();
         }
 
+
+        /// <summary>
+        /// Adds many products in elastic by once!
+        /// </summary>
+        /// <param name="products"></param>
+        /// <returns></returns>
         public async Task AddBulkElastic(List<Product> products)
         {
             var result = await _elasticClient.BulkAsync(x =>
                 x.Index("products").IndexMany(products));
-            _logger.LogInformation("Added bulk of products in elastic successfully!");
+            _logger.LogInformation($"{nameof(ProductService)} - Added bulk of products in elastic successfully!");
         }
 
+        /// <summary>
+        /// Updates the product in elastic!
+        /// </summary>
+        /// <param name="productToCreate"></param>
+        /// <returns></returns>
         public async Task UpdateElastic(ProductDto productToCreate)
         {
             var product = _mapper.Map<Product>(productToCreate);
@@ -375,6 +404,14 @@ namespace EcommerceAPI.Services
             }
 
         }
+
+        /// <summary>
+        /// Updates stock and totalSold properties of a product in elastic.
+        /// </summary>
+        /// <param name="productId"></param>
+        /// <param name="stock"></param>
+        /// <param name="totalSold"></param>
+        /// <returns></returns>
         public async Task UpdateSomeElastic(int productId, int stock, int totalSold)
         {
             var updateResponse = _elasticClient.Update<Product>(productId, u => u
@@ -402,7 +439,7 @@ namespace EcommerceAPI.Services
                    .Query(q => q.MatchAll())
                );
 
-            _logger.LogInformation("Deleted all products from elastic successfully!");
+            _logger.LogInformation($"{nameof(ProductService)} - Deleted all products from elastic successfully!");
         }
 
         public async Task DeleteByIdElastic(int id)
@@ -419,6 +456,13 @@ namespace EcommerceAPI.Services
             }
         }
 
+        /// <summary>
+        /// Uploads image in the blob, sets the url of that image as ImageUrl of a specific product if it exists.
+        /// </summary>
+        /// <param name="file"></param>
+        /// <param name="productId"></param>
+        /// <returns>The url of the image.</returns>
+        /// <exception cref="NullReferenceException"></exception>
         public async Task<string> UploadImage(IFormFile? file, int productId)
         {
             var uploadPicture = await UploadToBlob(file, file.FileName, Path.GetExtension(file.FileName));
@@ -432,13 +476,13 @@ namespace EcommerceAPI.Services
             product.ImageUrl = imageUrl;
 
             _unitOfWork.Repository<Product>().Update(product);
-            _unitOfWork.Complete();
+            await _unitOfWork.CompleteAsync();
             _logger.LogInformation($"{nameof(ProductService)}: Uploaded Image of the product successfully!");
 
             return imageUrl;
         }
 
-
+        
         public async Task<PutObjectResponse> UploadToBlob(IFormFile? file, string name, string extension)
         {
             string serviceURL = _configuration.GetValue<string>("BlobConfig:serviceURL");

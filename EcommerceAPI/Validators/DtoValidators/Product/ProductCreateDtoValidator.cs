@@ -24,7 +24,7 @@ namespace EcommerceAPI.Validators.DtoValidators.Product
                 .NotEmpty().WithMessage("{PropertyName} must not be empty!")
                 .GreaterThan(0).WithMessage("{PropertyName} can't be negative!");
 
-            RuleFor(c => c.ListPrice)
+            RuleFor(c => c.Price)
                 .NotNull().WithMessage("{PropertyName} must not be null!")
                 .NotEmpty().WithMessage("{PropertyName} must not be empty!")
                 .GreaterThan(0).WithMessage("{PropertyName} can't be negative!");

@@ -6,11 +6,11 @@ namespace EcommerceAPI.Models.Entities
     {
         public int Id { get; set; }
 
-        [Required, StringLength(100), Display(Name = "Name")]
+        [Display(Name = "Name")]
         public string Name { get; set; }
 
 
-        [Required, StringLength(10000), Display(Name = "Product Description"), DataType(DataType.MultilineText)]
+        [Display(Name = "Product Description"), DataType(DataType.MultilineText)]
         public string Description { get; set; }
 
         public double ListPrice { get; set; }
@@ -20,7 +20,6 @@ namespace EcommerceAPI.Models.Entities
 
         public string ImageUrl { get; set; }
 
-        [Required]
         public int CategoryId { get; set; }
 
         public Category Category { get; set; }

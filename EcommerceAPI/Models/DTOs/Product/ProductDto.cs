@@ -14,10 +14,7 @@ namespace EcommerceAPI.Models.DTOs.Product
         [Display(Name = "Product Description"), DataType(DataType.MultilineText)]
         public string Description { get; set; }
 
-        public double ListPrice { get; set; }
-
         public double Price { get; set; }
-
         public string ImageUrl { get; set; }
 
         public int CategoryId { get; set; }

@@ -97,27 +97,5 @@ namespace EcommerceAPI.Controllers
 
             return Ok();
         }
-
-        [HttpPost("ProductSummaryForOrder")]
-        public async Task<IActionResult> ProductSummary(ProductSummaryModel model)
-        {
-            try
-            {
-                var userData = (ClaimsIdentity)User.Identity;
-                var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-                model.AddressDetails.Email = userData.FindFirst(ClaimTypes.Email).Value;
-
-                if (userId == null) { return Unauthorized(); }
-
-                await _cardService.CreateOrder(userId, model.AddressDetails, model.PromoCode);
-
-                return Ok();
-            } 
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
     }
 }
