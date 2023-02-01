@@ -1,5 +1,8 @@
-﻿using EcommerceAPI.Models.Entities;
+﻿using EcommerceAPI.Models.DTOs.Order;
+using EcommerceAPI.Models.DTOs.ShoppingCard;
+using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,11 +16,14 @@ namespace EcommerceAPI.Controllers
     {
         private readonly IOrderService _orderService;
         private readonly IConfiguration _configuration;
+        private readonly IValidator<AddressDetails> _addressDetailsValidator;
+        private readonly ILogger<OrderController> _logger;
 
-        public OrderController(IOrderService orderService, IConfiguration configuration)
+        public OrderController(IOrderService orderService, IConfiguration configuration, ILogger<OrderController> logger)
         {
             _orderService = orderService;
             _configuration = configuration;
+            _logger = logger;
         }
 
         [Authorize(Roles = "LifeAdmin")]
@@ -53,6 +59,53 @@ namespace EcommerceAPI.Controllers
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
+            }
+        }
+
+
+        [Authorize(Roles = "LifeUser, LifeAdmin")]
+        [HttpPost("ProductSummaryForOrder")]
+        public async Task<IActionResult> ProductSummary(ProductSummaryModel model)
+        {
+            try
+            {
+                var userData = (ClaimsIdentity)User.Identity;
+                var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+                model.AddressDetails.Email = userData.FindFirst(ClaimTypes.Email).Value;
+
+                if (userId == null) { return Unauthorized(); }
+
+                await _orderService.CreateOrder(userId, model.AddressDetails, model.PromoCode);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [Authorize(Roles = "LifeUser, LifeAdmin")]
+        [HttpPost("CreateOrderForProduct")]
+        public async Task<IActionResult> CreateOrderForProduct(int productId, int count, AddressDetails addressDetails)
+        {
+            try
+            {
+                await _addressDetailsValidator.ValidateAndThrowAsync(addressDetails);
+                var userData = (ClaimsIdentity)User.Identity;
+                var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+                if (userId == null) { return Unauthorized(); }
+
+                await _orderService.CreateOrderForProduct(userId, productId, count, addressDetails);
+
+                return Ok("Order created!");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"{nameof(ProductController)} - Error while creating order for product!");
+                return BadRequest($"An error happened: '{ex.Message}'");
             }
         }
     }
