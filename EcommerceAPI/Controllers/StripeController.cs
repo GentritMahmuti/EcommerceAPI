@@ -37,17 +37,48 @@ namespace EcommerceAPI.Controllers
         }
 
         [HttpPost("payment/add")]
-        public async Task<ActionResult<string>> AddStripePayment([FromBody] AddStripePayment payment, CancellationToken ct, string orderId)
+        public async Task<ActionResult<string>> AddStripePayment(string CustomerId, string PaymentId, string orderId)
         {
-            string paymentId = await _stripeService.AddStripePaymentAsync(payment, ct, orderId);
+            var userData = (ClaimsIdentity)User.Identity;
+            var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            if (userId == null) { return Unauthorized(); }
+
+            string paymentId = await _stripeService.AddStripePayment(CustomerId, PaymentId, orderId);
 
             return StatusCode(StatusCodes.Status200OK, paymentId);
         }
 
-        [HttpGet("payment/methods")]
-        public ActionResult<List<PaymentMethodEntity>> GetPaymentMethodsByCustomer(string customerId)
+        [HttpPost("payment/method/add")]
+        public async Task<ActionResult<PaymentMethodEntity>> AddPaymentMethod(string cardNumber, string expMonth, string expYear, string cvc)
         {
-            List<PaymentMethodEntity> paymentMethods = _stripeService.GetPaymentMethodsByCustomer(customerId);
+            var userData = (ClaimsIdentity)User.Identity;
+            var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            if (userId == null) { return Unauthorized(); }
+
+            PaymentMethodEntity paymentMethod = await _stripeService.CreatePaymentMethod(userId, cardNumber, expMonth, expYear, cvc);
+
+            return StatusCode(StatusCodes.Status200OK, paymentMethod);
+        }
+
+        [HttpPost("payment/method/attach")]
+        public async Task<ActionResult> AttachPaymentMethodToCustomer(string customerId, string paymentMethodId)
+        {
+            await _stripeService.AttachPaymentMethodToCustomer(customerId, paymentMethodId);
+
+            return StatusCode(StatusCodes.Status200OK);
+        }
+
+        [HttpGet("payment/methods")]
+        public ActionResult<List<PaymentMethodEntity>> GetPaymentMethodsByCustomer()
+        {
+            var userData = (ClaimsIdentity)User.Identity;
+            var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            if (userId == null) { return Unauthorized(); }
+
+            List<PaymentMethodEntity> paymentMethods = _stripeService.GetPaymentMethodsByCustomer(userId);
 
             return StatusCode(StatusCodes.Status200OK, paymentMethods);
         }

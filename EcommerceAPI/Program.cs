@@ -214,6 +214,7 @@ builder.Services.AddScoped<ICacheService, CacheService>();
 
 builder.Services.AddScoped<IWishlistService, WishlistService>();
 builder.Services.AddTransient<PaymentMethodService>();
+builder.Services.AddTransient<PaymentIntentService>();
 
 var app = builder.Build();
 
