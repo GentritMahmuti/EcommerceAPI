@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
 
+﻿using System.ComponentModel.DataAnnotations;
 namespace EcommerceAPI.Models.DTOs.User
 {
     public class UserDto
@@ -11,5 +11,4 @@ namespace EcommerceAPI.Models.DTOs.User
         public DateTime? DateOfBirth { get; set; }
         public string? Gender { get; set; }
         public string? PhoneNumber { get; set; }
-    }
 }
