@@ -69,6 +69,22 @@ namespace EcommerceAPI.Controllers
             return Ok(products);
         }
 
+
+        /// <summary>
+        /// Gets products by category!
+        /// </summary>
+        /// <param name="pageIndex"></param>
+        /// <param name="pageSize"></param>
+        /// <returns>List of products</returns>
+        [Authorize(Roles = "LifeUser, LifeAdmin")]
+        [HttpGet("GetProductsByCategory")]
+        public async Task<IActionResult> GetProductsByCategory(int categoryId, int pageIndex = 1, int pageSize = 10)
+        {
+            var products = await _productService.GetProductsByCategory(categoryId, pageIndex, pageSize);
+            return Ok(products);
+        }
+
+
         /// <summary>
         /// Gets products based on the categories of the products which user has reviewed or sorts by popularity!
         /// </summary>
