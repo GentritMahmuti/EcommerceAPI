@@ -88,22 +88,21 @@ namespace EcommerceAPI.Controllers
         }
 
         [HttpPost("AddToShoppingCard")]
-        public async Task<IActionResult> AddToCard(int productId)
+        public async Task<IActionResult> AddToCardFromWishlist(int productId)
         {
             try
             {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); 
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var product = await _wishlistService.GetProductFromWishlist(productId);
                 if (product == null)
                 {
                     return NotFound();
                 }
-                await _wishlistService.AddToCard(userId, productId); 
+                await _wishlistService.AddToCardFromWishlist(userId, productId);
                 return Ok();
             }
             catch (Exception ex)
             {
-                _logger.LogError("There was an error while adding the product to your wishlist");
                 return BadRequest(ex.Message);
             }
         }

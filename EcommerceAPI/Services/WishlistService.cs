@@ -108,7 +108,7 @@ namespace EcommerceAPI.Services
             }
         }
 
-        public async Task AddToCard(string userId, int productId)
+        public async Task AddToCardFromWishlist(string userId, int productId)
         {
             try
             {
@@ -122,7 +122,9 @@ namespace EcommerceAPI.Services
 
                 if (wishlist.Any(x => x.ProductId == productId))
                 {
-                    _shoppingCardService.AddProductToCard(userId, productId, 1);
+
+                    await _shoppingCardService.AddProductToCard(userId, productId, 1);
+
                     _unitOfWork.Repository<WishListItem>().Delete(wishlist.FirstOrDefault(x => x.ProductId == productId));
                     _unitOfWork.Complete();
                 }
@@ -130,11 +132,11 @@ namespace EcommerceAPI.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while adding the item to the cart");
-                throw new Exception($"An error happened: '{ex.Message}'");
+                throw new Exception("An error occurred while adding the item to the cart");
             }
         }
 
-    public async Task<Product> GetProductFromWishlist(int productId)
+        public async Task<Product> GetProductFromWishlist(int productId)
         {
             try
             {
