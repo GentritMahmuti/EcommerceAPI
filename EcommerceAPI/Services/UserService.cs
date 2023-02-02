@@ -15,7 +15,6 @@ namespace EcommerceAPI.Services
         {
             _unitOfWork = unitOfWork;
         }
-
         public async Task<List<User>> GetAllUsers()
         {
             var users = _unitOfWork.Repository<User>().GetAll();
