@@ -26,6 +26,32 @@ namespace EcommerceAPI.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// Gets a specific order by id.
+        /// </summary>
+        /// <param name="orderId"></param>
+        /// <returns></returns>
+        [HttpGet("GetOrder")]
+        public async Task<IActionResult> GetOrder(string orderId)
+        {
+            try
+            {
+                var order = await _orderService.GetOrder(orderId);
+                return Ok(order);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"{nameof(OrderController)} - Error when getting order by id.");
+                return BadRequest("An error happened: " + ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Changes status of the order with given id and sends message to rabbit queue which then sends email.
+        /// </summary>
+        /// <param name="orderId"></param>
+        /// <param name="status"></param>
+        /// <returns></returns>
         [Authorize(Roles = "LifeAdmin")]
         [HttpPost("ChangeOrderStatus")]
         public async Task<IActionResult> ChangeOrderStatus(string orderId, string status)
@@ -41,11 +67,17 @@ namespace EcommerceAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                _logger.LogError(ex, $"{nameof(OrderController)} - Error when changing order status.");
+                return BadRequest("An error happened: " + ex.Message);
             }
         }
 
-        [Authorize(Roles = "LifeUser")]
+
+        /// <summary>
+        /// Gets order history for a customer.
+        /// </summary>
+        /// <returns></returns>
+        [Authorize(Roles = "LifeAdmin, LifeUser")]
         [HttpGet("GetCustomerOrderHistory")]
         public async Task<IActionResult> GetCustomerOrderHistory()
         {
@@ -62,14 +94,20 @@ namespace EcommerceAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, $"{nameof(OrderController)} - Error when getting customer order history!");
                 return BadRequest(ex.Message);
             }
         }
 
 
+        /// <summary>
+        /// Creates order with products that are in shoppingCard.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [Authorize(Roles = "LifeUser, LifeAdmin")]
-        [HttpPost("ProductSummaryForOrder")]
-        public async Task<IActionResult> ProductSummary(ProductSummaryModel model)
+        [HttpPost("CreateOrderFromShoppingCard")]
+        public async Task<IActionResult> CreateOrderFromShoppingCard(ProductSummaryModel model)
         {
             var claimsIdentity = User.Identity as ClaimsIdentity;
 
@@ -80,6 +118,7 @@ namespace EcommerceAPI.Controllers
 
             try
             {
+                await _addressDetailsValidator.ValidateAndThrowAsync(model.AddressDetails);
                 var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
                 model.AddressDetails.Email = claimsIdentity.FindFirst(ClaimTypes.Email).Value;
 
@@ -89,17 +128,25 @@ namespace EcommerceAPI.Controllers
             }       
             catch (Exception ex)
             {
+                _logger.LogError(ex, $"{nameof(OrderController)} - Error when creating order from shoppingCard");
                 return BadRequest(ex.Message);
             }
         }
 
+        /// <summary>
+        /// Creates an order for a single product.
+        /// </summary>
+        /// <param name="productId"></param>
+        /// <param name="count"></param>
+        /// <param name="addressDetails"></param>
+        /// <returns></returns>
         [Authorize(Roles = "LifeUser, LifeAdmin")]
         [HttpPost("CreateOrderForProduct")]
         public async Task<IActionResult> CreateOrderForProduct(int productId, int count, AddressDetails addressDetails, string? promoCode)
         {
             try
             {
-                // await _addressDetailsValidator.ValidateAndThrowAsync(addressDetails);
+                await _addressDetailsValidator.ValidateAndThrowAsync(addressDetails);
                 var userData = (ClaimsIdentity)User.Identity;
                 var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
 

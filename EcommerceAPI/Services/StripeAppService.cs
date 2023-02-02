@@ -2,6 +2,7 @@
 using EcommerceAPI.Models.DTOs.Stripe;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
+using Microsoft.Identity.Client;
 using StackExchange.Redis;
 using Stripe;
 
@@ -32,215 +33,279 @@ namespace EcommerceAPI.Services
 
         public async Task<StripeCustomer> AddStripeCustomerAsync(string userId, AddStripeCustomer customer, CancellationToken ct)
         {
-            // Set Stripe Token options based on customer data
-            TokenCreateOptions tokenOptions = new TokenCreateOptions
+            try
             {
-                Card = new TokenCardOptions
+                // Set Stripe Token options based on customer data
+                TokenCreateOptions tokenOptions = new TokenCreateOptions
                 {
-                    Number = customer.CreditCard.CardNumber,
-                    ExpYear = customer.CreditCard.ExpirationYear,
-                    ExpMonth = customer.CreditCard.ExpirationMonth,
-                    Cvc = customer.CreditCard.Cvc
-                }
-            };
+                    Card = new TokenCardOptions
+                    {
+                        Number = customer.CreditCard.CardNumber,
+                        ExpYear = customer.CreditCard.ExpirationYear,
+                        ExpMonth = customer.CreditCard.ExpirationMonth,
+                        Cvc = customer.CreditCard.Cvc
+                    }
+                };
 
-            // Create new Stripe Token
-            Stripe.Token stripeToken = await _tokenService.CreateAsync(tokenOptions, null, ct);
+                // Create new Stripe Token
+                Stripe.Token stripeToken = await _tokenService.CreateAsync(tokenOptions, null, ct);
 
-            // Set Customer options using
-            CustomerCreateOptions customerOptions = new CustomerCreateOptions
+                // Set Customer options using
+                CustomerCreateOptions customerOptions = new CustomerCreateOptions
+                {
+                    Name = customer.Name,
+                    Email = customer.Email,
+                    Source = stripeToken.Id
+                };
+
+                // Create customer at Stripe
+                Customer createdCustomer = await _customerService.CreateAsync(customerOptions, null, ct);
+
+                // Save Payment Method to the database
+                var newPaymentMethod = new PaymentMethodEntity
+                {
+                    PaymentMethodId = stripeToken.Card.Id,
+                    CustomerId = createdCustomer.Id,
+                    CardBrand = stripeToken.Card.Brand,
+                    CardLastFour = stripeToken.Card.Last4,
+                    ExpMonth = stripeToken.Card.ExpMonth,
+                    ExpYear = stripeToken.Card.ExpYear,
+                    UserId = userId
+                };
+                _unitOfWork.Repository<PaymentMethodEntity>().Create(newPaymentMethod);
+                _unitOfWork.Complete();
+
+                // Return the created customer at stripe
+                return new StripeCustomer(createdCustomer.Name, createdCustomer.Email, createdCustomer.Id);
+            }
+            catch (Exception ex)
             {
-                Name = customer.Name,
-                Email = customer.Email,
-                Source = stripeToken.Id
-            };
-
-            // Create customer at Stripe
-            Customer createdCustomer = await _customerService.CreateAsync(customerOptions, null, ct);
-
-            // Save Payment Method to the database
-            var newPaymentMethod = new PaymentMethodEntity
-            {
-                PaymentMethodId = stripeToken.Card.Id,
-                CustomerId = createdCustomer.Id,
-                CardBrand = stripeToken.Card.Brand,
-                CardLastFour = stripeToken.Card.Last4,
-                ExpMonth = stripeToken.Card.ExpMonth,
-                ExpYear = stripeToken.Card.ExpYear,
-                UserId = userId
-            };
-            _unitOfWork.Repository<PaymentMethodEntity>().Create(newPaymentMethod);
-            _unitOfWork.Complete();
-
-            // Return the created customer at stripe
-            return new StripeCustomer(createdCustomer.Name, createdCustomer.Email, createdCustomer.Id);
+                _logger.LogError("There was an error. Please try again");
+                throw new Exception(ex.Message);
+            }
         }
 
         public async Task<string> AddStripePayment(string CustomerId, string PaymentId, string orderId)
         {
-            var orderData = _unitOfWork.Repository<OrderData>().GetByCondition(o => o.OrderId == orderId).FirstOrDefault();
-
-            //choose one of payment methods
-            var paymentMethod = _unitOfWork.Repository<PaymentMethodEntity>().GetByCondition(p => p.PaymentMethodId == PaymentId).FirstOrDefault();
-
-            //create payment intent
-            var options = new PaymentIntentCreateOptions
+            try
             {
-                Amount = (long)(orderData.OrderFinalPrice * 100),
-                Currency = "usd",
-                Customer = CustomerId,
-                PaymentMethod = PaymentId,
-                Confirm = true,
-                OffSession = true,
-                PaymentMethodTypes = new List<string>
+                var orderData = _unitOfWork.Repository<OrderData>().GetByCondition(o => o.OrderId == orderId).FirstOrDefault();
+
+                //choose one of payment methods
+                var paymentMethod = _unitOfWork.Repository<PaymentMethodEntity>().GetByCondition(p => p.PaymentMethodId == PaymentId).FirstOrDefault();
+
+                //create payment intent
+                var options = new PaymentIntentCreateOptions
+                {
+                    Amount = (long)(orderData.OrderFinalPrice * 100),
+                    Currency = "usd",
+                    Customer = CustomerId,
+                    PaymentMethod = PaymentId,
+                    Confirm = true,
+                    OffSession = true,
+                    PaymentMethodTypes = new List<string>
                 {
                     "card",
                 },
-            };
+                };
 
-            var createdPayment = await _paymentIntentService.CreateAsync(options);
+                var createdPayment = await _paymentIntentService.CreateAsync(options);
 
-            if (createdPayment.Status == "succeeded")
-            {
-                orderData.PaymentStatus = "paid";
-                orderData.TransactionId = createdPayment.Id;
-                orderData.PaymentDate = DateTime.Now;
-                orderData.PaymentDueDate = DateTime.Now.AddDays(30);
-                orderData.PaymentMethodId = paymentMethod.PaymentMethodId;
+                if (createdPayment.Status == "succeeded")
+                {
+                    orderData.PaymentStatus = "paid";
+                    orderData.TransactionId = createdPayment.Id;
+                    orderData.PaymentDate = DateTime.Now;
+                    orderData.PaymentDueDate = DateTime.Now.AddDays(30);
+                    orderData.PaymentMethodId = paymentMethod.PaymentMethodId;
 
-                _unitOfWork.Complete();
+                    _unitOfWork.Complete();
 
-                return "Payment was successful!";
+                    return "Payment was successful!";
+                }
+                else
+                {
+                    return "Payment failed. Please try again.";
+                }
             }
-            else
+            catch(Exception ex)
             {
-                return "Payment failed. Please try again.";
+                _logger.LogError("There was an error while proccesing your request. Please try again!");
+                throw new Exception(ex.Message);
             }
 
         }
 
         public async Task<string> AddStripePaymentAsync(AddStripePayment payment, CancellationToken ct, string orderId)
         {
-            var orderData = _unitOfWork.Repository<OrderData>().GetByCondition(o => o.OrderId == orderId).FirstOrDefault();
-
-            ChargeCreateOptions paymentOptions = new ChargeCreateOptions
+            try
             {
-                Customer = payment.CustomerId,
-                ReceiptEmail = payment.ReceiptEmail,
-                Description = "Order Payment",
-                Currency = "usd",
-                Amount = (long)(orderData.OrderFinalPrice * 100)
-            };
+                var orderData = _unitOfWork.Repository<OrderData>().GetByCondition(o => o.OrderId == orderId).FirstOrDefault();
 
-            var createdPayment = await _chargeService.CreateAsync(paymentOptions, null, ct);
+                ChargeCreateOptions paymentOptions = new ChargeCreateOptions
+                {
+                    Customer = payment.CustomerId,
+                    ReceiptEmail = payment.ReceiptEmail,
+                    Description = "Order Payment",
+                    Currency = "usd",
+                    Amount = (long)(orderData.OrderFinalPrice * 100)
+                };
+
+                var createdPayment = await _chargeService.CreateAsync(paymentOptions, null, ct);
 
 
 
-            if (createdPayment.Status == "succeeded")
-            {
-                orderData.PaymentStatus = "paid";
-                orderData.TransactionId = createdPayment.Id;
-                orderData.PaymentDate = DateTime.Now;
-                orderData.PaymentDueDate = DateTime.Now.AddDays(30);
-                orderData.PaymentMethodId = createdPayment.PaymentMethod;
+                if (createdPayment.Status == "succeeded")
+                {
+                    orderData.PaymentStatus = "paid";
+                    orderData.TransactionId = createdPayment.Id;
+                    orderData.PaymentDate = DateTime.Now;
+                    orderData.PaymentDueDate = DateTime.Now.AddDays(30);
+                    orderData.PaymentMethodId = createdPayment.PaymentMethod;
 
-                _unitOfWork.Complete();
+                    _unitOfWork.Complete();
 
-                return "Payment was successful!";
+                    return "Payment was successful!";
+                }
+                else
+                {
+                    return "Payment failed. Please try again.";
+                }
             }
-            else
+            catch(Exception ex)
             {
-                return "Payment failed. Please try again.";
+                _logger.LogError("There was an error while proccessing your request. Please try again!");
+                throw new Exception(ex.Message);
             }
         }
 
 
         public List<PaymentMethodEntity> GetPaymentMethodsByCustomer(string userId)
         {
-            return _unitOfWork.Repository<PaymentMethodEntity>().GetByCondition(p => p.UserId == userId).ToList();
+            try
+            {
+                return _unitOfWork.Repository<PaymentMethodEntity>().GetByCondition(p => p.UserId == userId).ToList();
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError("There was an error while retrieving your payment method. Please try again!");
+                throw new Exception(ex.Message);
+            }
         }
 
         public async Task DeletePaymentMethod(string paymentMethodId)
         {
-            // Delete the payment method from the database
-            var paymentMethod = _unitOfWork.Repository<PaymentMethodEntity>().GetByCondition(p => p.PaymentMethodId == paymentMethodId).FirstOrDefault();
-            _unitOfWork.Repository<PaymentMethodEntity>().Delete(paymentMethod);
-            _unitOfWork.Complete();
+            try
+            {
+                // Delete the payment method from the database
+                var paymentMethod = _unitOfWork.Repository<PaymentMethodEntity>().GetByCondition(p => p.PaymentMethodId == paymentMethodId).FirstOrDefault();
+                _unitOfWork.Repository<PaymentMethodEntity>().Delete(paymentMethod);
+                _unitOfWork.Complete();
 
-            // Delete the payment method from the Stripe API
-            await _paymentMethodService.DetachAsync(paymentMethodId);
+                // Delete the payment method from the Stripe API
+                await _paymentMethodService.DetachAsync(paymentMethodId);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError("There was an error while deleting your payment method. Please try again!");
+                throw new Exception(ex.Message);
+            }
         }
 
         public async Task UpdatePaymentMethodExpiration(string paymentMethodId, int expYear, int expMonth)
         {
-            // Update the expiration year and month in the database
-            var paymentMethod = _unitOfWork.Repository<PaymentMethodEntity>().GetByCondition(p => p.PaymentMethodId == paymentMethodId).FirstOrDefault();
-            paymentMethod.ExpYear = expYear;
-            paymentMethod.ExpMonth = expMonth;
-            _unitOfWork.Complete();
-
-            // Update the expiration year and month in the Stripe API
-            var updateOptions = new PaymentMethodUpdateOptions
+            try
             {
-                Card = new PaymentMethodCardOptions
-                {
-                    ExpYear = expYear,
-                    ExpMonth = expMonth
-                }
-            };
+                // Update the expiration year and month in the database
+                var paymentMethod = _unitOfWork.Repository<PaymentMethodEntity>().GetByCondition(p => p.PaymentMethodId == paymentMethodId).FirstOrDefault();
+                paymentMethod.ExpYear = expYear;
+                paymentMethod.ExpMonth = expMonth;
+                _unitOfWork.Complete();
 
-            await _paymentMethodService.UpdateAsync(paymentMethodId, updateOptions);
+                // Update the expiration year and month in the Stripe API
+                var updateOptions = new PaymentMethodUpdateOptions
+                {
+                    Card = new PaymentMethodCardOptions
+                    {
+                        ExpYear = expYear,
+                        ExpMonth = expMonth
+                    }
+                };
+
+                await _paymentMethodService.UpdateAsync(paymentMethodId, updateOptions);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError("There was an error while updating your payment method. Please try again!");
+                throw new Exception(ex.Message);
+            }
         }
 
         public async Task<PaymentMethodEntity> CreatePaymentMethod(string userId, string cardNumber, string expMonth, string expYear, string cvc)
         {
-            // Create the payment method in the Stripe API using the token
-            var paymentMethodOptions = new PaymentMethodCreateOptions
+            try
             {
-                Type = "card",
-                Card = new PaymentMethodCardOptions
+                // Create the payment method in the Stripe API using the token
+                var paymentMethodOptions = new PaymentMethodCreateOptions
                 {
-                    Number = cardNumber,
-                    ExpMonth = (long)Convert.ToDouble(expMonth),
-                    ExpYear = (long)Convert.ToDouble(expYear),
-                    Cvc = cvc
-                }
-            };
+                    Type = "card",
+                    Card = new PaymentMethodCardOptions
+                    {
+                        Number = cardNumber,
+                        ExpMonth = (long)Convert.ToDouble(expMonth),
+                        ExpYear = (long)Convert.ToDouble(expYear),
+                        Cvc = cvc
+                    }
+                };
 
-            var paymentMethodService = new PaymentMethodService();
-            var paymentMethod = await paymentMethodService.CreateAsync(paymentMethodOptions);
+                var paymentMethodService = new PaymentMethodService();
+                var paymentMethod = await paymentMethodService.CreateAsync(paymentMethodOptions);
 
 
-            // Save the payment method to the database
-            var paymentMethodEntity = new PaymentMethodEntity
+                // Save the payment method to the database
+                var paymentMethodEntity = new PaymentMethodEntity
+                {
+                    PaymentMethodId = paymentMethod.Id,
+                    CardBrand = paymentMethod.Card.Brand,
+                    CardLastFour = paymentMethod.Card.Last4,
+                    ExpMonth = paymentMethod.Card.ExpMonth,
+                    ExpYear = paymentMethod.Card.ExpYear,
+                    UserId = userId
+                };
+
+                _unitOfWork.Repository<PaymentMethodEntity>().Create(paymentMethodEntity);
+                _unitOfWork.Complete();
+                _logger.LogInformation("Payment method created successfully");
+
+                return paymentMethodEntity;
+            }
+            catch(Exception ex)
             {
-                PaymentMethodId = paymentMethod.Id,
-                CardBrand = paymentMethod.Card.Brand,
-                CardLastFour = paymentMethod.Card.Last4,
-                ExpMonth = paymentMethod.Card.ExpMonth,
-                ExpYear = paymentMethod.Card.ExpYear,
-                UserId = userId
-            };
-
-            _unitOfWork.Repository<PaymentMethodEntity>().Create(paymentMethodEntity);
-            _unitOfWork.Complete();
-            _logger.LogInformation("Payment method created successfully");
-
-            return paymentMethodEntity;
+                _logger.LogError("There was a problem while creating your payment method. Please try again!");
+                throw new Exception(ex.Message);
+            }
         }
 
         public async Task AttachPaymentMethodToCustomer(string customerId, string paymentMethodId)
         {
-            var paymentMethodAttachOptions = new PaymentMethodAttachOptions
+            try
             {
-                Customer = customerId
-            };
+                var paymentMethodAttachOptions = new PaymentMethodAttachOptions
+                {
+                    Customer = customerId
+                };
 
-            var paymentMethod = _unitOfWork.Repository<PaymentMethodEntity>().GetByCondition(p => p.PaymentMethodId == paymentMethodId).FirstOrDefault();
-            paymentMethod.CustomerId = customerId;
-            _unitOfWork.Complete();
+                var paymentMethod = _unitOfWork.Repository<PaymentMethodEntity>().GetByCondition(p => p.PaymentMethodId == paymentMethodId).FirstOrDefault();
+                paymentMethod.CustomerId = customerId;
+                _unitOfWork.Complete();
 
-            await _paymentMethodService.AttachAsync(paymentMethodId, paymentMethodAttachOptions);
+                await _paymentMethodService.AttachAsync(paymentMethodId, paymentMethodAttachOptions);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError("There was an error while attaching the payment to costumer");
+                throw new Exception(ex.Message);
+            }
         }
     }
 }
