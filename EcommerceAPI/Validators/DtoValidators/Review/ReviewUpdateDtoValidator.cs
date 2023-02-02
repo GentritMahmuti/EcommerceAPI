@@ -17,7 +17,7 @@ namespace EcommerceAPI.Validators.DtoValidators.Review
             RuleFor(c => c.Rating)
                .NotNull().WithMessage("{PropertyName} must not be null!")
                .NotEmpty().WithMessage("{PropertyName} must not be empty!")
-               .ExclusiveBetween(1, 5).WithMessage("{PropertyName} must be between 1 and 10!");
+               .ExclusiveBetween(1, 10).WithMessage("{PropertyName} must be between 1 and 10!");
         }
     }
 }
