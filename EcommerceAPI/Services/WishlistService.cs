@@ -1,6 +1,7 @@
 ﻿using EcommerceAPI.Data.UnitOfWork;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
+using Elasticsearch.Net;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -12,11 +13,13 @@ namespace EcommerceAPI.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<WishListItem> _logger;
+        private readonly ShoppingCardService _shoppingCardService;
 
-        public WishlistService(IUnitOfWork unitOfWork, ILogger<WishListItem> logger)
+        public WishlistService(IUnitOfWork unitOfWork, ILogger<WishListItem> logger, ShoppingCardService shoppingCardService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _shoppingCardService = shoppingCardService;
         }
 
         public async Task<List<Product>> GetWishlistContent(string userId)
@@ -43,7 +46,7 @@ namespace EcommerceAPI.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while getting the wishlist content for user");
-                throw new ("An error occurred while getting the wishlist content for user", ex);
+                throw new ($"An error happened: '{ex.Message}'");
             }
         }
 
@@ -76,7 +79,7 @@ namespace EcommerceAPI.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while adding the item in your wishlist ");
-                throw new Exception("An error occurred while adding the item in your wishlist");
+                throw new Exception($"An error happened: '{ex.Message}'");
             }
         }
 
@@ -101,11 +104,11 @@ namespace EcommerceAPI.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while removing the item in your wishlist");
-                throw new Exception("An error occurred while removing the item in your wishlist");
+                throw new Exception($"An error happened: '{ex.Message}'");
             }
         }
 
-        public async Task AddToCard(string userId, int productId)
+        public async Task AddToCardFromWishlist(string userId, int productId)
         {
             try
             {
@@ -119,15 +122,9 @@ namespace EcommerceAPI.Services
 
                 if (wishlist.Any(x => x.ProductId == productId))
                 {
-                    var item = new CartItem
-                    {
-                        UserId = userId,
-                        ProductId = productId,
-                        Count = 1
-                    };
 
-                    _unitOfWork.Repository<CartItem>().Create(item);
-                    _unitOfWork.Complete();
+                    await _shoppingCardService.AddProductToCard(userId, productId, 1);
+
                     _unitOfWork.Repository<WishListItem>().Delete(wishlist.FirstOrDefault(x => x.ProductId == productId));
                     _unitOfWork.Complete();
                 }
@@ -141,15 +138,23 @@ namespace EcommerceAPI.Services
 
         public async Task<Product> GetProductFromWishlist(int productId)
         {
-            var wishlist = await _unitOfWork.Repository<WishListItem>().GetByCondition(x => x.ProductId == productId).FirstOrDefaultAsync();
-            if (wishlist != null)
+            try
             {
-                var product = await _unitOfWork.Repository<Product>().GetById(x => x.Id == wishlist.ProductId).FirstOrDefaultAsync();
-                return product;
+                var wishlist = await _unitOfWork.Repository<WishListItem>().GetByCondition(x => x.ProductId == productId).FirstOrDefaultAsync();
+                if (wishlist != null)
+                {
+                    var product = await _unitOfWork.Repository<Product>().GetById(x => x.Id == wishlist.ProductId).FirstOrDefaultAsync();
+                    return product;
+                }
+                else
+                {
+                    return null;
+                }
             }
-            else
+            catch(Exception ex)
             {
-                return null;
+                _logger.LogError("There was an error while retrieving the product from your wishlist");
+                throw new Exception ($"An error happened: '{ex.Message}'");
             }
         }
 

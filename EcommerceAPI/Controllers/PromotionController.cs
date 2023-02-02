@@ -14,15 +14,23 @@ namespace EcommerceAPI.Controllers
         private readonly IPromotionService _promotionService;
         private readonly IConfiguration _configuration;
         private readonly IValidator<PromotionDto> _promotionValidator;
+        private readonly ILogger<PromotionController> _logger;
 
-        public PromotionController(IPromotionService promotionService, IConfiguration configuration, IValidator<PromotionDto> promotionValidator)
+        public PromotionController(IPromotionService promotionService, IConfiguration configuration, IValidator<PromotionDto> promotionValidator, ILogger<PromotionController> logger)
         {
             _promotionService = promotionService;
             _configuration = configuration;
             _promotionValidator = promotionValidator;
+            _logger = logger;
         }
 
-        [Authorize]
+
+        /// <summary>
+        /// Gets details about a promotion.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [Authorize(Roles = "LifeAdmin, LifeUser")]
         [HttpGet("GetPromotion")]
         public async Task<IActionResult> Get(int id)
         {
@@ -34,11 +42,17 @@ namespace EcommerceAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, $"{nameof(PromotionController)} - Error when getting a promotion!");
                 return BadRequest(ex.Message);
             }
         }
 
-        [Authorize]
+
+        /// <summary>
+        /// Gets all promotions.
+        /// </summary>
+        /// <returns></returns>
+        [Authorize(Roles = "LifeAdmin")]
         [HttpGet("GetPromotions")]
         public async Task<IActionResult> GetPromotions()
         {
@@ -50,10 +64,17 @@ namespace EcommerceAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, $"{nameof(PromotionController)} - Error when getting all promotions!");
                 return BadRequest(ex.Message);
             }
         }
         
+
+        /// <summary>
+        /// Creates a new promotion.
+        /// </summary>
+        /// <param name="createPromotion"></param>
+        /// <returns></returns>
         [Authorize(Roles = "LifeAdmin")]
         [HttpPost("PostPromotion")]
         public async Task<IActionResult> Post(PromotionDto createPromotion)
@@ -71,6 +92,8 @@ namespace EcommerceAPI.Controllers
             }
         }
         
+
+       
         [Authorize(Roles = "LifeAdmin")]
         [HttpPut("UpdatePromotion/{id}")]
         public async Task<IActionResult> Update(int id, PromotionDto updatePromotion)
@@ -82,6 +105,7 @@ namespace EcommerceAPI.Controllers
                 return Ok("Promotion updated successfully!");
             }catch(Exception ex)
             {
+                _logger.LogError(ex, $"{nameof(PromotionController)} - Error when updating a promotion!");
                 return BadRequest(ex.Message);
             }
         }
@@ -97,6 +121,7 @@ namespace EcommerceAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, $"{nameof(PromotionController)} - Error when deleting a promotion!");
                 return BadRequest("Error deleting promotion: " + ex.Message);
             }
         }

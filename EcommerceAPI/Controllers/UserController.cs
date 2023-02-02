@@ -21,30 +21,49 @@ namespace EcommerceAPI.Controllers
             _userValidator = userValidator;
         }
 
-        //Admins can see users based on their ID.
+
+        /// <summary>
+        /// Admins can see users based on their ID.
+        /// </summary>
+        /// <param name="Userid"></param>
+        /// <returns></returns>
         [Authorize(Roles = "LifeAdmin")]
         [HttpGet("GetUser")]
         public async Task<IActionResult> GetUser(string Userid)
         {
-            var user = await _userService.GetUser(Userid);
-            _logger.LogInformation("Get a user");
-            if (user == null)
+            try
             {
-                return NotFound();
+                var user = await _userService.GetUser(Userid);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+                return Ok(user);
             }
-
-            return Ok(user);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"{nameof(UserController)} - An error occured while trying to add a product to card");
+                return BadRequest("An error happened: " + ex.Message);
+            }
         }
 
+        /// <summary>
+        /// Admins can get all the users that exist in db.
+        /// </summary>
+        /// <returns></returns>
         [Authorize(Roles = "LifeAdmin")]
         [HttpGet("GetAllUsers")]
         public async Task<IActionResult> GetUsers()
         {
             var users = await _userService.GetAllUsers();
-            _logger.LogInformation("Get all the users");
             return Ok(users);
         }
 
+        /// <summary>
+        /// Updates a specific user by id.
+        /// </summary>
+        /// <param name="userToUpdate"></param>
+        /// <returns></returns>
         [Authorize(Roles = "LifeAdmin")]
         [HttpPut("UpdateUser")]
         public async Task<IActionResult> UpdateUser(UserDto userToUpdate)
@@ -59,10 +78,15 @@ namespace EcommerceAPI.Controllers
             catch (Exception e)
             {
                 _logger.LogError(e, "Error  updating user data");
-                return BadRequest(e.ToString());
+                return BadRequest("An error happened:" + e.Message);
             }
         }
 
+        /// <summary>
+        /// Admins can delete a specific user by id.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [Authorize(Roles = "LifeAdmin")]
         [HttpPost("DeleteUser")]
         public async Task<IActionResult> Delete(string id)
@@ -76,7 +100,7 @@ namespace EcommerceAPI.Controllers
             catch (Exception e)
             {
                 _logger.LogError(e, "Error deleting user");
-                return BadRequest(e.ToString());
+                return BadRequest("An error happened:" + e.Message);
             }
         }
     }

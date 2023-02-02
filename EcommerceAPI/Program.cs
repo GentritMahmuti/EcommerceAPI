@@ -138,8 +138,8 @@ builder.Services.AddSwaggerGen(c =>
             }
         }
     });
-
     c.OperationFilter<AuthorizeCheckOperationFilter>();
+    c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "EcommerceAPI.xml"));
 });
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -235,6 +235,7 @@ if (app.Environment.IsDevelopment())
         c.OAuthUsePkce();
         c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
     });
+
 }
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 

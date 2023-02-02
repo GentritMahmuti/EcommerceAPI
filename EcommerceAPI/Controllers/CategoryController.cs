@@ -43,7 +43,7 @@ namespace EcommerceAPI.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"{nameof(CategoryController)} - Error when creating a category!");
+                _logger.LogError(ex, $"{nameof(CategoryController)} - Error when creating a category!");
                 return BadRequest("An error happened: " + ex.Message);
             }
         }
@@ -71,7 +71,7 @@ namespace EcommerceAPI.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"{nameof(CategoryController)} - Error when creating a category!");
+                _logger.LogError(ex, $"{nameof(CategoryController)} - Error when creating a category!");
                 return BadRequest("An error happened: " + ex.Message);
             }
         }
@@ -108,7 +108,7 @@ namespace EcommerceAPI.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"{nameof(CategoryController)} - Error when updating a category!");
+                _logger.LogError(ex, $"{nameof(CategoryController)} - Error when updating a category!");
                 return BadRequest("An error happened: " + ex.Message);
             }
         }
@@ -130,7 +130,7 @@ namespace EcommerceAPI.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"{nameof(CategoryController)} - Error when deleting a category!");
+                _logger.LogError(ex, $"{nameof(CategoryController)} - Error when deleting a category!");
                 return BadRequest("Error deleting category: " + ex.Message);
             }
         }
