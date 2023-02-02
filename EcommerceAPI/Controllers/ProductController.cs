@@ -53,6 +53,9 @@ namespace EcommerceAPI.Controllers
         {
             var products = await _productService.GetAllProducts();
 
+            if (products == null || !products.Any())
+                return NotFound();
+
             return Ok(products);
         }
 
@@ -190,6 +193,10 @@ namespace EcommerceAPI.Controllers
         [HttpDelete("DeleteProduct")]
         public async Task<IActionResult> Delete(int id)
         {
+            if (id <= 0)
+            {
+                return BadRequest("Invalid product id");
+            }
             try
             {
                 await _productService.DeleteProduct(id);

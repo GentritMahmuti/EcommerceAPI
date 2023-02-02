@@ -30,6 +30,10 @@ namespace EcommerceAPI.Controllers
         [HttpPost("ChangeOrderStatus")]
         public async Task<IActionResult> ChangeOrderStatus(string orderId, string status)
         {
+            if (string.IsNullOrEmpty(orderId) || string.IsNullOrEmpty(status))
+            {
+                return BadRequest("Invalid order id or status");
+            }
             try
             {
                 await _orderService.ChangeOrderStatus(orderId, status);
@@ -67,19 +71,22 @@ namespace EcommerceAPI.Controllers
         [HttpPost("ProductSummaryForOrder")]
         public async Task<IActionResult> ProductSummary(ProductSummaryModel model)
         {
+            var claimsIdentity = User.Identity as ClaimsIdentity;
+
+            if (claimsIdentity == null || !claimsIdentity.IsAuthenticated)
+            {
+                return Unauthorized();
+            }
+
             try
             {
-                var userData = (ClaimsIdentity)User.Identity;
-                var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-                model.AddressDetails.Email = userData.FindFirst(ClaimTypes.Email).Value;
-
-                if (userId == null) { return Unauthorized(); }
+                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+                model.AddressDetails.Email = claimsIdentity.FindFirst(ClaimTypes.Email).Value;
 
                 await _orderService.CreateOrder(userId, model.AddressDetails, model.PromoCode);
 
                 return Ok();
-            }
+            }       
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
@@ -92,7 +99,7 @@ namespace EcommerceAPI.Controllers
         {
             try
             {
-               // await _addressDetailsValidator.ValidateAndThrowAsync(addressDetails);
+                // await _addressDetailsValidator.ValidateAndThrowAsync(addressDetails);
                 var userData = (ClaimsIdentity)User.Identity;
                 var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
 
