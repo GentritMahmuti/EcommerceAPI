@@ -27,7 +27,11 @@ namespace EcommerceAPI.Services
         
         public async Task<PromotionDetailsDto> GetPromotionDetails(int id)
         {
-            var promotion = await GetPromotion(id); 
+            var promotion = await GetPromotion(id);
+            if (promotion == null)
+            {
+                throw new NullReferenceException("The promotion you're trying to get doesn't exist.");
+            }
             var promotionDetails = _mapper.Map<PromotionDetailsDto>(promotion);
 
             return promotionDetails;
@@ -57,8 +61,9 @@ namespace EcommerceAPI.Services
             var promotion = await GetPromotion(id);
             if (promotion == null)
             {
-                throw new NullReferenceException("The promotion you're trying to update doesn't exist!");
+                throw new NullReferenceException("The promotion you're trying to update doesn't exist.");
             }
+
             promotion.Name = promotionToUpdate.Name;
             promotion.StartDate = promotionToUpdate.StartDate;
             promotion.EndDate = promotionToUpdate.EndDate;

@@ -37,7 +37,7 @@ namespace EcommerceAPI.Controllers
         }
 
 
-        [Authorize(Roles = "LifeUser, LifeAdmin")]
+        [Authorize(Roles = "LifeUser")]
         [HttpGet("GetYourReviews")]
         public async Task<IActionResult> GetYourReviews()
         {
@@ -125,7 +125,7 @@ namespace EcommerceAPI.Controllers
             catch (Exception e)
             {
                 _logger.LogError($"{nameof(ReviewController)} - Error when deleting review comment.");
-                return BadRequest();
+                return BadRequest("An error happened: " + e.Message);
             }
         }
 

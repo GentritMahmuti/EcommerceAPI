@@ -12,7 +12,7 @@ namespace EcommerceAPI.Services.IServices
 
         Task CreateOrder(string userId, AddressDetails addressDetails, string? promoCode);
 
-        Task CreateOrderForProduct(string userId, int productId, int count, AddressDetails addressDetails);
+        Task CreateOrderForProduct(string userId, int productId, int count, AddressDetails addressDetails, string? promoCode);
 
     }
 }

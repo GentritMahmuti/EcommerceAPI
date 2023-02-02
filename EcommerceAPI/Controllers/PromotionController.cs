@@ -30,11 +30,6 @@ namespace EcommerceAPI.Controllers
             {
                 var promotion = await _promotionService.GetPromotionDetails(id);
 
-                if (promotion == null)
-                {
-                    return NotFound();
-                }
-
                 return Ok(promotion);
             }
             catch (Exception ex)

@@ -22,12 +22,18 @@ namespace EcommerceAPI.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<OrderService> _logger;
         private readonly IProductService _productService;
+        private readonly IShoppingCardService _shoppingCardService;
+        private readonly IMapper _mapper;
+        private readonly ICacheService _cacheService;
 
-        public OrderService(IUnitOfWork unitOfWork, ILogger<OrderService> logger, IProductService productService)
+        public OrderService(IUnitOfWork unitOfWork, ILogger<OrderService> logger, IProductService productService, IShoppingCardService shoppingCardService, IMapper mapper, ICacheService cacheService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _productService = productService;
+            _shoppingCardService = shoppingCardService;
+            _mapper = mapper;
+            _cacheService = cacheService;
         }
 
         public async Task<OrderData> GetOrder(string orderId)
@@ -192,6 +198,8 @@ namespace EcommerceAPI.Services
             order.OrderFinalPrice = promotionData.OrderFinalPrice;
 
             _unitOfWork.Repository<OrderData>().Create(order);
+            var key = $"CartItems_{userId}";
+            _cacheService.RemoveData(key);
             _unitOfWork.Repository<CartItem>().DeleteRange(shoppingCardItems);
             _unitOfWork.Repository<ProductOrderData>().CreateRange(orderDetailsList);
 
@@ -218,10 +226,10 @@ namespace EcommerceAPI.Services
 
 
         //create an order by using productId and count
-        public async Task CreateOrderForProduct(string userId, int productId, int count, AddressDetails addressDetails)
+        public async Task CreateOrderForProduct(string userId, int productId, int count, AddressDetails addressDetails, string? promoCode)
         {
 
-            var product = await _unitOfWork.Repository<Product>().GetById(x => x.Id == productId).FirstOrDefaultAsync();
+            var product = await _productService.GetProduct(productId);
             if (product == null)
             {
                 throw new NullReferenceException("The product you're trying to order doesn't exist!");
@@ -233,8 +241,6 @@ namespace EcommerceAPI.Services
                 OrderId = Guid.NewGuid().ToString(),
                 OrderDate = DateTime.Now,
                 ShippingDate = DateTime.Now.AddDays(7),
-                OrderPrice = product.Price * count,
-                OrderFinalPrice = product.Price * count,
                 PhoheNumber = addressDetails.PhoheNumber,
                 StreetAddress = addressDetails.StreetAddress,
                 City = addressDetails.City,
@@ -245,6 +251,18 @@ namespace EcommerceAPI.Services
                 OrderStatus = StaticDetails.Created,
                 UserId = userId
             };
+            var orderCalculatedPrice = product.Price * count;
+            order.OrderPrice = orderCalculatedPrice;
+
+            PromotionDataDto promotionData = new();
+            promotionData.OrderFinalPrice = orderCalculatedPrice;
+            if (!promoCode.IsNullOrEmpty())
+            {
+                promotionData = await CheckPromoCode(promoCode, orderCalculatedPrice);
+                order.PromotionId = promotionData.PromotionId;
+            }
+
+            order.OrderFinalPrice = promotionData.OrderFinalPrice;
 
             var orderDetails = new ProductOrderData
             {
@@ -268,7 +286,8 @@ namespace EcommerceAPI.Services
                 PublishForLowStock(new LowStockDto { ProductId = product.Id, CurrStock = product.Stock });
             }
 
-            _unitOfWork.Repository<Product>().Update(product);
+            var productDto = _mapper.Map<ProductDto>(product);
+            await _productService.UpdateProduct(productDto);
             _unitOfWork.Complete();
             await _productService.UpdateSomeElastic(product.Id, product.Stock, product.TotalSold);
 
@@ -292,7 +311,8 @@ namespace EcommerceAPI.Services
 
         private async Task<List<CartItem>> GetShoppingCardItems(string userId)
         {
-            var shoppingCardItems = await _unitOfWork.Repository<CartItem>().GetByCondition(x => x.UserId == userId).ToListAsync();
+
+            var shoppingCardItems = await _unitOfWork.Repository<CartItem>().GetByCondition(x => x.UserId == userId).AsNoTracking().ToListAsync();
             if (!shoppingCardItems.Any())
             {
                 throw new Exception("Shopping cart is empty.");
@@ -301,7 +321,7 @@ namespace EcommerceAPI.Services
         }
         private async Task<Product> GetAndUpdateProduct(CartItem item)
         {
-            var product = await _unitOfWork.Repository<Product>().GetById(x => x.Id == item.ProductId).FirstOrDefaultAsync();
+            var product = await _productService.GetProduct(item.ProductId);
             if (product == null)
             {
                 throw new Exception("Product not found.");
@@ -317,7 +337,8 @@ namespace EcommerceAPI.Services
 
             product.Stock -= item.Count;
             product.TotalSold += item.Count;
-            _unitOfWork.Repository<Product>().Update(product);
+            var productDto = _mapper.Map<ProductDto>(product);
+            await _productService.UpdateProduct(productDto);
             await _unitOfWork.CompleteAsync();
             await _productService.UpdateSomeElastic(product.Id, product.Stock, product.TotalSold);
             return product;
