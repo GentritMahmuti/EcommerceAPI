@@ -19,14 +19,16 @@ namespace EcommerceAPI.Controllers
         private readonly IReviewService _reviewService;
         private readonly IValidator<ReviewCreateDto> _createReviewValidator;
         private readonly IValidator<ReviewUpdateDto> _updateReviewValidator;
-        public ReviewController(IReviewService reviewService, IValidator<ReviewCreateDto> createReviewValidator, IValidator<ReviewUpdateDto> updateReviewValidator)
+        private readonly ILogger<ReviewController> _logger;
+        public ReviewController(IReviewService reviewService, IValidator<ReviewCreateDto> createReviewValidator, IValidator<ReviewUpdateDto> updateReviewValidator, ILogger<ReviewController> logger)
         {
             _reviewService = reviewService;
             _createReviewValidator = createReviewValidator;
             _updateReviewValidator = updateReviewValidator;
+            _logger = logger;
         }
 
-        [Authorize]
+        [Authorize("Roles = LifeAdmin")]
         [HttpGet("GetUserReviews")]
         public async Task<IActionResult> GetUserReviews(string userId)
         {
@@ -35,7 +37,7 @@ namespace EcommerceAPI.Controllers
         }
 
 
-        [Authorize(Roles = "LifeUser")]
+        [Authorize(Roles = "LifeUser, LifeAdmin")]
         [HttpGet("GetYourReviews")]
         public async Task<IActionResult> GetYourReviews()
         {
@@ -45,7 +47,7 @@ namespace EcommerceAPI.Controllers
             return Ok(reviews);
         }
 
-        [Authorize]
+        [Authorize(Roles = "LifeAdmin, LifeUser")]
         [HttpGet("GetProductReviews")]
         public async Task<IActionResult> GetProductReviews(int productId)
         {
@@ -62,7 +64,7 @@ namespace EcommerceAPI.Controllers
             return Ok(reviews);
         }
 
-        [Authorize(Roles = "LifeUser")]
+        [Authorize(Roles = "LifeUser, LifeAdmin")]
         [HttpPost("PostReview")]
         public async Task<IActionResult> Post([FromForm] ReviewCreateDto ReviewToCreate)
         {
@@ -74,7 +76,7 @@ namespace EcommerceAPI.Controllers
             return Ok("Review created successfully!");
         }
         
-        [Authorize(Roles = "LifeUser")]
+        [Authorize(Roles = "LifeUser, LifeAdmin")]
         [HttpPut("UpdateReview")]
         public async Task<IActionResult> Update(ReviewUpdateDto ReviewToUpdate)
         {
@@ -88,12 +90,13 @@ namespace EcommerceAPI.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(e);
+                _logger.LogError($"{nameof(ReviewController)} - Error when updating review.");
+                return BadRequest("An error happened: " + e.Message);
             }
 
         }
 
-        [Authorize(Roles = "LifeUser")]
+        [Authorize(Roles = "LifeUser, LifeAdmin")]
         [HttpDelete("DeleteReview")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -106,7 +109,8 @@ namespace EcommerceAPI.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(e);
+                _logger.LogError($"{nameof(ReviewController)} - Error when deleting review.");
+                return BadRequest("An error happened: " + e.Message);
             }
         }
         [Authorize(Roles = "LifeAdmin")]
@@ -120,7 +124,8 @@ namespace EcommerceAPI.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(e);
+                _logger.LogError($"{nameof(ReviewController)} - Error when deleting review comment.");
+                return BadRequest();
             }
         }
 

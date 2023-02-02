@@ -2,15 +2,12 @@
 using Amazon.S3.Model;
 using AutoMapper;
 using EcommerceAPI.Data.UnitOfWork;
-using EcommerceAPI.Helpers;
-using EcommerceAPI.Models.DTOs.Order;
 using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
 using Microsoft.EntityFrameworkCore;
 using Nest;
 using System.Linq.Dynamic.Core;
-using System.Linq.Expressions;
 
 
 namespace EcommerceAPI.Services
@@ -50,7 +47,7 @@ namespace EcommerceAPI.Services
             var product = await GetProduct(productId);
             if (product == null)
             {
-                throw new NullReferenceException("The product you're trying to make a discount doesn't exist!");
+                throw new NullReferenceException("The product you're trying to make a discount to doesn't exist!");
             }
             if (product.ListPrice - product.Price >= 0.01)
             {
@@ -60,12 +57,13 @@ namespace EcommerceAPI.Services
 
 
             var key = $"Product_{productId}";
-            var expirationTime = DateTimeOffset.Now.AddDays(1);
+            var expirationTime = DateTimeOffset.Now.AddMinutes(30);
             _cacheService.SetUpdatedData<Product>(key, product, expirationTime);
 
             _unitOfWork.Repository<Product>().Update(product);
-
             await _unitOfWork.CompleteAsync();
+            await UpdateElastic(_mapper.Map<ProductDto>(product));
+
         }
 
         /// <summary>
@@ -94,8 +92,9 @@ namespace EcommerceAPI.Services
             _cacheService.SetUpdatedData<Product>(key, product, expirationTime);
 
             _unitOfWork.Repository<Product>().Update(product);
-
             await _unitOfWork.CompleteAsync();
+            await UpdateElastic(_mapper.Map<ProductDto>(product));
+
         }
 
         public async Task<Product> GetProduct(int id)
@@ -134,7 +133,9 @@ namespace EcommerceAPI.Services
         public async Task<List<Product>> GetProductsCreatedLast()
         {
             var products = await _unitOfWork.Repository<Product>().GetByCondition(x => x.CreatedDateTime > DateTime.Now.AddHours(-1)).ToListAsync();
+            _logger.LogInformation($"{nameof(ProductService)} - Got products created in the last hour!");
             return products;
+
         }
 
         public async Task CreateProduct(ProductCreateDto productToCreate)
@@ -148,10 +149,10 @@ namespace EcommerceAPI.Services
             if (itemInCache == null)
             {
                 //Store the data in the cache
-                var expirationTime = DateTimeOffset.Now.AddDays(1);
+                var expirationTime = DateTimeOffset.Now.AddMinutes(30);
                 _cacheService.SetData(key, product, expirationTime);
             }
-            _logger.LogInformation("Created product successfully!");
+            _logger.LogInformation($"{nameof(ProductService)} - Created product successfully!");
 
         }
 
@@ -165,11 +166,11 @@ namespace EcommerceAPI.Services
             foreach (var product in products)
             {
                 var key = $"Product_{product.Id}";
-                var expirationTime = DateTimeOffset.Now.AddDays(1);
+                var expirationTime = DateTimeOffset.Now.AddMinutes(30);
                 _cacheService.SetData(key, product, expirationTime);
             }
 
-            _logger.LogInformation("Created products successfully!");
+            _logger.LogInformation($"{nameof(ProductService)} - Created products successfully!");
 
         }
 
@@ -185,7 +186,7 @@ namespace EcommerceAPI.Services
             {
                 while (reader.Peek() >= 0)
                 {
-                    csvRecords.Add(reader.ReadLine().Replace("\"", ""));
+                    csvRecords.Add(reader.ReadLine());
                 }
             }
 
@@ -231,7 +232,6 @@ namespace EcommerceAPI.Services
             _unitOfWork.Repository<Product>().Delete(product);
             await _unitOfWork.CompleteAsync();
             _logger.LogInformation($"{nameof(ProductService)} - Deleted product successfully!");
-
         }
 
         /// <summary>
@@ -248,10 +248,10 @@ namespace EcommerceAPI.Services
                 throw new NullReferenceException("The product you're trying to update doesn't exist!");
             };
             product.Name = productToUpdate.Name;
-            product.Price = productToUpdate.Price;
+            product.Stock = productToUpdate.Stock;
 
             var key = $"Product_{product.Id}";
-            var expirationTime = DateTimeOffset.Now.AddDays(1);
+            var expirationTime = DateTimeOffset.Now.AddMinutes(30);
             _cacheService.SetUpdatedData<Product>(key, product, expirationTime);
 
            
@@ -293,6 +293,7 @@ namespace EcommerceAPI.Services
                     .Sort(sort => sort
                           .Field("_score", SortOrder.Descending)
                           .Field(f => f.TotalSold, SortOrder.Descending)
+                          .Field(f => f.Price , SortOrder.Ascending)
                     )
                 );
                 return searchResponse.Documents.ToList();
