@@ -1,4 +1,5 @@
 ﻿using EcommerceAPI.Models.DTOs.ShoppingCard;
+using EcommerceAPI.Services;
 using EcommerceAPI.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -23,6 +24,14 @@ namespace EcommerceAPI.Controllers
             _logger = logger;
         }
 
+
+        /// <summary>
+        /// Adds a product to card.
+        /// </summary>
+        /// <param name="count"></param>
+        /// <param name="productId"></param>
+        /// <returns></returns>
+        [Authorize("Roles = LifeAdmin, LifeUser")]
         [HttpPost("AddToCard")]
         public async Task<IActionResult> AddProductToCard(int count, int productId)
         {
@@ -39,11 +48,17 @@ namespace EcommerceAPI.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occured while trying to add a product to card");
+                _logger.LogError(ex, $"{nameof(ShoppingCardController)} - An error occured while trying to add a product to card");
                 return BadRequest("An error happened: " + ex.Message);
             }
         }
 
+        /// <summary>
+        /// Removes a product from card if it exists, else returns BadRequest();
+        /// </summary>
+        /// <param name="shoppingCardItemId"></param>
+        /// <returns></returns>
+        [Authorize("Roles = LifeAdmin, LifeUser")]
         [HttpDelete("RemoveFromCard")]
         public async Task<IActionResult> RemoveProductFromCard(int shoppingCardItemId)
         {
@@ -52,11 +67,23 @@ namespace EcommerceAPI.Controllers
 
             if (userId == null) { return Unauthorized(); }
             
-            await _cardService.RemoveProductFromCard(shoppingCardItemId, userId);
+            try
+            {
+                await _cardService.RemoveProductFromCard(shoppingCardItemId, userId);
+                return Ok("Removed from card!");
+            }catch(Exception ex)
+            {
+                _logger.LogError(ex, $"{nameof(ShoppingCardController)} - An error occured while trying to remove a product to card");
+                return BadRequest("An error happened: " + ex.Message);
+            }
 
-            return Ok("Removed from card!");
         }
 
+        /// <summary>
+        /// Empties the shoppingCard of the user.
+        /// </summary>
+        /// <returns></returns>
+        [Authorize("Roles = LifeAdmin, LifeUser")]
         [HttpDelete("RemoveAllProductsFromCard")]
         public async Task<IActionResult> RemoveAllProductsFromCard()
         {
@@ -71,6 +98,11 @@ namespace EcommerceAPI.Controllers
         }
 
 
+        /// <summary>
+        /// Gets shoppingCard details that a user has.
+        /// </summary>
+        /// <returns></returns>
+        [Authorize("Roles = LifeAdmin, LifeUser")]
         [HttpGet("ShoppingCardContent")]
         public async Task<IActionResult> ShoppingCardContent()
         {
@@ -82,6 +114,14 @@ namespace EcommerceAPI.Controllers
             return Ok(shoppingCardContentForUser);
         }
 
+
+        /// <summary>
+        /// Increases the quantity of a product in shoppingCard of a user.
+        /// </summary>
+        /// <param name="newQuantity"></param>
+        /// <param name="shoppingCardItemId"></param>
+        /// <returns></returns>
+        [Authorize("Roles = LifeAdmin, LifeUser")]
         [HttpPost("IncreaseQuantityForProduct")]
         public async Task<IActionResult> IncreaseProductQuantity(int? newQuantity, int shoppingCardItemId)
         {
@@ -90,11 +130,27 @@ namespace EcommerceAPI.Controllers
 
             if (userId == null) { return Unauthorized(); }
 
-            await _cardService.IncreaseProductQuantityInShoppingCard(shoppingCardItemId, userId, newQuantity);
+            try
+            {
+                await _cardService.IncreaseProductQuantityInShoppingCard(shoppingCardItemId, userId, newQuantity);
 
-            return Ok();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"{nameof(ShoppingCardController)} - An error occured while trying to add a product to card");
+                return BadRequest("An error happened: " + ex.Message);
+
+            }
         }
 
+        /// <summary>
+        /// Decreases the quantity of a product in shopppingCard of a user.
+        /// </summary>
+        /// <param name="newQuantity"></param>
+        /// <param name="shoppingCardItemId"></param>
+        /// <returns></returns>
+        [Authorize("Roles = LifeAdmin, LifeUser")]
         [HttpPost("DecreaseQuantityForProduct")]
         public async Task<IActionResult> DecreaseProductQuantity(int? newQuantity, int shoppingCardItemId)
         {
@@ -103,9 +159,16 @@ namespace EcommerceAPI.Controllers
 
             if (userId == null) { return Unauthorized(); }
 
-            await _cardService.DecreaseProductQuantityInShoppingCard(shoppingCardItemId, userId, newQuantity);
-
-            return Ok();
+            try
+            {
+                await _cardService.DecreaseProductQuantityInShoppingCard(shoppingCardItemId, userId, newQuantity);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"{nameof(ShoppingCardController)} - An error occured while trying to remove one product to card");
+                return BadRequest("An error happened: " + ex.Message);
+            }
         }
     }
 }

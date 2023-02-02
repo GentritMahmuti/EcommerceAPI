@@ -35,7 +35,7 @@ namespace EcommerceAPI.Services
         
         public async Task<List<PromotionDetailsDto>> GetAllPromotions()
         {
-            var promotions = _unitOfWork.Repository<Promotion>().GetAll().ToList();
+            var promotions = await _unitOfWork.Repository<Promotion>().GetAll().ToListAsync();
             var promotionsDetails = _mapper.Map<List<Promotion>, List<PromotionDetailsDto>>(promotions);
             return promotionsDetails;
         }
@@ -46,12 +46,18 @@ namespace EcommerceAPI.Services
             var promotion = _mapper.Map<Promotion>(promotionToCreate);
 
             _unitOfWork.Repository<Promotion>().Create(promotion);
-            _unitOfWork.Complete();
-            _logger.LogInformation("Created promotion code successfully!");
+            await _unitOfWork.CompleteAsync();
+            _logger.LogInformation($"{nameof(PromotionService)} - Created promotion code successfully!");
 
         }
 
-        
+
+        /// <summary>
+        /// Updates a specific promotion.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="updatePromotion"></param>
+        /// <returns></returns>
         public async Task UpdatePromotion(int id, PromotionDto promotionToUpdate)
         {
             var promotion = await GetPromotion(id);
@@ -66,10 +72,17 @@ namespace EcommerceAPI.Services
 
             _unitOfWork.Repository<Promotion>().Update(promotion);
 
-            _unitOfWork.Complete();
+            await _unitOfWork.CompleteAsync();
         }
 
        
+
+        /// <summary>
+        /// Deletes a specific promotion.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        /// <exception cref="NullReferenceException"></exception>
         public async Task DeletePromotion(int id)
         {
             var promotion = await GetPromotion(id);
@@ -78,14 +91,14 @@ namespace EcommerceAPI.Services
                 throw new NullReferenceException("The promotion you're trying to delete doesn't exist.");
             }
             _unitOfWork.Repository<Promotion>().Delete(promotion);
-            _unitOfWork.Complete();
-            _logger.LogInformation("Deleted promotion successfully!");
+            await _unitOfWork.CompleteAsync();
+            _logger.LogInformation($"{nameof(PromotionService)} - Deleted promotion successfully!");
 
         }
+
         private async Task<Promotion> GetPromotion(int id)
         {
-            Expression<Func<Promotion, bool>> expression = x => x.Id == id;
-            var promotion = await _unitOfWork.Repository<Promotion>().GetById(expression).FirstOrDefaultAsync();
+            var promotion = await _unitOfWork.Repository<Promotion>().GetById(x => x.Id == id).FirstOrDefaultAsync();
             return promotion;
         }
     }

@@ -31,7 +31,7 @@ namespace EcommerceAPI.Services
             var category = _mapper.Map<Category>(categoryToCreate);
 
             _unitOfWork.Repository<Category>().Create(category);
-            _unitOfWork.Complete();
+            await _unitOfWork.CompleteAsync();
             _logger.LogInformation($"{nameof(CategoryService)} - Created category successfully!");
         }
 
@@ -84,7 +84,7 @@ namespace EcommerceAPI.Services
             category.CategoryName = categoryToUpdate.CategoryName;
 
             _unitOfWork.Repository<Category>().Update(category);
-            _unitOfWork.Complete();
+            await _unitOfWork.CompleteAsync();
             _logger.LogInformation($"{nameof(CategoryService)} - Updated category successfully!");
 
         }
@@ -111,7 +111,7 @@ namespace EcommerceAPI.Services
             }
 
             _unitOfWork.Repository<Category>().Delete(category);
-            _unitOfWork.Complete();
+            await _unitOfWork.CompleteAsync();
             _logger.LogInformation($"{nameof(CategoryService)} - Deleted category successfully!");
         }
     }
