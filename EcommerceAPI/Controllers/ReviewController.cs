@@ -28,6 +28,11 @@ namespace EcommerceAPI.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// Gets reviews that a specific user has done.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
         [Authorize("Roles = LifeAdmin")]
         [HttpGet("GetUserReviews")]
         public async Task<IActionResult> GetUserReviews(string userId)
@@ -36,7 +41,10 @@ namespace EcommerceAPI.Controllers
             return Ok(reviews);
         }
 
-
+        /// <summary>
+        /// Gets reviews that you(client) have done.
+        /// </summary>
+        /// <returns></returns>
         [Authorize(Roles = "LifeUser, LifeAdmin")]
         [HttpGet("GetYourReviews")]
         public async Task<IActionResult> GetYourReviews()
@@ -47,6 +55,12 @@ namespace EcommerceAPI.Controllers
             return Ok(reviews);
         }
 
+
+        /// <summary>
+        /// Gets reviews about a product.
+        /// </summary>
+        /// <param name="productId"></param>
+        /// <returns></returns>
         [Authorize(Roles = "LifeAdmin, LifeUser")]
         [HttpGet("GetProductReviews")]
         public async Task<IActionResult> GetProductReviews(int productId)
@@ -55,6 +69,7 @@ namespace EcommerceAPI.Controllers
             return Ok(reviews);
         }
 
+      
         [Authorize(Roles = "LifeAdmin")]
         [HttpGet("GetAllReviews")]
         public async Task<IActionResult> GetReviews()
@@ -64,6 +79,11 @@ namespace EcommerceAPI.Controllers
             return Ok(reviews);
         }
 
+        /// <summary>
+        /// Creates a new review.
+        /// </summary>
+        /// <param name="ReviewToCreate"></param>
+        /// <returns></returns>
         [Authorize(Roles = "LifeUser, LifeAdmin")]
         [HttpPost("PostReview")]
         public async Task<IActionResult> Post([FromForm] ReviewCreateDto ReviewToCreate)
@@ -76,6 +96,12 @@ namespace EcommerceAPI.Controllers
             return Ok("Review created successfully!");
         }
         
+
+        /// <summary>
+        /// Updates a specific review.
+        /// </summary>
+        /// <param name="ReviewToUpdate"></param>
+        /// <returns></returns>
         [Authorize(Roles = "LifeUser, LifeAdmin")]
         [HttpPut("UpdateReview")]
         public async Task<IActionResult> Update(ReviewUpdateDto ReviewToUpdate)
@@ -90,12 +116,18 @@ namespace EcommerceAPI.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError($"{nameof(ReviewController)} - Error when updating review.");
+                _logger.LogError(e, $"{nameof(ReviewController)} - Error when updating review.");
                 return BadRequest("An error happened: " + e.Message);
             }
 
         }
 
+
+        /// <summary>
+        /// Deletes a specific review.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [Authorize(Roles = "LifeUser, LifeAdmin")]
         [HttpDelete("DeleteReview")]
         public async Task<IActionResult> Delete(int id)
@@ -109,10 +141,16 @@ namespace EcommerceAPI.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError($"{nameof(ReviewController)} - Error when deleting review.");
+                _logger.LogError(e, $"{nameof(ReviewController)} - Error when deleting review.");
                 return BadRequest("An error happened: " + e.Message);
             }
         }
+
+        /// <summary>
+        /// Gives possibility to admins to delete a comment of a review, in case it is unappropiate, harmful, racist etc.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [Authorize(Roles = "LifeAdmin")]
         [HttpDelete("DeleteReviewComment")]
         public async Task<IActionResult> DeleteReviewComment(int id)
@@ -124,8 +162,8 @@ namespace EcommerceAPI.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError($"{nameof(ReviewController)} - Error when deleting review comment.");
-                return BadRequest();
+                _logger.LogError(e, $"{nameof(ReviewController)} - Error when deleting review comment.");
+                return BadRequest("An error happened: " + e.Message);
             }
         }
 

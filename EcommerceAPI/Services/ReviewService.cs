@@ -25,30 +25,50 @@ namespace EcommerceAPI.Services
         }
 
         
+        /// <summary>
+        /// Gets reviews that a user has done.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns>List of review details.</returns>
         public async Task<List<ReviewDetailsDto>> GetUserReviews(string userId)
         {
-            var reviews = _unitOfWork.Repository<Review>().GetByCondition(x=>x.UserId.Equals(userId)).ToList();
+            var reviews = await _unitOfWork.Repository<Review>().GetByCondition(x=>x.UserId.Equals(userId)).ToListAsync();
             var reviewsDetails = _mapper.Map<List<Review>, List<ReviewDetailsDto>>(reviews);
             return reviewsDetails;
         }
 
+
+        /// <summary>
+        /// Gets all reviews of product
+        /// </summary>
+        /// <param name="productId"></param>
+        /// <returns>List of review details.</returns>
         public async Task<List<ReviewDetailsDto>> GetProductReviews(int productId)
         {
-            Expression<Func<Review, bool>> expression = x => x.ProductId == productId;
-            var reviews = _unitOfWork.Repository<Review>().GetByCondition(expression).ToList();
+            var reviews = await _unitOfWork.Repository<Review>().GetByCondition(x => x.ProductId == productId).ToListAsync();
             var reviewsDetails = _mapper.Map<List<Review>, List<ReviewDetailsDto>>(reviews);
 
             return reviewsDetails;
         }
 
+
+        /// <summary>
+        /// Gets all reviews.
+        /// </summary>
+        /// <returns>List of review details.</returns>
         public async Task<List<ReviewDetailsDto>> GetAllReviews()
         {
-            var reviews = _unitOfWork.Repository<Review>().GetAll().ToList();
+            var reviews = await _unitOfWork.Repository<Review>().GetAll().ToListAsync();
             var reviewsDetails = _mapper.Map<List<Review>, List<ReviewDetailsDto>>(reviews);
             return reviewsDetails;
         }
 
-
+        /// <summary>
+        /// Creates a new review.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="reviewToCreate"></param>
+        /// <returns>The created review.</returns>
         public async Task<Review> CreateReview(string userId, ReviewCreateDto reviewToCreate)
         {
             
@@ -56,9 +76,18 @@ namespace EcommerceAPI.Services
             review.UserId = userId;
 
             _unitOfWork.Repository<Review>().Create(review);
-            _unitOfWork.Complete();
+            await _unitOfWork.CompleteAsync();
             return review;
         }
+
+        /// <summary>
+        /// Updates a specific review if it exists, else throws exception.
+        /// </summary>
+        /// <param name="reviewToUpdate"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        /// <exception cref="NullReferenceException"></exception>
+        /// <exception cref="Exception"></exception>
         public async Task UpdateReview(ReviewUpdateDto reviewToUpdate, string userId)
         {
             var review = await GetReview(reviewToUpdate.ReviewId);        
@@ -73,7 +102,7 @@ namespace EcommerceAPI.Services
 
                 _unitOfWork.Repository<Review>().Update(review);
 
-                _unitOfWork.Complete();
+                await _unitOfWork.CompleteAsync();
             }
             else
             {
@@ -81,6 +110,14 @@ namespace EcommerceAPI.Services
             }
         }
 
+        /// <summary>
+        /// Deletes a specific review if it exists, else throws exception.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        /// <exception cref="NullReferenceException"></exception>
+        /// <exception cref="Exception"></exception>
         public async Task DeleteReview(int id, string userId)
         {
             var review = await GetReview(id);
@@ -91,7 +128,7 @@ namespace EcommerceAPI.Services
             if (userId.Equals(review.UserId))
             {
                 _unitOfWork.Repository<Review>().Delete(review);
-                _unitOfWork.Complete();
+                await _unitOfWork.CompleteAsync();
             }
             else
             {
@@ -99,6 +136,13 @@ namespace EcommerceAPI.Services
             }
             
         }
+
+        /// <summary>
+        /// Sets the comment of a specific review to null. 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        /// <exception cref="NullReferenceException"></exception>
         public async Task DeleteReviewComment(int id)
         {
             var review = await GetReview(id);
@@ -109,14 +153,13 @@ namespace EcommerceAPI.Services
             review.ReviewComment = null;
             _unitOfWork.Repository<Review>().Update(review);
 
-            _unitOfWork.Complete();
+            await _unitOfWork.CompleteAsync();
 
         }
 
         private async Task<Review> GetReview(int id)
         {
-            Expression<Func<Review, bool>> expression = x => x.Id == id;
-            var review = await _unitOfWork.Repository<Review>().GetById(expression).FirstOrDefaultAsync();
+            var review = await _unitOfWork.Repository<Review>().GetById(x => x.Id == id).FirstOrDefaultAsync();
             return review;
         }
     }

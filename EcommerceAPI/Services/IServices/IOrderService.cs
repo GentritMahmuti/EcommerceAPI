@@ -8,7 +8,6 @@ namespace EcommerceAPI.Services.IServices
         Task ChangeOrderStatus(string orderId, string status);
         List<OrderData> GetCustomerOrderHistory(string userId);
         Task<OrderData> GetOrder(string orderId);
-        Task UpdateOrder(OrderData order);
 
         Task CreateOrder(string userId, AddressDetails addressDetails, string? promoCode);
 

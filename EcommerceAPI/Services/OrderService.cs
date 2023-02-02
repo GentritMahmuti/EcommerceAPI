@@ -30,65 +30,48 @@ namespace EcommerceAPI.Services
             _productService = productService;
         }
 
+
         public async Task<OrderData> GetOrder(string orderId)
         {
             if (string.IsNullOrEmpty(orderId))
             {
-                _logger.LogError("GetOrder - orderId is null or empty");
                 throw new ArgumentException("orderId cannot be null or empty");
             }
 
-            Expression<Func<OrderData, bool>> expression = x => x.OrderId == orderId;
-            var orderData = await _unitOfWork.Repository<OrderData>().GetById(expression).FirstOrDefaultAsync();
+            
+            var orderData = await _unitOfWork.Repository<OrderData>().GetById(x => x.OrderId == orderId).FirstOrDefaultAsync();
+
+
 
             if (orderData == null)
             {
-                _logger.LogError($"GetOrder - Order not found with Id: {orderId}");
                 throw new NullReferenceException($"Order not found with Id: {orderId}");
             }
 
             return orderData;
         }
 
+
+        /// <summary>
+        /// Gets all orders that a user with a userId has done.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns>List of orders.</returns>
         public List<OrderData> GetCustomerOrderHistory(string userId)
         {
             var orders = _unitOfWork.Repository<OrderData>().GetByCondition(o => o.UserId == userId).ToList();
             return orders;
         }
 
-        public async Task UpdateOrder(OrderData order)
-        {
-            if (order == null)
-            {
-                _logger.LogError("Order data input is null");
-                throw new ArgumentNullException("Order data input cannot be null");
-            }
-
-            var existingOrder = await GetOrder(order.OrderId);
-            if (existingOrder == null)
-            {
-                _logger.LogError("The orderdata you're trying to update doesn't exist! OrderId: {0}", order.OrderId);
-                throw new NullReferenceException("The orderdata you're trying to update doesn't exist!");
-            }
-            existingOrder.Name = order.Name;
-
-            _unitOfWork.Repository<OrderData>().Update(existingOrder);
-            _unitOfWork.Complete();
-        }
-
+        /// <summary>
+        /// Changes status of the order to the given one and publishes to rabbit queue which then sends information email to user.
+        /// </summary>
+        /// <param name="orderId"></param>
+        /// <param name="status"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public async Task ChangeOrderStatus(string orderId, string status)
         {
-            if (string.IsNullOrEmpty(orderId))
-            {
-                _logger.LogError($"{nameof(OrderService)} - orderId is null or empty");
-                throw new ArgumentException("orderId cannot be null or empty");
-            }
-
-            if (string.IsNullOrEmpty(status))
-            {
-                _logger.LogError($"{nameof(OrderService)} - status is null or empty");
-                throw new ArgumentException("status cannot be null or empty");
-            }
 
             var orderToUpdate = await _unitOfWork.Repository<OrderData>().GetByCondition(x => x.OrderId == orderId).FirstOrDefaultAsync();
 
@@ -107,38 +90,24 @@ namespace EcommerceAPI.Services
             orderToUpdate.Carrier = carrier;
 
             var client = await _unitOfWork.Repository<User>().GetByCondition(x => x.Id == orderToUpdate.UserId).FirstOrDefaultAsync();
-            var clientName = client.FirsName;
-            var clientEmail = client.Email;
 
+            
             _unitOfWork.Repository<OrderData>().Update(orderToUpdate);
-            _unitOfWork.Complete();
+            await _unitOfWork.CompleteAsync();
+            
+            var rabbitData = new OrderStatusDto { OrderId = orderToUpdate.OrderId, Name = client.FirsName, Status = status, Email = client.Email };
 
-            var rabbitData = new OrderStatusDto { OrderId = orderToUpdate.OrderId, Name = clientName, Status = status, Email = clientEmail };
             PublishRabbit(rabbitData);
         }
 
-        public void PublishRabbit(OrderStatusDto rabbitData)
-        {
-            var factory = new ConnectionFactory() { HostName = "localhost" };
-            using (var connection = factory.CreateConnection())
-            using (var channel = connection.CreateModel())
-            {
-                channel.QueueDeclare(queue: "orders",
-                                     durable: true,
-                                     exclusive: false,
-                                     autoDelete: false,
-                                     arguments: null);
-
-                var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(rabbitData));
-
-                channel.BasicPublish(exchange: "",
-                                     routingKey: "orders",
-                                     basicProperties: null,
-                                     body: body);
-                _logger.LogInformation("Data for order status is published to the rabbit!");
-            }
-        }
-
+        
+        /// <summary>
+        /// Creates a order from shoppingCard and publishes message to rabbit queue for order confirmation.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="addressDetails"></param>
+        /// <param name="promoCode"></param>
+        /// <returns></returns>
         public async Task CreateOrder(string userId, AddressDetails addressDetails, string? promoCode)
         {
             var orderId = Guid.NewGuid().ToString();
@@ -194,18 +163,14 @@ namespace EcommerceAPI.Services
             _unitOfWork.Repository<OrderData>().Create(order);
             _unitOfWork.Repository<CartItem>().DeleteRange(shoppingCardItems);
             _unitOfWork.Repository<ProductOrderData>().CreateRange(orderDetailsList);
-
-            _unitOfWork.Complete();
-
-
-
-            double totalPrice = shoppingCardItems.Select(x => x.Price).Sum();
+                
+            await _unitOfWork.CompleteAsync();
 
             var orderConfirmationDto = new OrderConfirmationDto
             {
                 UserName = addressDetails.Name,
                 OrderDate = DateTime.Now,
-                Price = totalPrice,
+                Price = order.OrderFinalPrice,
                 OrderId = orderId,
                 Email = addressDetails.Email,
                 PhoheNumber = addressDetails.PhoheNumber,
@@ -217,7 +182,15 @@ namespace EcommerceAPI.Services
         }
 
 
-        //create an order by using productId and count
+        /// <summary>
+        /// Creates an order for a single product and publishes a message to rabbit queue for order confirmation.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="productId"></param>
+        /// <param name="count"></param>
+        /// <param name="addressDetails"></param>
+        /// <returns></returns>
+        /// <exception cref="NullReferenceException"></exception>
         public async Task CreateOrderForProduct(string userId, int productId, int count, AddressDetails addressDetails)
         {
 
@@ -289,7 +262,12 @@ namespace EcommerceAPI.Services
             PublishOrderConfirmation(orderConfirmationDto);
         }
 
-
+        /// <summary>
+        /// Gets shoppingCard items of a specific client.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns>List of card items.</returns>
+        /// <exception cref="Exception"></exception>
         private async Task<List<CartItem>> GetShoppingCardItems(string userId)
         {
             var shoppingCardItems = await _unitOfWork.Repository<CartItem>().GetByCondition(x => x.UserId == userId).ToListAsync();
@@ -299,6 +277,13 @@ namespace EcommerceAPI.Services
             }
             return shoppingCardItems;
         }
+
+        /// <summary>
+        /// Decreases the stock of a product, increases TotalSold.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns>Updated product.</returns>
+        /// <exception cref="Exception"></exception>
         private async Task<Product> GetAndUpdateProduct(CartItem item)
         {
             var product = await _unitOfWork.Repository<Product>().GetById(x => x.Id == item.ProductId).FirstOrDefaultAsync();
@@ -322,6 +307,14 @@ namespace EcommerceAPI.Services
             await _productService.UpdateSomeElastic(product.Id, product.Stock, product.TotalSold);
             return product;
         }
+
+        /// <summary>
+        /// Checks if promoCode is valid, if it is valid applies the discount.
+        /// </summary>
+        /// <param name="promoCode"></param>
+        /// <param name="orderTotal"></param>
+        /// <returns></returns>
+        /// <exception cref="NullReferenceException"></exception>
         private async Task<PromotionDataDto> CheckPromoCode(string promoCode, double orderTotal)
         {
             var promotion = await _unitOfWork.Repository<Promotion>().GetByCondition(x => x.Name.Equals(promoCode)).FirstOrDefaultAsync();
@@ -344,6 +337,36 @@ namespace EcommerceAPI.Services
 
         }
 
+        /// <summary>
+        /// Publishes the message to the "orders" queue when status of an order changes.
+        /// </summary>
+        /// <param name="rabbitData"></param>
+        public void PublishRabbit(OrderStatusDto rabbitData)
+        {
+            var factory = new ConnectionFactory() { HostName = "localhost" };
+            using (var connection = factory.CreateConnection())
+            using (var channel = connection.CreateModel())
+            {
+                channel.QueueDeclare(queue: "orders",
+                                     durable: true,
+                                     exclusive: false,
+                                     autoDelete: false,
+                                     arguments: null);
+
+                var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(rabbitData));
+
+                channel.BasicPublish(exchange: "",
+                                     routingKey: "orders",
+                                     basicProperties: null,
+                                     body: body);
+                _logger.LogInformation($"{nameof(OrderService)} - Data for order status is published to the rabbit!");
+            }
+        }
+
+        /// <summary>
+        /// Publishes the message to the "order-confirmations" queue when an order is done which then sends email to the user who has done that order to notify them that the order has been confirmed.
+        /// </summary>
+        /// <param name="rabbitData"></param>
         public void PublishOrderConfirmation(OrderConfirmationDto rabbitData)
         {
             var factory = new ConnectionFactory() { HostName = "localhost" };
@@ -366,6 +389,11 @@ namespace EcommerceAPI.Services
             }
         }
 
+
+        /// <summary>
+        /// Publishes the message to the "low-stock" queue when a product is in low stock, which then sends email to admin to notify them.
+        /// </summary>
+        /// <param name="rabbitData"></param>
         public void PublishForLowStock(LowStockDto data)
         {
             var factory = new ConnectionFactory() { HostName = "localhost" };
