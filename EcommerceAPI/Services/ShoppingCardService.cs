@@ -115,185 +115,190 @@ namespace EcommerceAPI.Services
                 // Log the key
                 var key = $"CartItems_{userId}";
 
-            var key = $"CartItems_{userId}";
+                // Check if the data is already in the cache
+                var usersShoppingCardItems = _cacheService.GetDataSet<CartItem>(key);
 
-            // Check if the data is already in the cache
-            var usersShoppingCardItems = _cacheService.GetDataSet<CartItem>(key);
-
-            // If not, then get the data from the database
-            if (usersShoppingCardItems.Count == 0)
-            {
-                usersShoppingCardItems = await _unitOfWork.Repository<CartItem>()
-                                                                    .GetByCondition(x => x.UserId == userId)
-                                                                    .AsNoTracking()
-                                                                    .Include(x => x.Product)
-                                                                    .ToListAsync();
-
-                foreach (var cartItem in usersShoppingCardItems)
+                // If not, then get the data from the database
+                if (usersShoppingCardItems.Count == 0)
                 {
-                    _cacheService.SetDataMember(key, cartItem);
-                }
-            }
-            return usersShoppingCardItems;
-        }
+                    usersShoppingCardItems = await _unitOfWork.Repository<CartItem>()
+                                                                        .GetByCondition(x => x.UserId == userId)
+                                                                        .AsNoTracking()
+                                                                        .Include(x => x.Product)
+                                                                        .ToListAsync();
 
-        public async Task<ShoppingCardDetails> GetShoppingCardContentForUser(string userId)
-        {
-            try
-            { 
-                
-                var usersShoppingCard = await GetShoppingCardItems(userId);
-
-                var shoppingCardList = new List<ShoppingCardViewDto>();
-                foreach (CartItem item in usersShoppingCard)
-                {
-                    var currentProduct = item.Product;
-                    var model = new ShoppingCardViewDto
+                    foreach (var cartItem in usersShoppingCardItems)
                     {
-                        ShoppingCardItemId = item.CartItemId,
-                        ProductId = item.ProductId,
-
-
-                        ProductImage = currentProduct.ImageUrl,
-                        ProductDescription = currentProduct.Description,
-                        ProductName = currentProduct.Name,
-                        ProductPrice = currentProduct.Price,
-                        ShopingCardProductCount = item.Count,
-                        Total = currentProduct.Price * item.Count
-                    };
-
-                    shoppingCardList.Add(model);
+                        _cacheService.SetDataMember(key, cartItem);
+                    }
                 }
-
-                var shoppingCardDetails = new ShoppingCardDetails()
-                {
-                    ShoppingCardItems = shoppingCardList,
-                    CardTotal = shoppingCardList.Select(x => x.Total).Sum(),
-                    ItemCount = shoppingCardList.Count
-                };
-                return shoppingCardDetails;
+                return usersShoppingCardItems;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"{nameof(ShoppingCardService)} - There was an error while trying to get the shopping card content!");
-                return new ShoppingCardDetails();
+                _logger.LogError(ex, $"{nameof(ShoppingCardService)} - There was an error while trying to get the shopping card items!");
+                return null;
             }
+
         }
 
-        /// <summary>
-        /// Removes a specific product from shoppingCard.
-        /// </summary>
-        /// <param name="shoppingCardItemId"></param>
-        /// <param name="userId"></param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-        public async Task RemoveProductFromCard(int shoppingCardItemId, string userId)
-        {
-            try
+        public async Task<ShoppingCardDetails> GetShoppingCardContentForUser(string userId)
+            {
+                try
+                {
+
+                    var usersShoppingCard = await GetShoppingCardItems(userId);
+
+                    var shoppingCardList = new List<ShoppingCardViewDto>();
+                    foreach (CartItem item in usersShoppingCard)
+                    {
+                        var currentProduct = item.Product;
+                        var model = new ShoppingCardViewDto
+                        {
+                            ShoppingCardItemId = item.CartItemId,
+                            ProductId = item.ProductId,
+
+
+                            ProductImage = currentProduct.ImageUrl,
+                            ProductDescription = currentProduct.Description,
+                            ProductName = currentProduct.Name,
+                            ProductPrice = currentProduct.Price,
+                            ShopingCardProductCount = item.Count,
+                            Total = currentProduct.Price * item.Count
+                        };
+
+                        shoppingCardList.Add(model);
+                    }
+
+                    var shoppingCardDetails = new ShoppingCardDetails()
+                    {
+                        ShoppingCardItems = shoppingCardList,
+                        CardTotal = shoppingCardList.Select(x => x.Total).Sum(),
+                        ItemCount = shoppingCardList.Count
+                    };
+                    return shoppingCardDetails;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"{nameof(ShoppingCardService)} - There was an error while trying to get the shopping card content!");
+                    return new ShoppingCardDetails();
+                }
+            }
+
+            /// <summary>
+            /// Removes a specific product from shoppingCard.
+            /// </summary>
+            /// <param name="shoppingCardItemId"></param>
+            /// <param name="userId"></param>
+            /// <returns></returns>
+            /// <exception cref="Exception"></exception>
+            public async Task RemoveProductFromCard(int shoppingCardItemId, string userId)
+            {
+                try
+                {
+                    var cacheKey = $"CartItems_{userId}";
+                    var shoppingCardItem = await CheckRedisAndDatabaseForData(shoppingCardItemId, cacheKey);
+
+                    _unitOfWork.Repository<CartItem>().Delete(shoppingCardItem);
+                    await _unitOfWork.CompleteAsync();
+
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"{nameof(ShoppingCardService)} - An error occured while trying to remove a product to card");
+                    throw new Exception("An error occurred while removing the item from the cart");
+                }
+            }
+
+
+            /// <summary>
+            /// Empties the shoppingCard of a user.
+            /// </summary>
+            /// <param name="userId"></param>
+            /// <returns></returns>
+            public async Task RemoveAllProductsFromCard(string userId)
+            {
+                var key = $"CartItems_{userId}";
+
+                var usersShoppingCard = _cacheService.GetDataSet<CartItem>(key);
+                _cacheService.RemoveData(key);
+                _unitOfWork.Repository<CartItem>().DeleteRange(usersShoppingCard);
+                await _unitOfWork.CompleteAsync();
+
+            }
+
+            /// <summary>
+            /// Increases the quantity of a product in shoppingCard of the user with userId.
+            /// </summary>
+            /// <param name="shoppingCardItemId"></param>
+            /// <param name="userId"></param>
+            /// <param name="newQuantity"></param>
+            /// <returns></returns>
+            /// <exception cref="Exception"></exception>
+            public async Task IncreaseProductQuantityInShoppingCard(int shoppingCardItemId, string userId, int? newQuantity)
             {
                 var cacheKey = $"CartItems_{userId}";
                 var shoppingCardItem = await CheckRedisAndDatabaseForData(shoppingCardItemId, cacheKey);
 
-                _unitOfWork.Repository<CartItem>().Delete(shoppingCardItem);
+                if (newQuantity == null)
+                    shoppingCardItem.Count++;
+                else
+                    shoppingCardItem.Count = (int)newQuantity;
+
+                _unitOfWork.Repository<CartItem>().Update(shoppingCardItem);
                 await _unitOfWork.CompleteAsync();
+                var cartItem = await GetCardItem(shoppingCardItem.CartItemId);
+                _cacheService.SetDataMember(cacheKey, cartItem);
+
 
             }
-            catch (Exception ex)
+            public async Task DecreaseProductQuantityInShoppingCard(int shoppingCardItemId, string userId, int? newQuantity)
             {
-                _logger.LogError(ex, $"{nameof(ShoppingCardService)} - An error occured while trying to remove a product to card");
-                throw new Exception("An error occurred while removing the item from the cart");
-            }
-        }
 
+                var cacheKey = $"CartItems_{userId}";
+                var shoppingCardItem = await CheckRedisAndDatabaseForData(shoppingCardItemId, cacheKey);
 
-        /// <summary>
-        /// Empties the shoppingCard of a user.
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <returns></returns>
-        public async Task RemoveAllProductsFromCard(string userId)
-        {
-            var key = $"CartItems_{userId}";
-
-            var usersShoppingCard = _cacheService.GetDataSet<CartItem>(key);
-            _cacheService.RemoveData(key);
-            _unitOfWork.Repository<CartItem>().DeleteRange(usersShoppingCard);
-            await _unitOfWork.CompleteAsync();
-
-        }
-
-        /// <summary>
-        /// Increases the quantity of a product in shoppingCard of the user with userId.
-        /// </summary>
-        /// <param name="shoppingCardItemId"></param>
-        /// <param name="userId"></param>
-        /// <param name="newQuantity"></param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-        public async Task IncreaseProductQuantityInShoppingCard(int shoppingCardItemId, string userId, int? newQuantity)
-        {
-            var cacheKey = $"CartItems_{userId}";
-            var shoppingCardItem = await CheckRedisAndDatabaseForData(shoppingCardItemId, cacheKey);
-
-            if (newQuantity == null)
-                shoppingCardItem.Count++;
-            else
-                shoppingCardItem.Count = (int)newQuantity;
-
-            _unitOfWork.Repository<CartItem>().Update(shoppingCardItem);
-            await _unitOfWork.CompleteAsync();
-            var cartItem = await GetCardItem(shoppingCardItem.CartItemId);
-            _cacheService.SetDataMember(cacheKey, cartItem);
-
-
-        }
-        public async Task DecreaseProductQuantityInShoppingCard(int shoppingCardItemId, string userId, int? newQuantity)
-        {
-
-            var cacheKey = $"CartItems_{userId}";
-            var shoppingCardItem = await CheckRedisAndDatabaseForData(shoppingCardItemId, cacheKey);
-
-            if (shoppingCardItem == null)
-            {
-                throw new Exception("Cart item not found in the database.");
-            }
-            if (newQuantity == null)
-                shoppingCardItem.Count--;
-            else
-                shoppingCardItem.Count = (int)newQuantity;
-
-            _unitOfWork.Repository<CartItem>().Update(shoppingCardItem);
-            await _unitOfWork.CompleteAsync();
-            var cartItem = await GetCardItem(shoppingCardItem.CartItemId);
-            _cacheService.SetDataMember(cacheKey, cartItem);
-
-
-        }
-        private async Task<CartItem> CheckRedisAndDatabaseForData(int shoppingCardItemId, string cachekey)
-        {
-            CartItem? shoppingCardItem = null;
-            var usersShoppingCard = _cacheService.GetDataSet<CartItem>(cachekey);
-            if (usersShoppingCard != null)
-            {
-                foreach (var item in usersShoppingCard)
+                if (shoppingCardItem == null)
                 {
-                    if (item.CartItemId == shoppingCardItemId)
+                    throw new Exception("Cart item not found in the database.");
+                }
+                if (newQuantity == null)
+                    shoppingCardItem.Count--;
+                else
+                    shoppingCardItem.Count = (int)newQuantity;
+
+                _unitOfWork.Repository<CartItem>().Update(shoppingCardItem);
+                await _unitOfWork.CompleteAsync();
+                var cartItem = await GetCardItem(shoppingCardItem.CartItemId);
+                _cacheService.SetDataMember(cacheKey, cartItem);
+
+
+            }
+            private async Task<CartItem> CheckRedisAndDatabaseForData(int shoppingCardItemId, string cachekey)
+            {
+                CartItem? shoppingCardItem = null;
+                var usersShoppingCard = _cacheService.GetDataSet<CartItem>(cachekey);
+                if (usersShoppingCard != null)
+                {
+                    foreach (var item in usersShoppingCard)
                     {
-                        shoppingCardItem = item;
-                        _cacheService.RemoveDataFromSet(cachekey, item);
+                        if (item.CartItemId == shoppingCardItemId)
+                        {
+                            shoppingCardItem = item;
+                            _cacheService.RemoveDataFromSet(cachekey, item);
+                        }
                     }
                 }
-            }
 
-            if (shoppingCardItem == null)
-            {
-                shoppingCardItem = await _unitOfWork.Repository<CartItem>()
-                                                    .GetById(x => x.CartItemId == shoppingCardItemId)
-                                                    .FirstOrDefaultAsync();
+                if (shoppingCardItem == null)
+                {
+                    shoppingCardItem = await _unitOfWork.Repository<CartItem>()
+                                                        .GetById(x => x.CartItemId == shoppingCardItemId)
+                                                        .FirstOrDefaultAsync();
+                }
+                return shoppingCardItem;
+
             }
-            return shoppingCardItem;
 
         }
-
     }
-}
