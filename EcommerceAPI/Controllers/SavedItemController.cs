@@ -33,13 +33,14 @@ namespace EcommerceAPI.Controllers
                 var products = await _savedItemService.GetSavedItemsContent(userIdClaim);
                 if (products == null)
                 {
+                    _logger.LogInformation("The saved item list was not found");
                     return NotFound("Saved item list not found for user");
                 }
                 return Ok(products);
             }
             catch (Exception ex)
             {
-                _logger.LogError("There was a problem when gettinng the saved items for this user!");
+                _logger.LogError("There was an error when getting the saved items for this user!");
                 return BadRequest(ex.Message);
             }
         }
@@ -59,6 +60,7 @@ namespace EcommerceAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError("There was an error while adding the product to saved items");
                 return BadRequest(ex.Message);
             }
         }
@@ -78,6 +80,7 @@ namespace EcommerceAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError("There was an error while removing the product from saved items");
                 return BadRequest(ex.Message);
             }
         }

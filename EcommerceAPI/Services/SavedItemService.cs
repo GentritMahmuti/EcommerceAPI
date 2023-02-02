@@ -43,7 +43,7 @@ namespace EcommerceAPI.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while getting the saved items content for user");
-                throw new("An error occurred while getting the saved items content for user", ex);
+                throw new(ex.Message);
             }
         }
 
@@ -75,7 +75,7 @@ namespace EcommerceAPI.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while adding the item in your saved items ");
-                throw new Exception("An error occurred while adding the item in your saved items");
+                throw new Exception(ex.Message);
             }
         }
 
@@ -100,21 +100,29 @@ namespace EcommerceAPI.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while removing the item in your saved items");
-                throw new Exception("An error occurred while removing the item in your saved items");
+                throw new Exception(ex.Message);
             }
         }
 
         public async Task<Product> GetProductFromSavedItems(int productId)
         {
-            var savedItems = await _unitOfWork.Repository<SavedItem>().GetByCondition(x => x.ProductId == productId).FirstOrDefaultAsync();
-            if (savedItems != null)
+            try
             {
-                var product = await _unitOfWork.Repository<Product>().GetById(x => x.Id == savedItems.ProductId).FirstOrDefaultAsync();
-                return product;
+                var savedItems = await _unitOfWork.Repository<SavedItem>().GetByCondition(x => x.ProductId == productId).FirstOrDefaultAsync();
+                if (savedItems != null)
+                {
+                    var product = await _unitOfWork.Repository<Product>().GetById(x => x.Id == savedItems.ProductId).FirstOrDefaultAsync();
+                    return product;
+                }
+                else
+                {
+                    return null;
+                }
             }
-            else
+            catch(Exception ex)
             {
-                return null;
+                _logger.LogError("There was an error while getting the product from your saved item list. Please try again!");
+                throw new Exception(ex.Message);
             }
         }
     }
