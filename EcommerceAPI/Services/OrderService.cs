@@ -37,14 +37,17 @@ namespace EcommerceAPI.Services
             {
                 throw new ArgumentException("orderId cannot be null or empty");
             }
+
             
             var orderData = await _unitOfWork.Repository<OrderData>().GetById(x => x.OrderId == orderId).FirstOrDefaultAsync();
+
+
 
             if (orderData == null)
             {
                 throw new NullReferenceException($"Order not found with Id: {orderId}");
             }
-            
+
             return orderData;
         }
 
@@ -59,7 +62,6 @@ namespace EcommerceAPI.Services
             var orders = _unitOfWork.Repository<OrderData>().GetByCondition(o => o.UserId == userId).ToList();
             return orders;
         }
-        
 
         /// <summary>
         /// Changes status of the order to the given one and publishes to rabbit queue which then sends information email to user.
@@ -70,8 +72,9 @@ namespace EcommerceAPI.Services
         /// <exception cref="Exception"></exception>
         public async Task ChangeOrderStatus(string orderId, string status)
         {
+
             var orderToUpdate = await _unitOfWork.Repository<OrderData>().GetByCondition(x => x.OrderId == orderId).FirstOrDefaultAsync();
-           
+
             if (orderToUpdate == null)
             {
                 throw new Exception("No order with the specified Id exists!");
@@ -87,11 +90,13 @@ namespace EcommerceAPI.Services
             orderToUpdate.Carrier = carrier;
 
             var client = await _unitOfWork.Repository<User>().GetByCondition(x => x.Id == orderToUpdate.UserId).FirstOrDefaultAsync();
+
             
             _unitOfWork.Repository<OrderData>().Update(orderToUpdate);
             await _unitOfWork.CompleteAsync();
             
             var rabbitData = new OrderStatusDto { OrderId = orderToUpdate.OrderId, Name = client.FirsName, Status = status, Email = client.Email };
+
             PublishRabbit(rabbitData);
         }
 

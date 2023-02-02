@@ -59,7 +59,7 @@ namespace EcommerceAPI.Data
         public DbSet<Promotion> Promotions { get; set; }
         public DbSet<ChatMessage> ChatMessage { get; set; }
         public DbSet<PaymentMethodEntity> PaymentMethods { get; set; }
-
+        public DbSet<SavedItem> SavedItems { get; set; }
         public DbSet<Inquiry> Inquiries { get; set; }
 
     }

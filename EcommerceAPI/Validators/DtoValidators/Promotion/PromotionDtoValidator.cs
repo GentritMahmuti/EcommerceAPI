@@ -21,7 +21,7 @@ namespace EcommerceAPI.Validators.DtoValidators.Promotion
                 .LessThanOrEqualTo(100).WithMessage("Discount amount must be less than or equal to 100%.");
 
             RuleFor(x => x.StartDate)
-               .GreaterThanOrEqualTo(DateTime.Now)
+               .GreaterThanOrEqualTo(DateTime.Now.AddDays(-1))
                .WithMessage("Promotion start date must be in the future.");
 
             RuleFor(x => x.EndDate)
