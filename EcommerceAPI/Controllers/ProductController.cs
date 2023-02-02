@@ -52,6 +52,9 @@ namespace EcommerceAPI.Controllers
         {
             var products = await _productService.GetAllProducts();
 
+            if (products == null || !products.Any())
+                return NotFound();
+
             return Ok(products);
         }
 
@@ -68,6 +71,22 @@ namespace EcommerceAPI.Controllers
             var products = await _productService.GetProductsPaginated(pageIndex, pageSize);
             return Ok(products);
         }
+
+
+        /// <summary>
+        /// Gets products by category!
+        /// </summary>
+        /// <param name="pageIndex"></param>
+        /// <param name="pageSize"></param>
+        /// <returns>List of products</returns>
+        [Authorize(Roles = "LifeUser, LifeAdmin")]
+        [HttpGet("GetProductsByCategory")]
+        public async Task<IActionResult> GetProductsByCategory(int categoryId, int pageIndex = 1, int pageSize = 10)
+        {
+            var products = await _productService.GetProductsByCategory(categoryId, pageIndex, pageSize);
+            return Ok(products);
+        }
+
 
         /// <summary>
         /// Gets products based on the categories of the products which user has reviewed or sorts by popularity!
@@ -189,6 +208,10 @@ namespace EcommerceAPI.Controllers
         [HttpDelete("DeleteProduct")]
         public async Task<IActionResult> Delete(int id)
         {
+            if (id <= 0)
+            {
+                return BadRequest("Invalid product id");
+            }
             try
             {
                 await _productService.DeleteProduct(id);

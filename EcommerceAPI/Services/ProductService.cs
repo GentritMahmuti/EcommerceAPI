@@ -119,6 +119,7 @@ namespace EcommerceAPI.Services
         {
             return await _unitOfWork.Repository<Product>().GetAll().Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
         }
+
         public async Task<List<Product>> GetAllProducts()
         {
             var products = _unitOfWork.Repository<Product>().GetAll();
@@ -126,6 +127,16 @@ namespace EcommerceAPI.Services
         }
 
 
+        /// <summary>
+        /// Gets products of a given category id.
+        /// </summary>
+        /// <param name="categoryId"></param>
+        /// <returns>List of products.</returns>
+        public async Task<List<Product>> GetProductsByCategory(int categoryId, int pageIndex = 1, int pageSize = 10)
+        {
+            var products = _unitOfWork.Repository<Product>().GetByCondition(x => x.CategoryId == categoryId).Skip((pageIndex - 1) * pageSize).Take(pageSize);
+            return await products.ToListAsync();
+        }
         /// <summary>
         /// Gets products which are created in the last hour!
         /// </summary>
@@ -294,6 +305,7 @@ namespace EcommerceAPI.Services
                           .Field("_score", SortOrder.Descending)
                           .Field(f => f.TotalSold, SortOrder.Descending)
                           .Field(f => f.Price , SortOrder.Ascending)
+                          .Field(f => f.Category.DisplayOrder, SortOrder.Ascending)
                     )
                 );
                 return searchResponse.Documents.ToList();
@@ -307,7 +319,8 @@ namespace EcommerceAPI.Services
                         .MatchAll())
                     .Sort(
                         sort => sort
-                            .Field(f => f.TotalSold, SortOrder.Descending))
+                            .Field(f => f.TotalSold, SortOrder.Descending)
+                            .Field(f => f.Category.DisplayOrder, SortOrder.Ascending))
                     );
             return sortedProducts.Documents.ToList();
         }
