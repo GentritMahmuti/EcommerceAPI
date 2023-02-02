@@ -211,10 +211,12 @@ var client = new ElasticClient(connectionSettings);
 builder.Services.AddSingleton(client);
 
 builder.Services.AddScoped<ICacheService, CacheService>();
+builder.Services.AddScoped<ISavedItemService, SavedItemService>();
 
 builder.Services.AddScoped<IWishlistService, WishlistService>();
 builder.Services.AddTransient<PaymentMethodService>();
 builder.Services.AddTransient<PaymentIntentService>();
+builder.Services.AddScoped<ShoppingCardService>();
 
 var app = builder.Build();
 
