@@ -102,29 +102,47 @@ namespace EcommerceAPI.Services
 
         }
 
+
         /// <summary>
         /// Gets all details about the products that a user has in his shoppingCard.
         /// </summary>
         /// <param name="userId"></param>
         /// <returns>ShoppingCardDetails</returns>
-        public async Task<ShoppingCardDetails> GetShoppingCardContentForUser(string userId)
+        public async Task<List<CartItem>> GetShoppingCardItems(string userId)
         {
             try
             {
                 // Log the key
                 var key = $"CartItems_{userId}";
 
-                // Check if the data is already in the cache
-                var usersShoppingCard = _cacheService.GetDataSet<CartItem>(key);
+            var key = $"CartItems_{userId}";
 
-                // If not, then get the data from the database
-                if (usersShoppingCard == null)
+            // Check if the data is already in the cache
+            var usersShoppingCardItems = _cacheService.GetDataSet<CartItem>(key);
+
+            // If not, then get the data from the database
+            if (usersShoppingCardItems.Count == 0)
+            {
+                usersShoppingCardItems = await _unitOfWork.Repository<CartItem>()
+                                                                    .GetByCondition(x => x.UserId == userId)
+                                                                    .AsNoTracking()
+                                                                    .Include(x => x.Product)
+                                                                    .ToListAsync();
+
+                foreach (var cartItem in usersShoppingCardItems)
                 {
-                    usersShoppingCard = await _unitOfWork.Repository<CartItem>()
-                                                                        .GetByCondition(x => x.UserId == userId)
-                                                                        .Include(x => x.Product)
-                                                                        .ToListAsync();
+                    _cacheService.SetDataMember(key, cartItem);
                 }
+            }
+            return usersShoppingCardItems;
+        }
+
+        public async Task<ShoppingCardDetails> GetShoppingCardContentForUser(string userId)
+        {
+            try
+            { 
+                
+                var usersShoppingCard = await GetShoppingCardItems(userId);
 
                 var shoppingCardList = new List<ShoppingCardViewDto>();
                 foreach (CartItem item in usersShoppingCard)
@@ -150,7 +168,8 @@ namespace EcommerceAPI.Services
                 var shoppingCardDetails = new ShoppingCardDetails()
                 {
                     ShoppingCardItems = shoppingCardList,
-                    CardTotal = shoppingCardList.Select(x => x.Total).Sum()
+                    CardTotal = shoppingCardList.Select(x => x.Total).Sum(),
+                    ItemCount = shoppingCardList.Count
                 };
                 return shoppingCardDetails;
             }

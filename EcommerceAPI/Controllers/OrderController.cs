@@ -142,7 +142,7 @@ namespace EcommerceAPI.Controllers
         /// <returns></returns>
         [Authorize(Roles = "LifeUser, LifeAdmin")]
         [HttpPost("CreateOrderForProduct")]
-        public async Task<IActionResult> CreateOrderForProduct(int productId, int count, AddressDetails addressDetails)
+        public async Task<IActionResult> CreateOrderForProduct(int productId, int count, AddressDetails addressDetails, string? promoCode)
         {
             try
             {
@@ -152,7 +152,7 @@ namespace EcommerceAPI.Controllers
 
                 if (userId == null) { return Unauthorized(); }
 
-                await _orderService.CreateOrderForProduct(userId, productId, count, addressDetails);
+                await _orderService.CreateOrderForProduct(userId, productId, count, addressDetails, promoCode);
 
                 return Ok("Order created!");
             }

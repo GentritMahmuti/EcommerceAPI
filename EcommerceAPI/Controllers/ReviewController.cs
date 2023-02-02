@@ -41,11 +41,15 @@ namespace EcommerceAPI.Controllers
             return Ok(reviews);
         }
 
+
+
+        
+
         /// <summary>
         /// Gets reviews that you(client) have done.
         /// </summary>
         /// <returns></returns>
-        [Authorize(Roles = "LifeUser, LifeAdmin")]
+        [Authorize(Roles = "LifeUser")]
         [HttpGet("GetYourReviews")]
         public async Task<IActionResult> GetYourReviews()
         {

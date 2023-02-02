@@ -104,6 +104,9 @@ namespace EcommerceAPI.Services
             if (product == null)
             {
                 product = await _unitOfWork.Repository<Product>().GetById(x => x.Id == id).FirstOrDefaultAsync();
+                var expirationTime = DateTimeOffset.Now.AddMinutes(30);
+                _cacheService.SetData(key, product, expirationTime);
+
             }
             return product;
         }
@@ -260,6 +263,7 @@ namespace EcommerceAPI.Services
             };
             product.Name = productToUpdate.Name;
             product.Stock = productToUpdate.Stock;
+            product.TotalSold = productToUpdate.TotalSold;
 
             var key = $"Product_{product.Id}";
             var expirationTime = DateTimeOffset.Now.AddMinutes(30);
