@@ -37,7 +37,7 @@ namespace EcommerceAPI.Services
                 _logger.LogError("GetOrder - orderId is null or empty");
                 throw new ArgumentException("orderId cannot be null or empty");
             }
-            
+
             Expression<Func<OrderData, bool>> expression = x => x.OrderId == orderId;
             var orderData = await _unitOfWork.Repository<OrderData>().GetById(expression).FirstOrDefaultAsync();
 
@@ -46,7 +46,7 @@ namespace EcommerceAPI.Services
                 _logger.LogError($"GetOrder - Order not found with Id: {orderId}");
                 throw new NullReferenceException($"Order not found with Id: {orderId}");
             }
-            
+
             return orderData;
         }
 
@@ -55,7 +55,7 @@ namespace EcommerceAPI.Services
             var orders = _unitOfWork.Repository<OrderData>().GetByCondition(o => o.UserId == userId).ToList();
             return orders;
         }
-        
+
         public async Task UpdateOrder(OrderData order)
         {
             if (order == null)
@@ -89,9 +89,9 @@ namespace EcommerceAPI.Services
                 _logger.LogError($"{nameof(OrderService)} - status is null or empty");
                 throw new ArgumentException("status cannot be null or empty");
             }
-            
+
             var orderToUpdate = await _unitOfWork.Repository<OrderData>().GetByCondition(x => x.OrderId == orderId).FirstOrDefaultAsync();
-           
+
             if (orderToUpdate == null)
             {
                 throw new Exception("No order with the specified Id exists!");
@@ -109,11 +109,11 @@ namespace EcommerceAPI.Services
             var client = await _unitOfWork.Repository<User>().GetByCondition(x => x.Id == orderToUpdate.UserId).FirstOrDefaultAsync();
             var clientName = client.FirsName;
             var clientEmail = client.Email;
-            
+
             _unitOfWork.Repository<OrderData>().Update(orderToUpdate);
             _unitOfWork.Complete();
-            
-            var rabbitData = new OrderStatusDto { OrderId = orderToUpdate.OrderId, Name = clientName, Status = status, Email = clientEmail};
+
+            var rabbitData = new OrderStatusDto { OrderId = orderToUpdate.OrderId, Name = clientName, Status = status, Email = clientEmail };
             PublishRabbit(rabbitData);
         }
 

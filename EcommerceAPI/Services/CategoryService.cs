@@ -91,6 +91,7 @@ namespace EcommerceAPI.Services
             }
 
             category.CategoryName = categoryToUpdate.CategoryName;
+            category.DisplayOrder= categoryToUpdate.DisplayOrder;
 
             _unitOfWork.Repository<Category>().Update(category);
 
