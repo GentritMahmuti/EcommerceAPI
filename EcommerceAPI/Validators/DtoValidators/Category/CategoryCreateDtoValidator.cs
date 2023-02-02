@@ -12,7 +12,12 @@ namespace EcommerceAPI.Validators.DtoValidators.Category
             RuleFor(c => c.CategoryName)
                     .NotNull().WithMessage("{PropertyName} must not be null!")
                     .NotEmpty().WithMessage("{PropertyName} must not be empty!")
-                    .Length(1, 150).WithMessage("{PropertyName} must be between 1 and 150 characters!");          
+                    .Length(1, 150).WithMessage("{PropertyName} must be between 1 and 150 characters!");
+
+            RuleFor(c => c.DisplayOrder)
+               .NotNull().WithMessage("{PropertyName} must not be null!")
+               .NotEmpty().WithMessage("{PropertyName} must not be empty!")
+               .GreaterThan(0).WithMessage("{PropertyName} must not be empty!");
         }
     }
 }
