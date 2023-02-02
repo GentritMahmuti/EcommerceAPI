@@ -91,9 +91,7 @@ namespace EcommerceAPI.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        
-
-       
+        //Admins can update a promotion code
         [Authorize(Roles = "LifeAdmin")]
         [HttpPut("UpdatePromotion/{id}")]
         public async Task<IActionResult> Update(int id, PromotionDto updatePromotion)
@@ -109,7 +107,7 @@ namespace EcommerceAPI.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        
+        //Admins can remove a promotion code.
         [Authorize(Roles = "LifeAdmin")]
         [HttpDelete("DeletePromotion")]
         public async Task<IActionResult> Delete(int id)

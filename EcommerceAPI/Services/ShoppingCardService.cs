@@ -118,14 +118,14 @@ namespace EcommerceAPI.Services
                 // Check if the data is already in the cache
                 var usersShoppingCardItems = _cacheService.GetDataSet<CartItem>(key);
 
-                // If not, then get the data from the database
-                if (usersShoppingCardItems.Count == 0)
-                {
-                    usersShoppingCardItems = await _unitOfWork.Repository<CartItem>()
-                                                                        .GetByCondition(x => x.UserId == userId)
-                                                                        .AsNoTracking()
-                                                                        .Include(x => x.Product)
-                                                                        .ToListAsync();
+            // If not, then get the data from the database, and then save the data in cache
+            if (usersShoppingCardItems.Count == 0)
+            {
+                usersShoppingCardItems = await _unitOfWork.Repository<CartItem>()
+                                                                    .GetByCondition(x => x.UserId == userId)
+                                                                    .AsNoTracking()
+                                                                    .Include(x => x.Product)
+                                                                    .ToListAsync();
 
                     foreach (var cartItem in usersShoppingCardItems)
                     {
