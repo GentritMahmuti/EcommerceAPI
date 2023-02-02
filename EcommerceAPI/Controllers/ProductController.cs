@@ -1,5 +1,4 @@
-﻿using EcommerceAPI.Models.DTOs.Order;
-using EcommerceAPI.Models.DTOs.Product;
+﻿using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Services.IServices;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
