@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>26fb42c2-d7f3-47b2-8889-7e6f8302af82</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -42,7 +43,7 @@
     <PackageReference Include="Serilog.Sinks.MSSqlServer" Version="6.1.0" />
     <PackageReference Include="StackExchange.Redis" Version="2.6.90" />
     <PackageReference Include="Stripe.net" Version="41.4.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="System.Linq.Dynamic.Core" Version="1.2.24" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>

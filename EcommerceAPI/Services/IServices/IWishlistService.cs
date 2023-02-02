@@ -7,6 +7,7 @@ namespace EcommerceAPI.Services.IServices
         Task<List<Product>> GetWishlistContent(string userId);
         Task AddProductToWishlist(string userId, int productId);
         Task RemoveProductFromWishlist(string userId, int productId);
-        Task AddToCard(string userId, int productId);
-        Task<Product> GetProductFromWishlist(int productId);    }
+        Task AddToCardFromWishlist(string userId, int productId);
+        Task<Product> GetProductFromWishlist(int productId);    
+    }
 }
