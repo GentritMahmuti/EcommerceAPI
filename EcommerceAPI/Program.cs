@@ -177,23 +177,22 @@ builder.Services.AddSignalR();
 
 builder.Services.AddCors(options =>
 {
+    //options.AddPolicy("ClientPermission", policy =>
+    //{
+    //    policy.AllowAnyHeader()
+    //        .AllowAnyMethod()
+    //        .WithOrigins("http://localhost:49153/swagger/index.html")
+    //        .AllowCredentials();
+            
+    //});
+
     options.AddPolicy("ClientPermission", policy =>
     {
         policy.AllowAnyHeader()
             .AllowAnyMethod()
-            .a
-            .WithOrigins("http://localhost:49153/swagger/index.html")
+            .WithOrigins("http://localhost:3000")
             .AllowCredentials();
-            
     });
-
-    //options.AddPolicy("ClientPermission1", policy =>
-    //{
-    //    policy.AllowAnyHeader()
-    //        .AllowAnyMethod()
-    //        .WithOrigins("http://localhost:3000")
-    //        .AllowCredentials();
-    //});
 });
 
 var mapperConfiguration = new MapperConfiguration(

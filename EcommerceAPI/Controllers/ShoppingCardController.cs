@@ -31,7 +31,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="count"></param>
         /// <param name="productId"></param>
         /// <returns></returns>
-        [Authorize("Roles = LifeAdmin, LifeUser")]
+        [Authorize]
         [HttpPost("AddToCard")]
         public async Task<IActionResult> AddProductToCard(int count, int productId)
         {
@@ -58,7 +58,7 @@ namespace EcommerceAPI.Controllers
         /// </summary>
         /// <param name="shoppingCardItemId"></param>
         /// <returns></returns>
-        [Authorize("Roles = LifeAdmin, LifeUser")]
+        [Authorize]
         [HttpDelete("RemoveFromCard")]
         public async Task<IActionResult> RemoveProductFromCard(int shoppingCardItemId)
         {
