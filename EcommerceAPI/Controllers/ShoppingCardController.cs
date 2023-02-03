@@ -87,14 +87,21 @@ namespace EcommerceAPI.Controllers
         [HttpDelete("RemoveAllProductsFromCard")]
         public async Task<IActionResult> RemoveAllProductsFromCard()
         {
-            var userData = (ClaimsIdentity)User.Identity;
-            var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+            try
+            {
+                var userData = (ClaimsIdentity)User.Identity;
+                var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-            if (userId == null) { return Unauthorized(); }
+                if (userId == null) { return Unauthorized(); }
 
-            await _cardService.RemoveAllProductsFromCard(userId);
+                await _cardService.RemoveAllProductsFromCard(userId);
 
-            return Ok("All products removed from card!");
+                return Ok("All products removed from card!");
+            }
+            catch(Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
 
@@ -110,6 +117,11 @@ namespace EcommerceAPI.Controllers
             var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
 
             ShoppingCardDetails? shoppingCardContentForUser = await _cardService.GetShoppingCardContentForUser(userId);
+
+            if (shoppingCardContentForUser == null)
+            {
+                return NotFound();
+            }
 
             return Ok(shoppingCardContentForUser);
         }

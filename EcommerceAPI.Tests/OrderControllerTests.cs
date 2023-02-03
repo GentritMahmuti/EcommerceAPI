@@ -162,11 +162,11 @@ namespace EcommerceAPI.Tests
             var claimsIdentity = new ClaimsIdentity(claims, "Test");
             var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
 
-            var orderController = new OrderController(mockOrderService.Object, null, null);
+            var orderController = new OrderController(mockOrderService.Object, null, _logger.Object);
             orderController.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { User = claimsPrincipal } };
 
             // Act
-            var result = await orderController.ProductSummary(productSummaryModel);
+            var result = await orderController.CreateOrderFromShoppingCard(productSummaryModel);
 
             // Assert
             Assert.IsType<OkResult>(result);
@@ -188,7 +188,7 @@ namespace EcommerceAPI.Tests
             orderController.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal() } };
 
             // Act
-            var result = await orderController.ProductSummary(productSummaryModel);
+            var result = await orderController.CreateOrderFromShoppingCard(productSummaryModel);
 
             // Assert
             Assert.IsType<UnauthorizedResult>(result);
@@ -201,7 +201,7 @@ namespace EcommerceAPI.Tests
             orderController.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal() } };
 
             // Act
-            var result = await orderController.ProductSummary(new ProductSummaryModel());
+            var result = await orderController.CreateOrderFromShoppingCard(new ProductSummaryModel());
 
             // Assert
             Assert.IsType<UnauthorizedResult>(result);
