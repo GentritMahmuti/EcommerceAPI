@@ -14,6 +14,10 @@ using RabbitMQ.Client;
 using StackExchange.Redis;
 using System.Linq.Expressions;
 using System.Text;
+using EcommerceAPI.Hubs;
+using Microsoft.AspNetCore.SignalR;
+using EcommerceAPI.Hubs.IHubs;
+
 
 namespace EcommerceAPI.Services
 {
@@ -25,8 +29,10 @@ namespace EcommerceAPI.Services
         private readonly IShoppingCardService _shoppingCardService;
         private readonly IMapper _mapper;
         private readonly ICacheService _cacheService;
+        private readonly IHubContext<InventoryHub, IStockClient> _stockHub;
 
-        public OrderService(IUnitOfWork unitOfWork, ILogger<OrderService> logger, IProductService productService, IShoppingCardService shoppingCardService, IMapper mapper, ICacheService cacheService)
+
+        public OrderService(IUnitOfWork unitOfWork, ILogger<OrderService> logger, IProductService productService, IShoppingCardService shoppingCardService, IMapper mapper, ICacheService cacheService, IHubContext<InventoryHub, IStockClient> stockHub)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
@@ -34,6 +40,7 @@ namespace EcommerceAPI.Services
             _shoppingCardService = shoppingCardService;
             _mapper = mapper;
             _cacheService = cacheService;
+            _stockHub = stockHub;
         }
 
 
@@ -254,6 +261,8 @@ namespace EcommerceAPI.Services
 
             product.Stock -= count;
             product.TotalSold += count;
+            _stockHub.Clients.All.SendAsync(product.Stock);
+
 
             if (product.Stock == 0 || product.Stock == 10)
             {
@@ -323,6 +332,8 @@ namespace EcommerceAPI.Services
 
             product.Stock -= item.Count;
             product.TotalSold += item.Count;
+            _stockHub.Clients.All.SendAsync(product.Stock);
+
             var productDto = _mapper.Map<ProductDto>(product);
             await _productService.UpdateProduct(productDto);
             await _unitOfWork.CompleteAsync();

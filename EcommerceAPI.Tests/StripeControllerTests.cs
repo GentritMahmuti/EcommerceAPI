@@ -214,7 +214,7 @@ namespace EcommerceAPI.Tests
                     User = null
                 }
             };
- 
+
             // Act
             var result = await stripeController.AddPaymentMethod("test_card_number", "test_exp_month", "test_exp_year", "test_cvc");
 

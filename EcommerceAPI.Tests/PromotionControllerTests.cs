@@ -16,7 +16,7 @@ namespace EcommerceAPI.Tests
     public class PromotionControllerTests
     {
         private readonly Mock<IPromotionService> _promotionService;
-        private readonly Mock <IConfiguration> _configuration;
+        private readonly Mock<IConfiguration> _configuration;
         private readonly Mock<IValidator<PromotionDto>> _promotionValidator;
         private readonly Mock<ILogger<PromotionController>> _logger;
 

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EcommerceAPI.Migrations
 {
     [DbContext(typeof(EcommerceDbContext))]
-    [Migration("20230202124050_Migrimi34")]
-    partial class Migrimi34
+    [Migration("20230203152442_CreateDb")]
+    partial class CreateDb
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -376,6 +376,30 @@ namespace EcommerceAPI.Migrations
                     b.ToTable("Reviews");
                 });
 
+            modelBuilder.Entity("EcommerceAPI.Models.Entities.SavedItem", b =>
+                {
+                    b.Property<string>("SavedItemId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("SavedItemId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("SavedItems");
+                });
+
             modelBuilder.Entity("EcommerceAPI.Models.Entities.User", b =>
                 {
                     b.Property<string>("Id")
@@ -524,6 +548,25 @@ namespace EcommerceAPI.Migrations
 
                     b.HasOne("EcommerceAPI.Models.Entities.User", "User")
                         .WithMany("SubmittedReviews")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EcommerceAPI.Models.Entities.SavedItem", b =>
+                {
+                    b.HasOne("EcommerceAPI.Models.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EcommerceAPI.Models.Entities.User", "User")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

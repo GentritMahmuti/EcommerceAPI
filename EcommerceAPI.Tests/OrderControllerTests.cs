@@ -214,9 +214,11 @@ namespace EcommerceAPI.Tests
             var productId = 1;
             var count = 1;
             var addressDetails = new AddressDetails { Email = "test@email.com" };
-            orderController.ControllerContext = new ControllerContext 
-            { HttpContext = new DefaultHttpContext 
-            { User = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, "userId") }, "mock")) } };
+            orderController.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                { User = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, "userId") }, "mock")) }
+            };
             // Act
             var result = await orderController.CreateOrderForProduct(productId, count, addressDetails, null);
 

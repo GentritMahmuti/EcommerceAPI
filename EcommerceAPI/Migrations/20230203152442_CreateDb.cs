@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace EcommerceAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class database : Migration
+    public partial class CreateDb : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -97,8 +97,8 @@ namespace EcommerceAPI.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", maxLength: 10000, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ListPrice = table.Column<double>(type: "float", nullable: false),
                     Price = table.Column<double>(type: "float", nullable: false),
                     ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -124,7 +124,7 @@ namespace EcommerceAPI.Migrations
                 {
                     PaymentMethodId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    CustomerId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CustomerId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CardBrand = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CardLastFour = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ExpMonth = table.Column<long>(type: "bigint", nullable: false),
@@ -198,6 +198,32 @@ namespace EcommerceAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "SavedItems",
+                columns: table => new
+                {
+                    SavedItemId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ProductId = table.Column<int>(type: "int", nullable: false),
+                    DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SavedItems", x => x.SavedItemId);
+                    table.ForeignKey(
+                        name: "FK_SavedItems_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SavedItems_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "WishListItems",
                 columns: table => new
                 {
@@ -237,7 +263,7 @@ namespace EcommerceAPI.Migrations
                     OrderStatus = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PaymentStatus = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TransactionId = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PaymentMethodId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    PaymentMethodId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     PaymentDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     PaymentDueDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     PhoheNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -256,8 +282,7 @@ namespace EcommerceAPI.Migrations
                         name: "FK_OrderData_PaymentMethods_PaymentMethodId",
                         column: x => x.PaymentMethodId,
                         principalTable: "PaymentMethods",
-                        principalColumn: "PaymentMethodId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "PaymentMethodId");
                     table.ForeignKey(
                         name: "FK_OrderData_Promotions_PromotionId",
                         column: x => x.PromotionId,
@@ -348,6 +373,16 @@ namespace EcommerceAPI.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_SavedItems_ProductId",
+                table: "SavedItems",
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SavedItems_UserId",
+                table: "SavedItems",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_WishListItems_ProductId",
                 table: "WishListItems",
                 column: "ProductId");
@@ -376,6 +411,9 @@ namespace EcommerceAPI.Migrations
 
             migrationBuilder.DropTable(
                 name: "Reviews");
+
+            migrationBuilder.DropTable(
+                name: "SavedItems");
 
             migrationBuilder.DropTable(
                 name: "WishListItems");
