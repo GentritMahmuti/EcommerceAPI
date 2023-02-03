@@ -1,6 +1,7 @@
 ﻿using EcommerceAPI.Models.Entities;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace EcommerceAPI.Data
 {
@@ -8,6 +9,19 @@ namespace EcommerceAPI.Data
     {
         public EcommerceDbContext(DbContextOptions<EcommerceDbContext> options) : base(options)
         {
+            //try
+            //{
+            //    var databaseCreator = Database.GetService<IDatabaseCreator>() as RelationalDatabaseCreator;
+            //    if (databaseCreator != null)
+            //    {
+            //        if (!databaseCreator.CanConnect()) databaseCreator.Create();
+            //        if (!databaseCreator.HasTables()) databaseCreator.CreateTables();
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine(ex.Message);
+            //}
 
         }
 

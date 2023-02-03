@@ -1,0 +1,47 @@
+﻿version: '3'
+services:
+
+  ecommerceapi:
+    build: ./
+    ports:
+      - "49153:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+     # - ConnectionStrings_DefaultConnection=Server=10.10.50.93,1433;Database=ECommerceProject;User=sa;Password=N'z43VGYT@Iu*60i';TrustServerCertificate=True;
+
+    depends_on:
+      - sqldata
+
+  sqldata:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      - ACCEPT_EULA=Y
+      #- SA_PASSWORD=N'z43VGYT@Iu*60i'
+      - APP_PASSWORD=123456 
+    ports:
+      - "1433:1433"
+    volumes: 
+      - mssql:/data/sqldata
+      
+  redis:
+    image: redis/redis-stack-server:latest
+    ports:
+      - "6379:6379"
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.6
+    environment:
+      discovery.type: single-node
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+
+  rabbitmq:
+    image: rabbitmq:3.11-management
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+
+volumes:
+  mssql:
+ 
