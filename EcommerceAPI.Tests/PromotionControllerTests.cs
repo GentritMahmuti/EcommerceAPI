@@ -18,6 +18,7 @@ namespace EcommerceAPI.Tests
         private readonly Mock<IPromotionService> _promotionService;
         private readonly Mock <IConfiguration> _configuration;
         private readonly Mock<IValidator<PromotionDto>> _promotionValidator;
+        private readonly Mock<ILogger<PromotionController>> _logger;
 
         private PromotionController promotionController;
 
@@ -26,7 +27,8 @@ namespace EcommerceAPI.Tests
             _promotionService = new Mock<IPromotionService>();
             _configuration = new Mock<IConfiguration>();
             _promotionValidator = new Mock<IValidator<PromotionDto>>();
-            promotionController = new PromotionController(_promotionService.Object, _configuration.Object, _promotionValidator.Object);
+            _logger = new Mock<ILogger<PromotionController>>();
+            promotionController = new PromotionController(_promotionService.Object, _configuration.Object, _promotionValidator.Object, _logger.Object);
         }
 
         [Fact]
@@ -99,6 +101,40 @@ namespace EcommerceAPI.Tests
             var result = await promotionController.Post(promotionDto);
             Assert.IsType<OkObjectResult>(result);
         }
+
+        [Fact]
+        public async Task ReturnsOkResult_WhenDeletePromotionIsSuccessful()
+        {
+            // Arrange
+            var id = 1;
+
+            // Act
+            var result = await promotionController.Delete(id);
+
+            // Assert
+            Assert.IsType<OkObjectResult>(result);
+            var okResult = result as OkObjectResult;
+            Assert.Equal("Promotion deleted successfully!", okResult.Value);
+        }
+
+        [Fact]
+        public async Task ReturnsBadRequestResult_WhenDeletePromotionThrowsException()
+        {
+            // Arrange
+            var id = 1;
+            _promotionService.Setup(x => x.DeletePromotion(It.IsAny<int>())).Throws(new Exception("Error deleting promotion"));
+
+            // Act
+            var result = await promotionController.Delete(id);
+
+            // Assert
+            Assert.IsType<BadRequestObjectResult>(result);
+            var badRequestResult = result as BadRequestObjectResult;
+            Assert.Equal("Error deleting promotion: Error deleting promotion", badRequestResult.Value);
+        }
+
+
+
 
     }
 }

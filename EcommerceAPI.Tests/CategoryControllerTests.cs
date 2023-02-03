@@ -14,6 +14,7 @@ using FluentValidation.Results;
 using Xunit;
 using Moq;
 using Nest;
+using Microsoft.Extensions.Logging;
 
 public class CategoryControllerTests
 {
@@ -21,6 +22,7 @@ public class CategoryControllerTests
     private readonly Mock<IConfiguration> _configuration;
     private readonly Mock<IValidator<CategoryDto>> _categoryValidator;
     private readonly Mock<IValidator<CategoryCreateDto>> _categoryCreateValidator;
+    private readonly Mock<ILogger<CategoryController>> _logger;
     private CategoryController categoryController;
 
     public CategoryControllerTests()
@@ -29,7 +31,8 @@ public class CategoryControllerTests
         _configuration = new Mock<IConfiguration>();
         _categoryValidator = new Mock<IValidator<CategoryDto>>();
         _categoryCreateValidator = new Mock<IValidator<CategoryCreateDto>>();
-        categoryController = new CategoryController(_categoryService.Object, _configuration.Object, _categoryValidator.Object, _categoryCreateValidator.Object);
+        _logger = new Mock<ILogger<CategoryController>>();
+        categoryController = new CategoryController(_categoryService.Object, _configuration.Object, _categoryValidator.Object, _categoryCreateValidator.Object, _logger.Object);
     }
 
     [Fact]
@@ -98,7 +101,7 @@ public class CategoryControllerTests
         Assert.Equal("Category created successfully!", okResult.Value);
     }
 
-
+ 
     [Fact]
     public async Task Post_ReturnsBadRequest_WhenModelStateIsInvalid()
     {
