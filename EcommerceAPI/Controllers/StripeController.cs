@@ -70,18 +70,33 @@ namespace EcommerceAPI.Controllers
             return StatusCode(StatusCodes.Status200OK);
         }
 
+
+        //[HttpGet("payment/methods")]
+        //public ActionResult<List<PaymentMethodEntity>> GetPaymentMethodsByCustomer()
+        //{
+        //    var userData = (ClaimsIdentity)User.Identity;
+        //    var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+        //    if (userId == null) { return Unauthorized(); }
+
+        //    List<PaymentMethodEntity> paymentMethods = _stripeService.GetPaymentMethodsByCustomer(userId);
+
+        //    return StatusCode(StatusCodes.Status200OK, paymentMethods);
+        //}
         [HttpGet("payment/methods")]
         public ActionResult<List<PaymentMethodEntity>> GetPaymentMethodsByCustomer()
         {
             var userData = (ClaimsIdentity)User.Identity;
-            var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+            if (userData == null) { return Unauthorized(); }
 
+            var userId = userData.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null) { return Unauthorized(); }
 
             List<PaymentMethodEntity> paymentMethods = _stripeService.GetPaymentMethodsByCustomer(userId);
 
             return StatusCode(StatusCodes.Status200OK, paymentMethods);
         }
+
 
         [HttpDelete("payment/method/delete")]
         public async Task DeletePaymentMethod(string paymentMethodId)
