@@ -181,9 +181,19 @@ builder.Services.AddCors(options =>
     {
         policy.AllowAnyHeader()
             .AllowAnyMethod()
-            .WithOrigins("http://localhost:3000")
+            .a
+            .WithOrigins("http://localhost:49153/swagger/index.html")
             .AllowCredentials();
+            
     });
+
+    //options.AddPolicy("ClientPermission1", policy =>
+    //{
+    //    policy.AllowAnyHeader()
+    //        .AllowAnyMethod()
+    //        .WithOrigins("http://localhost:3000")
+    //        .AllowCredentials();
+    //});
 });
 
 var mapperConfiguration = new MapperConfiguration(
@@ -196,6 +206,8 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddSingleton(mapper);
 builder.Services.AddDbContext<EcommerceDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+//builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddServices();
 
@@ -252,6 +264,7 @@ app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
     endpoints.MapHub<ChatHub>("/hubs/chat");
+    endpoints.MapHub<InventoryHub>("/hubs/stock");
 });
 
 app.Run();
