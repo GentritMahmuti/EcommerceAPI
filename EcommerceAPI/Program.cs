@@ -171,8 +171,10 @@ builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
 builder.Services.AddHttpClient();
 
 
-
-builder.Services.AddSignalR();
+builder.Services.AddSignalR(options =>
+{
+    options.EnableDetailedErrors = true;
+});
 
 builder.Services.AddCors(options =>
 {
@@ -253,9 +255,15 @@ app.MapControllers();
 
 app.UseEndpoints(endpoints =>
 {
-    endpoints.MapControllers();
-    endpoints.MapHub<ChatHub>("/hubs/chat");
+    endpoints.MapGet("/", async context =>
+    {
+        context.Response.Redirect("/swagger", permanent: false);
+        await Task.CompletedTask;
+    });
     endpoints.MapHub<InventoryHub>("/hubs/stock");
+    endpoints.MapHub<ChatHub>($"/{nameof(ChatHub)}");
+    endpoints.MapHub<NotificationHub>($"/{nameof(NotificationHub)}");
+    endpoints.MapControllers();
 });
 
 app.Run();

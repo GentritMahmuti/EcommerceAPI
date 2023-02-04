@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Nest;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Core.Hubs
 {
-    public class ChatHub : Hub
+    public class EcommerceHub : Hub
     {
         public Task SendMessage(string user, string message)
         {
@@ -31,6 +26,11 @@ namespace Core.Hubs
             return Clients.Group(receiver).SendAsync("ReceiveMessage", sender, message);
         }
 
+        public Task SendNotificatione(string user, string message)
+        {
+            return Clients.All.SendAsync("ReceiveNotification", user, message);
+        }
+
         [Authorize]
         public override async Task OnConnectedAsync()
         {
@@ -44,6 +44,6 @@ namespace Core.Hubs
             var currentUserId = "";
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, currentUserId);
             await base.OnDisconnectedAsync(exception);
-        } 
+        }
     }
 }

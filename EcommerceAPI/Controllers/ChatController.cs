@@ -1,75 +1,87 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Core.Hubs;
+using Core.DTOs.Notification;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.AspNetCore.Cors;
-using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
-using Newtonsoft.Json;
-using Microsoft.AspNetCore.WebUtilities;
-using System.Net.Http;
-using System.Text;
-using System.Net.Http;
-using Microsoft.AspNetCore.WebUtilities;
 using System.Net;
-using FluentAssertions;
-using Services.Hubs.IHubs;
-using Services.DTOs.Chat;
-using Core.Hubs;
+using Core.Helpers;
+using Domain.Entities;
+using Core.IServices;
 
 namespace EcommerceAPI.Controllers
 {
-    [Authorize]
     [ApiController]
-    [Route("[controller]")]
-    public class ChatController : ControllerBase
+    public class ChatController : Controller
     {
-        private readonly IHubContext<ChatHub, IChatClient> _chatHub;
+        private readonly IHubContext<ChatHub> _hubContext;
+        private readonly IMessageService _messageService;
 
-        public ChatController(IHubContext<ChatHub, IChatClient> chatHub)
+
+        public ChatController(
+                               IHubContext<ChatHub> hubContext,
+                               IMessageService messageService
+                              )
         {
-            _chatHub = chatHub;
+            _messageService = messageService;
+            _hubContext = hubContext;
         }
 
-      
-
-    [HttpPost("messages")]
-        public async Task Post(ChatDTO message)
+        [HttpPost("SendMessage")]
+        public async Task<IActionResult> CreateMessage([FromBody] MessageDtoModel request, CancellationToken cancellationToken)
         {
-            var userData = (ClaimsIdentity)User.Identity;
-        
-            message.Name = userData.FindFirst(ClaimTypes.GivenName).Value;
-            message.Surname = userData.FindFirst(ClaimTypes.Surname).Value;
-      
-            string jsonString = JsonConvert.SerializeObject(message);
+            var response = new Response<MessageDto>();
+            var getConnectionId = Request.Headers["connection-id"].ToString() ?? "";
 
-            await _chatHub.Clients.All.ReceiveMessage(message);
+            if (request == null)
+            {
+                return BadRequest(response.BadRequest());
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
+            //response = await _messageService.CreateMessage((await userId, request, cancellationToken));
+            //if (response == null)
+            //    return BadRequest();
+
+            if (!string.IsNullOrWhiteSpace(response.Message))
+            {
+                if (response.StatusCode == (int)HttpStatusCode.Forbidden)
+                {
+                    return BadRequest(response.Forbidden(response.Message));
+                }
+                else if (response.StatusCode == (int)HttpStatusCode.InternalServerError)
+                {
+                    return BadRequest(response.InternalServerError(response.Message));
+                }
+                else if (response.StatusCode == (int)HttpStatusCode.BadRequest)
+                {
+                    return BadRequest(response.BadRequest(response.Message));
+                }
+            }
+
+            if (response.Data.FromUserGuid != response.Data.ToUserGuid)
+            {
+                await _hubContext.Clients.GroupExcept(response.Data.FromUserGuid.ToString(), getConnectionId).SendAsync("ReceiveMessage", response.Data, cancellationToken);
+                await _hubContext.Clients.Group(response.Data.ToUserGuid.ToString()).SendAsync("ReceiveMessage", response.Data, cancellationToken);
+            }
+
+            return Ok(response.Ok(response.Data));
         }
 
-        
-
-        //[Authorize]
-        //[HttpPost("sendToUser")]
-        //public async Task SendToUser(ChatDTO message, string receiverConnectionId)
+        //[HttpGet("ReadMessages/{conversationGuid}")]
+        //public async Task<IActionResult> ReadMessages(Guid conversationGuid, CancellationToken cancellationToken)
         //{
-        //    var userData = (ClaimsIdentity)User.Identity;
+        //    var response = await _messageService.ReadMessages((userId, conversationGuid, cancellationToken);
 
-        //    message.Name = userData.FindFirst(ClaimTypes.GivenName).Value;
-        //    message.Surname = userData.FindFirst(ClaimTypes.Surname).Value;
+        //    await _hubContext.Clients.Group("idOfUserWhereToSendSeen").SendAsync("SeenMessage", conversationGuid.ToString(), cancellationToken);
 
-        //    string jsonString = JsonConvert.SerializeObject(message);
-
-        //    receiverConnectionId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-        //    if (User.IsInRole("LifeUser"))
-        //    {
-        //        await _chatHub.Clients.User("d71e4112-959d-412a-acb0-cfe8223d280a").SendToUser(message, receiverConnectionId);
-        //    }
-        //    else if (User.IsInRole("LifeAdmin"))
-        //    {
-        //        await _chatHub.Clients.User("2452f92b-de5c-40cf-aa3f-8503610386b0").SendToUser(message, receiverConnectionId);
-        //    }
-
+        //    return Ok();
         //}
 
     }
+    
 }
+
