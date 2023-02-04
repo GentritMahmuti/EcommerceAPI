@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 using Services.DTOs.Chat;
 using Services.Hubs.IHubs;
 
-namespace Services.Hubs
+namespace Core.Hubs
 {
     public class ChatHub : Hub<IChatClient>
     {

@@ -12,9 +12,9 @@ using System.Net.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Net;
 using FluentAssertions;
-using Services.Hubs;
 using Services.Hubs.IHubs;
 using Services.DTOs.Chat;
+using Core.Hubs;
 
 namespace EcommerceAPI.Controllers
 {

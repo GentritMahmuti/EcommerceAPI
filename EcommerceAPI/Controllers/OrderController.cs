@@ -120,7 +120,7 @@ namespace EcommerceAPI.Controllers
 
             try
             {
-                await _addressDetailsValidator.ValidateAndThrowAsync(model.AddressDetails);
+               // await _addressDetailsValidator.ValidateAndThrowAsync(model.AddressDetails);
                 var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
                 model.AddressDetails.Email = claimsIdentity.FindFirst(ClaimTypes.Email).Value;
 
@@ -148,7 +148,7 @@ namespace EcommerceAPI.Controllers
         {
             try
             {
-                await _addressDetailsValidator.ValidateAndThrowAsync(addressDetails);
+             //   await _addressDetailsValidator.ValidateAndThrowAsync(addressDetails);
                 var userData = (ClaimsIdentity)User.Identity;
                 var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
 

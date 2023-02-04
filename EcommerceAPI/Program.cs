@@ -26,7 +26,7 @@ using Persistence.UnitOfWork.IUnitOfWork;
 using Persistence;
 using Services.Services.IServices;
 using Services.Services;
-using Services.Hubs;
+using Core.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -255,6 +255,7 @@ app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
     endpoints.MapHub<ChatHub>("/hubs/chat");
+    endpoints.MapHub<InventoryHub>("/hubs/stock");
 });
 
 app.Run();

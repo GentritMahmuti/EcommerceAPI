@@ -16,6 +16,9 @@ using Services.Services.IServices;
 using System.Text;
 using OrderConfirmationDto = Services.DTOs.Order.OrderConfirmationDto;
 using OrderStatusDto = Services.DTOs.Order.OrderStatusDto;
+using Microsoft.AspNetCore.SignalR;
+using Core.Hubs.IHubs;
+using Core.Hubs;
 
 namespace Services.Services
 {
@@ -27,8 +30,9 @@ namespace Services.Services
         private readonly IShoppingCardService _shoppingCardService;
         private readonly IMapper _mapper;
         private readonly ICacheService _cacheService;
+        private readonly IHubContext<InventoryHub, IStockClient> _stockHub;
 
-        public OrderService(IUnitOfWork unitOfWork, ILogger<OrderService> logger, IProductService productService, IShoppingCardService shoppingCardService, IMapper mapper, ICacheService cacheService)
+        public OrderService(IUnitOfWork unitOfWork, ILogger<OrderService> logger, IProductService productService, IShoppingCardService shoppingCardService, IMapper mapper, ICacheService cacheService, IHubContext<InventoryHub, IStockClient> stockHub)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
@@ -36,6 +40,7 @@ namespace Services.Services
             _shoppingCardService = shoppingCardService;
             _mapper = mapper;
             _cacheService = cacheService;
+            _stockHub = stockHub;
         }
 
 
@@ -256,6 +261,8 @@ namespace Services.Services
 
             product.Stock -= count;
             product.TotalSold += count;
+            _stockHub.Clients.All.SendAsync(product.Stock);
+
 
             if (product.Stock == 0 || product.Stock == 10)
             {
@@ -325,6 +332,8 @@ namespace Services.Services
 
             product.Stock -= item.Count;
             product.TotalSold += item.Count;
+            _stockHub.Clients.All.SendAsync(product.Stock);
+
             var productDto = _mapper.Map<ProductDto>(product);
             await _productService.UpdateProduct(productDto);
             await _unitOfWork.CompleteAsync();
