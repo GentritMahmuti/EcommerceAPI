@@ -41,6 +41,7 @@ namespace EcommerceAPI.Extensions
             services.AddScoped<IValidator<ReviewDetailsDto>, ReviewDetailsDtoValidator>();
             services.AddScoped<IValidator<ReviewUpdateDto>, ReviewUpdateDtoValidator>();
 
+
             
         }
     }

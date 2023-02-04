@@ -118,13 +118,12 @@ namespace EcommerceAPI.Controllers
 
             try
             {
-                await _addressDetailsValidator.ValidateAndThrowAsync(model.AddressDetails);
                 var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
                 model.AddressDetails.Email = claimsIdentity.FindFirst(ClaimTypes.Email).Value;
 
                 await _orderService.CreateOrder(userId, model.AddressDetails, model.PromoCode);
 
-                return Ok();
+                return Ok("Order Created successfully!");
             }       
             catch (Exception ex)
             {
@@ -146,7 +145,7 @@ namespace EcommerceAPI.Controllers
         {
             try
             {
-                await _addressDetailsValidator.ValidateAndThrowAsync(addressDetails);
+                
                 var userData = (ClaimsIdentity)User.Identity;
                 var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
 

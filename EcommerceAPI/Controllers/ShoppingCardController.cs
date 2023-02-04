@@ -31,7 +31,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="count"></param>
         /// <param name="productId"></param>
         /// <returns></returns>
-        [Authorize("Roles = LifeAdmin, LifeUser")]
+        [Authorize(Roles ="LifeAdmin, LifeUser")]
         [HttpPost("AddToCard")]
         public async Task<IActionResult> AddProductToCard(int count, int productId)
         {
@@ -58,7 +58,7 @@ namespace EcommerceAPI.Controllers
         /// </summary>
         /// <param name="shoppingCardItemId"></param>
         /// <returns></returns>
-        [Authorize("Roles = LifeAdmin, LifeUser")]
+        [Authorize]
         [HttpDelete("RemoveFromCard")]
         public async Task<IActionResult> RemoveProductFromCard(int shoppingCardItemId)
         {
@@ -83,7 +83,7 @@ namespace EcommerceAPI.Controllers
         /// Empties the shoppingCard of the user.
         /// </summary>
         /// <returns></returns>
-        [Authorize("Roles = LifeAdmin, LifeUser")]
+        [Authorize]
         [HttpDelete("RemoveAllProductsFromCard")]
         public async Task<IActionResult> RemoveAllProductsFromCard()
         {
@@ -109,7 +109,7 @@ namespace EcommerceAPI.Controllers
         /// Gets shoppingCard details that a user has.
         /// </summary>
         /// <returns></returns>
-        [Authorize("Roles = LifeAdmin, LifeUser")]
+        [Authorize(Roles = "LifeAdmin, LifeUser")]
         [HttpGet("ShoppingCardContent")]
         public async Task<IActionResult> ShoppingCardContent()
         {
@@ -133,7 +133,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="newQuantity"></param>
         /// <param name="shoppingCardItemId"></param>
         /// <returns></returns>
-        [Authorize("Roles = LifeAdmin, LifeUser")]
+        [Authorize(Roles = "LifeAdmin, LifeUser")]
         [HttpPost("IncreaseQuantityForProduct")]
         public async Task<IActionResult> IncreaseProductQuantity(int? newQuantity, int shoppingCardItemId)
         {
@@ -162,7 +162,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="newQuantity"></param>
         /// <param name="shoppingCardItemId"></param>
         /// <returns></returns>
-        [Authorize("Roles = LifeAdmin, LifeUser")]
+        [Authorize(Roles = "LifeAdmin, LifeUser")]
         [HttpPost("DecreaseQuantityForProduct")]
         public async Task<IActionResult> DecreaseProductQuantity(int? newQuantity, int shoppingCardItemId)
         {

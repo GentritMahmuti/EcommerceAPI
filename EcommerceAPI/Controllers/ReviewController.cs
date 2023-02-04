@@ -33,7 +33,7 @@ namespace EcommerceAPI.Controllers
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        [Authorize("Roles = LifeAdmin")]
+        [Authorize(Roles = "LifeAdmin")]
         [HttpGet("GetUserReviews")]
         public async Task<IActionResult> GetUserReviews(string userId)
         {
