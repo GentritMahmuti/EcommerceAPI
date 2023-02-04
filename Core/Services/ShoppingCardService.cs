@@ -137,6 +137,26 @@ namespace Services.Services
 
         }
 
+        public async Task<CartItem> ConvertToWishList(int cartItemId)
+        {
+            var cartItem = await GetCardItem(cartItemId);
+
+            var wishListItem = new WishListItem
+            {
+                WishListItemId = cartItem.CartItemId.ToString(),
+                UserId = cartItem.UserId,
+                ProductId = cartItem.ProductId
+            };
+
+            _unitOfWork.Repository<WishListItem>().Create(wishListItem);
+            await _unitOfWork.CompleteAsync();
+
+            _unitOfWork.Repository<CartItem>().Delete(cartItem);
+            await _unitOfWork.CompleteAsync();
+
+            return cartItem;
+        }
+        
         public async Task<ShoppingCardDetails> GetShoppingCardContentForUser(string userId)
             {
                 try

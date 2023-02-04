@@ -28,10 +28,18 @@ namespace EcommerceAPI.Controllers
 
 
         /// <summary>
-        /// Creates a category!
+        /// Creates a new category
         /// </summary>
-        /// <param name="createCategory"></param>
-        /// <returns></returns>
+        /// <param name="createCategory">The information for the new category</param>
+        /// <returns>A message indicating if the category was created successfully</returns>
+        /// <response code="200">The category was created successfully</response>
+        /// <response code="400">An error occurred while creating the category</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user does not have permission to access the resources</response>
+        /// <tags>Category</tags>
+        /// <remarks>
+        /// This action requires authentication and the "LifeAdmin" role to access.
+        /// </remarks>
         [Authorize(Roles = "LifeAdmin")]
         [HttpPost("PostCategory")]
         public async Task<IActionResult> Post(CategoryCreateDto createCategory)
@@ -53,8 +61,16 @@ namespace EcommerceAPI.Controllers
         /// <summary>
         /// Gets a category with a specific id.
         /// </summary>
-        /// <param name="id"></param>
-        /// <returns>A category.</returns>
+        /// <param name="id">The id of the category to retrieve</param>
+        /// <returns>A category object</returns>
+        /// <response code="200">Returns the category with the specified id</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user does not have permission to access the resources</response>
+        /// <response code="404">If the category with the specified id is not found</response>
+        /// <tags>Category</tags>
+        /// <remarks>
+        /// This action requires authentication and either the "LifeAdmin" or "LifeUser" role to access.
+        /// </remarks>
         [Authorize]
         [HttpGet("GetCategory")]
         public async Task<IActionResult> Get(int id)
@@ -78,10 +94,17 @@ namespace EcommerceAPI.Controllers
         }
 
 
-        /// <summary>
-        /// Gets all categories from db!
+        /// <summary> 
+        /// Gets all categories. 
         /// </summary>
-        /// <returns></returns>
+        /// <returns> A list of categories. </returns>
+        /// <response code="200">Returns the list of all categories.</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user does not have permission to access the resources</response>
+        /// <tags>Category</tags>
+        /// <remarks>
+        /// This action requires authentication and either the "LifeAdmin" or "LifeUser" role to access.
+        /// </remarks>
         [Authorize]
         [HttpGet("GetCategories")]
         public async Task<IActionResult> GetCategories()
@@ -93,10 +116,18 @@ namespace EcommerceAPI.Controllers
 
 
         /// <summary>
-        /// Updates a specific category by id. 
+        /// Updates a specific category by id.
         /// </summary>
-        /// <param name="categoryToUpdate"></param>
-        /// <returns></returns>
+        /// <param name="categoryToUpdate">The updated category object</param>
+        /// <returns>A message indicating the status of the operation</returns>
+        /// <response code="200">If the category was updated successfully</response>
+        /// <response code="400">If there was an error updating the category</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user does not have permission to access the resources</response>
+        /// <tags>Category</tags>
+        /// <remarks>
+        /// This action requires authentication and the "LifeAdmin" role to access.
+        /// </remarks>
         [Authorize(Roles = "LifeAdmin")]
         [HttpPut("UpdateCategory")]
         public async Task<IActionResult> Update(CategoryDto categoryToUpdate)
@@ -114,12 +145,18 @@ namespace EcommerceAPI.Controllers
             }
         }
 
-
         /// <summary>
-        /// Deletes a specific category by id!
+        /// Deletes a specific category by id.
         /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
+        /// <param name="id">The id of the category to delete</param>
+        /// <returns>A message indicating that the category has been deleted successfully</returns>
+        /// <response code="200">Returns a message indicating that the category has been deleted successfully</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user does not have permission to access the resources</response>
+        /// <tags>Category</tags>
+        /// <remarks>
+        /// This action requires authentication and the "LifeAdmin" role to access.
+        /// </remarks>
         [Authorize(Roles = "LifeAdmin")]
         [HttpDelete("DeleteCategory")]
         public async Task<IActionResult> Delete(int id)

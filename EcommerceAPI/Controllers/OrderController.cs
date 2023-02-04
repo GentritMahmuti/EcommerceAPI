@@ -31,8 +31,11 @@ namespace EcommerceAPI.Controllers
         /// <summary>
         /// Gets a specific order by id.
         /// </summary>
-        /// <param name="orderId"></param>
-        /// <returns></returns>
+        /// <param name="orderId">The id of the order to retrieve</param>
+        /// <returns>The order with the specified id</returns>
+        /// <response code="200">Returns the order with the specified id</response>
+        /// <response code="400">If there was an error retrieving the order</response>
+        /// <tags>Order</tags>
         [Authorize(Roles = "LifeAdmin")]
         [HttpGet("GetOrder")]
         public async Task<IActionResult> GetOrder(string orderId)
@@ -50,11 +53,19 @@ namespace EcommerceAPI.Controllers
         }
 
         /// <summary>
-        /// Changes status of the order with given id and sends message to rabbit queue which then sends email.
+        /// Changes the status of an order with the given id and sends a message to a rabbit queue, which then sends an email.
         /// </summary>
-        /// <param name="orderId"></param>
-        /// <param name="status"></param>
-        /// <returns></returns>
+        /// <param name="orderId">The id of the order to change the status of</param>
+        /// <param name="status">The new status to set for the order</param>
+        /// <returns>A message indicating that the order status has been changed successfully</returns>
+        /// <response code="200">Returns a message indicating that the order status has been changed successfully</response>
+        /// <response code="400">If either the `orderId` or `status` parameter is empty or null</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user does not have permission to access the resources</response>
+        /// <tags>Order</tags>
+        /// <remarks>
+        /// This action requires authentication and the "LifeAdmin" role to access.
+        /// </remarks>
         [Authorize(Roles = "LifeAdmin")]
         [HttpPost("ChangeOrderStatus")]
         public async Task<IActionResult> ChangeOrderStatus(string orderId, string status)
@@ -79,7 +90,13 @@ namespace EcommerceAPI.Controllers
         /// <summary>
         /// Gets order history for a customer.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The order history for the customer</returns>
+        /// <response code="200">Returns the order history for the customer</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user does not have permission to access the resources</response>
+        /// <remarks>
+        /// This action requires authentication and the "LifeAdmin" or "LifeUser" role to access.
+        /// </remarks>
         [Authorize]
         [HttpGet("GetCustomerOrderHistory")]
         public async Task<IActionResult> GetCustomerOrderHistory()
@@ -106,8 +123,15 @@ namespace EcommerceAPI.Controllers
         /// <summary>
         /// Creates order with products that are in shoppingCard.
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="model">The product summary and address information to be used for the order</param>
         /// <returns></returns>
+        /// <response code="200">Order was successfully created</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user does not have permission to access the resources</response>
+        /// <response code="400">If there was an error creating the order</response>
+        /// <remarks>
+        /// This action requires authentication and the "LifeUser" or "LifeAdmin" role to access.
+        /// </remarks>
         [Authorize]
         [HttpPost("CreateOrderFromShoppingCard")]
         public async Task<IActionResult> CreateOrderFromShoppingCard(ProductSummaryModel model)
@@ -139,10 +163,18 @@ namespace EcommerceAPI.Controllers
         /// <summary>
         /// Creates an order for a single product.
         /// </summary>
-        /// <param name="productId"></param>
-        /// <param name="count"></param>
-        /// <param name="addressDetails"></param>
-        /// <returns></returns>
+        /// <param name="productId">The id of the product to be ordered</param>
+        /// <param name="count">The quantity of the product to be ordered</param>
+        /// <param name="addressDetails">The details of the address where the product will be delivered</param>
+        /// <param name="promoCode">The optional promo code to be used for the order</param>
+        /// <returns>200 OK response with message "Order created!" if successful, otherwise a BadRequest with an error message</returns>
+        /// <response code="200">Order created successfully</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user does not have permission to access the resources</response>
+        /// <response code="400">If the request is invalid or an error occurs while processing the order</response>
+        /// <remarks>
+        /// This action requires authentication and the "LifeAdmin" or "LifeUser" role to access.
+        /// </remarks>
         [Authorize]
         [HttpPost("CreateOrderForProduct")]
         public async Task<IActionResult> CreateOrderForProduct(int productId, int count, AddressDetails addressDetails, string? promoCode)

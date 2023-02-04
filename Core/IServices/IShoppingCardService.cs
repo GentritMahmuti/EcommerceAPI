@@ -12,5 +12,6 @@ namespace Services.Services.IServices
         Task<ShoppingCardDetails> GetShoppingCardContentForUser(string userId);
         Task IncreaseProductQuantityInShoppingCard(int shoppingCardItemId, string userId, int? newQuantity);
         Task DecreaseProductQuantityInShoppingCard(int shoppingCardItemId, string userId, int? newQuantity);
+        Task<CartItem> ConvertToWishList(int cartItemId);
     }
 }

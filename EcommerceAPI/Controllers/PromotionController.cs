@@ -24,11 +24,20 @@ namespace EcommerceAPI.Controllers
         }
 
 
+
         /// <summary>
-        /// Gets details about a promotion.
+        /// Gets the details of a specific promotion
         /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
+        /// <param name="id">The id of the promotion to retrieve</param>
+        /// <returns>The details of the specified promotion</returns>
+        /// <response code="200">The promotion was retrieved successfully</response>
+        /// <response code="400">An error occurred while retrieving the promotion</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user does not have permission to access the resources</response>
+        /// <tags>Promotion</tags>
+        /// <remarks>
+        /// This action requires authentication and the "LifeAdmin" or "LifeUser" role to access.
+        /// </remarks>
         [Authorize]
         [HttpGet("GetPromotion")]
         public async Task<IActionResult> Get(int id)
@@ -48,9 +57,17 @@ namespace EcommerceAPI.Controllers
 
 
         /// <summary>
-        /// Gets all promotions.
+        /// Gets a list of all promotions
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A list of promotions</returns>
+        /// <response code="200">The list of promotions was retrieved successfully</response>
+        /// <response code="400">An error occurred while retrieving the promotions</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user does not have permission to access the resources</response>
+        /// <tags>Promotion</tags>
+        /// <remarks>
+        /// This action requires authentication and the "LifeAdmin" role to access.
+        /// </remarks>
         [Authorize(Roles = "LifeAdmin")]
         [HttpGet("GetPromotions")]
         public async Task<IActionResult> GetPromotions()
@@ -67,13 +84,21 @@ namespace EcommerceAPI.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        
+
 
         /// <summary>
-        /// Creates a new promotion.
+        /// Creates a new promotion
         /// </summary>
-        /// <param name="createPromotion"></param>
-        /// <returns></returns>
+        /// <param name="createPromotion">The information for the new promotion</param>
+        /// <returns>A message indicating if the promotion was created successfully</returns>
+        /// <response code="200">The promotion was created successfully</response>
+        /// <response code="400">An error occurred while creating the promotion</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user does not have permission to access the resources</response>
+        /// <tags>Promotion</tags>
+        /// <remarks>
+        /// This action requires authentication and the "LifeAdmin" role to access.
+        /// </remarks>
         [Authorize(Roles = "LifeAdmin")]
         [HttpPost("PostPromotion")]
         public async Task<IActionResult> Post(PromotionDto createPromotion)
@@ -90,7 +115,21 @@ namespace EcommerceAPI.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        //Admins can update a promotion code
+
+        /// <summary>
+        /// Updates a promotion
+        /// </summary>
+        /// <param name="id">The id of the promotion to be updated</param>
+        /// <param name="updatePromotion">The updated information for the promotion</param>
+        /// <returns>A message indicating if the promotion was updated successfully</returns>
+        /// <response code="200">The promotion was updated successfully</response>
+        /// <response code="400">An error occurred while updating the promotion</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user does not have permission to access the resources</response>
+        /// <tags>Promotion</tags>
+        /// <remarks>
+        /// This action requires authentication and the "LifeAdmin" role to access.
+        /// </remarks>
         [Authorize(Roles = "LifeAdmin")]
         [HttpPut("UpdatePromotion/{id}")]
         public async Task<IActionResult> Update(int id, PromotionDto updatePromotion)
@@ -106,7 +145,21 @@ namespace EcommerceAPI.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        //Admins can remove a promotion code.
+
+        
+        /// <summary>
+        /// Deletes a promotion
+        /// </summary>
+        /// <param name="id">The id of the promotion to delete</param>
+        /// <returns>A message indicating if the promotion was deleted successfully</returns>
+        /// <response code="200">The promotion was deleted successfully</response>
+        /// <response code="400">An error occurred while deleting the promotion</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user does not have permission to access the resources</response>
+        /// <tags>Promotion</tags>
+        /// <remarks>
+        /// This action requires authentication and the "LifeAdmin" role to access.
+        /// </remarks>
         [Authorize(Roles = "LifeAdmin")]
         [HttpDelete("DeletePromotion")]
         public async Task<IActionResult> Delete(int id)

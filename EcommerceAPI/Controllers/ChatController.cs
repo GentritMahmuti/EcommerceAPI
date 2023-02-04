@@ -26,25 +26,20 @@ namespace EcommerceAPI.Controllers
             _hubContext = hubContext;
         }
 
-        [HttpPost("SendMessage")]
-        public async Task<IActionResult> CreateMessage([FromBody] MessageDtoModel request, CancellationToken cancellationToken)
+
+        /// <summary>
+        /// Posts a new chat message to the chat system.
+        /// </summary>
+        /// <param name="message">The chat message to be posted</param>
+        [HttpPost("messages")]
+        public async Task Post(ChatDTO message)
         {
-            var response = new Response<MessageDto>();
-            var getConnectionId = Request.Headers["connection-id"].ToString() ?? "";
-
-            if (request == null)
-            {
-                return BadRequest(response.BadRequest());
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest();
-            }
-
-            //response = await _messageService.CreateMessage((await userId, request, cancellationToken));
-            //if (response == null)
-            //    return BadRequest();
+            var userData = (ClaimsIdentity)User.Identity;
+        
+            message.Name = userData.FindFirst(ClaimTypes.GivenName).Value;
+            message.Surname = userData.FindFirst(ClaimTypes.Surname).Value;
+      
+            string jsonString = JsonConvert.SerializeObject(message);
 
             if (!string.IsNullOrWhiteSpace(response.Message))
             {
