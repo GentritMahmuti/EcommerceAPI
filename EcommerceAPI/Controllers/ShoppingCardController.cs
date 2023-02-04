@@ -217,5 +217,26 @@ namespace EcommerceAPI.Controllers
                 return BadRequest("An error happened: " + ex.Message);
             }
         }
+
+        [Authorize]
+        [HttpPost("ConvertToWishList")]
+        public async Task<IActionResult> ConvertToWishList(int cartItemId)
+        {
+            var userData = (ClaimsIdentity)User.Identity;
+            var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            if (userId == null) { return Unauthorized(); }
+
+            try
+            {
+                var wishListItem = await _cardService.ConvertToWishList(cartItemId);
+                return Ok(wishListItem);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"{nameof(ShoppingCardController)} - An error occured while trying to convert a product to wishlist");
+                return BadRequest("An error happened: " + ex.Message);
+            }
+        }
     }
 }
