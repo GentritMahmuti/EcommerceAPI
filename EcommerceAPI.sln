@@ -9,11 +9,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ECommerce.Consumer", "EComm
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EcommerceAPI.Tests", "EcommerceAPI.Tests\EcommerceAPI.Tests.csproj", "{BBE6A808-6533-4ABC-87B7-6985F08604FF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain", "ClassLibrary1\Domain.csproj", "{ED0C303B-861C-40CB-9FEE-19C7F5723EB3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain", "Domain\Domain.csproj", "{ED0C303B-861C-40CB-9FEE-19C7F5723EB3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Persistence", "DataAccess\Persistence.csproj", "{5766AD85-32B4-4BCF-AA70-ECF8E254D590}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Persistence", "Persistence\Persistence.csproj", "{5766AD85-32B4-4BCF-AA70-ECF8E254D590}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "Services\Core.csproj", "{5F71270D-A18F-4CFB-A5E5-C4FC9389775F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "Core\Core.csproj", "{5F71270D-A18F-4CFB-A5E5-C4FC9389775F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "API", "API", "{7457C66F-93ED-4E32-BDBF-CB05C9F57DC0}"
 EndProject
