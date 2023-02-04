@@ -33,6 +33,7 @@ namespace EcommerceAPI.Controllers
         /// </summary>
         /// <param name="orderId"></param>
         /// <returns></returns>
+        [Authorize(Roles = "LifeAdmin")]
         [HttpGet("GetOrder")]
         public async Task<IActionResult> GetOrder(string orderId)
         {
@@ -79,7 +80,7 @@ namespace EcommerceAPI.Controllers
         /// Gets order history for a customer.
         /// </summary>
         /// <returns></returns>
-        [Authorize(Roles = "LifeAdmin, LifeUser")]
+        [Authorize]
         [HttpGet("GetCustomerOrderHistory")]
         public async Task<IActionResult> GetCustomerOrderHistory()
         {
@@ -107,7 +108,7 @@ namespace EcommerceAPI.Controllers
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        [Authorize(Roles = "LifeUser, LifeAdmin")]
+        [Authorize]
         [HttpPost("CreateOrderFromShoppingCard")]
         public async Task<IActionResult> CreateOrderFromShoppingCard(ProductSummaryModel model)
         {
@@ -126,7 +127,7 @@ namespace EcommerceAPI.Controllers
 
                 await _orderService.CreateOrder(userId, model.AddressDetails, model.PromoCode);
 
-                return Ok();
+                return Ok("Order created successfully!");
             }       
             catch (Exception ex)
             {
@@ -142,7 +143,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="count"></param>
         /// <param name="addressDetails"></param>
         /// <returns></returns>
-        [Authorize(Roles = "LifeUser, LifeAdmin")]
+        [Authorize]
         [HttpPost("CreateOrderForProduct")]
         public async Task<IActionResult> CreateOrderForProduct(int productId, int count, AddressDetails addressDetails, string? promoCode)
         {

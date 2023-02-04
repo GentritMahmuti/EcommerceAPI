@@ -32,7 +32,7 @@ namespace EcommerceAPI.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns>A product</returns>
-        [Authorize(Roles = "LifeAdmin, LifeUser")]
+        [Authorize]
         [HttpGet("GetProduct")]
         public async Task<IActionResult> Get(int id)
         {
@@ -64,7 +64,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="pageIndex"></param>
         /// <param name="pageSize"></param>
         /// <returns>List of products</returns>
-        [Authorize(Roles = "LifeUser, LifeAdmin")]
+        [Authorize]
         [HttpGet("GetProductsPaginated")]
         public async Task<IActionResult> GetProductsPaginated(int pageIndex = 1, int pageSize = 10)
         {
@@ -79,7 +79,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="pageIndex"></param>
         /// <param name="pageSize"></param>
         /// <returns>List of products</returns>
-        [Authorize(Roles = "LifeUser, LifeAdmin")]
+        [Authorize]
         [HttpGet("GetProductsByCategory")]
         public async Task<IActionResult> GetProductsByCategory(int categoryId, int pageIndex = 1, int pageSize = 10)
         {
@@ -94,7 +94,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="pageIndex"></param>
         /// <param name="pageSize"></param>
         /// <returns>List of products</returns>
-        [Authorize(Roles = "LifeUser, LifeAdmin")]
+        [Authorize]
         [HttpGet("GetRecommendedProducts")]
         public async Task<IActionResult> GetRecommendedProducts(int pageIndex = 1, int pageSize = 10)
         {
@@ -255,7 +255,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="pageIndex"></param>
         /// <param name="pageSize"></param>
         /// <returns>Paginated result of products!</returns>
-        [Authorize(Roles = "LifeUser, LifeAdmin")]
+        [Authorize]
         [HttpGet("SearchElastic")]
         public async Task<IActionResult> SearchElastic([FromQuery] SearchInputDto input, int pageIndex = 1, int pageSize = 10)
         {

@@ -55,8 +55,8 @@ namespace EcommerceAPI.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns>A category.</returns>
+        [Authorize]
         [HttpGet("GetCategory")]
-        [Authorize(Roles = "LifeAdmin, LifeUser")]
         public async Task<IActionResult> Get(int id)
         {
             try
@@ -82,7 +82,7 @@ namespace EcommerceAPI.Controllers
         /// Gets all categories from db!
         /// </summary>
         /// <returns></returns>
-        [Authorize(Roles = "LifeAdmin, LifeUser")]
+        [Authorize]
         [HttpGet("GetCategories")]
         public async Task<IActionResult> GetCategories()
         {

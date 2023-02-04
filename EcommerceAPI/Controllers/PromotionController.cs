@@ -29,7 +29,7 @@ namespace EcommerceAPI.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Authorize(Roles = "LifeAdmin, LifeUser")]
+        [Authorize]
         [HttpGet("GetPromotion")]
         public async Task<IActionResult> Get(int id)
         {

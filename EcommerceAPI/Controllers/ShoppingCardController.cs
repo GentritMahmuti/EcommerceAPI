@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.DTOs.ShoppingCard;
 using Services.Services.IServices;
+using Stripe;
 using System.Security.Claims;
 
 namespace EcommerceAPI.Controllers
@@ -32,7 +33,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="count"></param>
         /// <param name="productId"></param>
         /// <returns></returns>
-        [Authorize("Roles = LifeAdmin, LifeUser")]
+        [Authorize]
         [HttpPost("AddToCard")]
         public async Task<IActionResult> AddProductToCard(int count, int productId)
         {
@@ -59,7 +60,7 @@ namespace EcommerceAPI.Controllers
         /// </summary>
         /// <param name="shoppingCardItemId"></param>
         /// <returns></returns>
-        [Authorize("Roles = LifeAdmin, LifeUser")]
+        [Authorize]
         [HttpDelete("RemoveFromCard")]
         public async Task<IActionResult> RemoveProductFromCard(int shoppingCardItemId)
         {
@@ -84,7 +85,7 @@ namespace EcommerceAPI.Controllers
         /// Empties the shoppingCard of the user.
         /// </summary>
         /// <returns></returns>
-        [Authorize("Roles = LifeAdmin, LifeUser")]
+        [Authorize]
         [HttpDelete("RemoveAllProductsFromCard")]
         public async Task<IActionResult> RemoveAllProductsFromCard()
         {
@@ -110,7 +111,7 @@ namespace EcommerceAPI.Controllers
         /// Gets shoppingCard details that a user has.
         /// </summary>
         /// <returns></returns>
-        [Authorize("Roles = LifeAdmin, LifeUser")]
+        [Authorize]
         [HttpGet("ShoppingCardContent")]
         public async Task<IActionResult> ShoppingCardContent()
         {
@@ -134,7 +135,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="newQuantity"></param>
         /// <param name="shoppingCardItemId"></param>
         /// <returns></returns>
-        [Authorize("Roles = LifeAdmin, LifeUser")]
+        [Authorize]
         [HttpPost("IncreaseQuantityForProduct")]
         public async Task<IActionResult> IncreaseProductQuantity(int? newQuantity, int shoppingCardItemId)
         {
@@ -147,7 +148,7 @@ namespace EcommerceAPI.Controllers
             {
                 await _cardService.IncreaseProductQuantityInShoppingCard(shoppingCardItemId, userId, newQuantity);
 
-                return Ok();
+                return Ok("The product quantity in the shopping card changed successfully!");
             }
             catch (Exception ex)
             {
@@ -163,7 +164,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="newQuantity"></param>
         /// <param name="shoppingCardItemId"></param>
         /// <returns></returns>
-        [Authorize("Roles = LifeAdmin, LifeUser")]
+        [Authorize]
         [HttpPost("DecreaseQuantityForProduct")]
         public async Task<IActionResult> DecreaseProductQuantity(int? newQuantity, int shoppingCardItemId)
         {
@@ -175,7 +176,7 @@ namespace EcommerceAPI.Controllers
             try
             {
                 await _cardService.DecreaseProductQuantityInShoppingCard(shoppingCardItemId, userId, newQuantity);
-                return Ok();
+                return Ok("The product quantity in the shopping card changed successfully!");
             }
             catch (Exception ex)
             {

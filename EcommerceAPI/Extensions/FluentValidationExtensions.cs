@@ -5,6 +5,7 @@ using EcommerceAPI.Validators.DtoValidators.Order;
 using EcommerceAPI.Validators.DtoValidators.Product;
 using EcommerceAPI.Validators.DtoValidators.Promotion;
 using EcommerceAPI.Validators.DtoValidators.Review;
+using EcommerceAPI.Validators.DtoValidators.User;
 using EcommerceAPI.Validators.EntityValidators;
 using FluentValidation;
 using Services.DTOs.Category;
@@ -12,6 +13,7 @@ using Services.DTOs.Order;
 using Services.DTOs.Product;
 using Services.DTOs.Promotion;
 using Services.DTOs.Review;
+using Services.DTOs.User;
 
 namespace EcommerceAPI.Extensions
 {
@@ -25,7 +27,9 @@ namespace EcommerceAPI.Extensions
             //services.AddScoped<IValidator<OrderDetails>, OrderDetailsValidator>();
            
             services.AddScoped<IValidator<PromotionDto>, PromotionValidator>();
-
+            services.AddScoped<IValidator<ProductDto>, ProductDtoValidator>();
+            
+            
             // DtoValidators
             services.AddScoped<IValidator<CategoryCreateDto>, CategoryCreateDtoValidator>();
             services.AddScoped<IValidator<CategoryDto>, CategoryDtoValidator>();
@@ -33,7 +37,7 @@ namespace EcommerceAPI.Extensions
             services.AddScoped<IValidator<AddressDetails>, AddressDetailsValidator>();
 
             services.AddScoped<IValidator<ProductCreateDto>, ProductCreateDtoValidator>();
-            services.AddScoped<IValidator<ProductDto>, ProductDtoValidator>();
+            
 
             services.AddScoped<IValidator<PromotionDetailsDto>, PromotionDetailsDtoValidator>();
             services.AddScoped<IValidator<PromotionDto>, PromotionDtoValidator>();
@@ -42,7 +46,7 @@ namespace EcommerceAPI.Extensions
             services.AddScoped<IValidator<ReviewDetailsDto>, ReviewDetailsDtoValidator>();
             services.AddScoped<IValidator<ReviewUpdateDto>, ReviewUpdateDtoValidator>();
 
-            
+            services.AddScoped<IValidator<UserDto>, UserDtoValidator>();
         }
     }
 }

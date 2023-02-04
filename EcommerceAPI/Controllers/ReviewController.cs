@@ -29,7 +29,7 @@ namespace EcommerceAPI.Controllers
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        [Authorize("Roles = LifeAdmin")]
+        [Authorize(Roles = "LifeAdmin")]
         [HttpGet("GetUserReviews")]
         public async Task<IActionResult> GetUserReviews(string userId)
         {
@@ -45,7 +45,7 @@ namespace EcommerceAPI.Controllers
         /// Gets reviews that you(client) have done.
         /// </summary>
         /// <returns></returns>
-        [Authorize(Roles = "LifeUser")]
+        [Authorize]
         [HttpGet("GetYourReviews")]
         public async Task<IActionResult> GetYourReviews()
         {
@@ -61,7 +61,7 @@ namespace EcommerceAPI.Controllers
         /// </summary>
         /// <param name="productId"></param>
         /// <returns></returns>
-        [Authorize(Roles = "LifeAdmin, LifeUser")]
+        [Authorize]
         [HttpGet("GetProductReviews")]
         public async Task<IActionResult> GetProductReviews(int productId)
         {
@@ -84,7 +84,7 @@ namespace EcommerceAPI.Controllers
         /// </summary>
         /// <param name="ReviewToCreate"></param>
         /// <returns></returns>
-        [Authorize(Roles = "LifeUser, LifeAdmin")]
+        [Authorize]
         [HttpPost("PostReview")]
         public async Task<IActionResult> Post([FromForm] ReviewCreateDto ReviewToCreate)
         {
@@ -102,7 +102,7 @@ namespace EcommerceAPI.Controllers
         /// </summary>
         /// <param name="ReviewToUpdate"></param>
         /// <returns></returns>
-        [Authorize(Roles = "LifeUser, LifeAdmin")]
+        [Authorize]
         [HttpPut("UpdateReview")]
         public async Task<IActionResult> Update(ReviewUpdateDto ReviewToUpdate)
         {
@@ -128,7 +128,7 @@ namespace EcommerceAPI.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Authorize(Roles = "LifeUser, LifeAdmin")]
+        [Authorize]
         [HttpDelete("DeleteReview")]
         public async Task<IActionResult> Delete(int id)
         {
