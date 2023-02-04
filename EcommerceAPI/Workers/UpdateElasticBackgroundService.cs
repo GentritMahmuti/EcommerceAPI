@@ -1,5 +1,6 @@
 ﻿using EcommerceAPI.Services.IServices;
 using Nest;
+using Services.Services.IServices;
 
 namespace EcommerceAPI.Workers
 {

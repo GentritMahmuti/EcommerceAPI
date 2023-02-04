@@ -1,10 +1,11 @@
-﻿using EcommerceAPI.Data.UnitOfWork;
-using EcommerceAPI.Models.DTOs;
-using EcommerceAPI.Models.Entities;
+﻿
+using DataAccess.UnitOfWork.IUnitOfWork;
+using Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using SendGrid.Helpers.Mail;
+using Services.DTOs;
 
 namespace EcommerceAPI.Controllers
 {

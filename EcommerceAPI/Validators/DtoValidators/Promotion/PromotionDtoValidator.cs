@@ -1,5 +1,5 @@
-﻿using EcommerceAPI.Models.DTOs.Promotion;
-using FluentValidation;
+﻿using FluentValidation;
+using Services.DTOs.Promotion;
 
 namespace EcommerceAPI.Validators.DtoValidators.Promotion
 {

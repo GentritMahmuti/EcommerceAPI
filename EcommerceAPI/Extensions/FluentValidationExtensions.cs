@@ -1,9 +1,5 @@
-﻿using EcommerceAPI.Models.DTOs.Category;
-using EcommerceAPI.Models.DTOs.Order;
-using EcommerceAPI.Models.DTOs.Product;
-using EcommerceAPI.Models.DTOs.Promotion;
-using EcommerceAPI.Models.DTOs.Review;
-using EcommerceAPI.Models.Entities;
+﻿
+using Domain.Entities;
 using EcommerceAPI.Validators.DtoValidators.Category;
 using EcommerceAPI.Validators.DtoValidators.Order;
 using EcommerceAPI.Validators.DtoValidators.Product;
@@ -11,6 +7,11 @@ using EcommerceAPI.Validators.DtoValidators.Promotion;
 using EcommerceAPI.Validators.DtoValidators.Review;
 using EcommerceAPI.Validators.EntityValidators;
 using FluentValidation;
+using Services.DTOs.Category;
+using Services.DTOs.Order;
+using Services.DTOs.Product;
+using Services.DTOs.Promotion;
+using Services.DTOs.Review;
 
 namespace EcommerceAPI.Extensions
 {
@@ -20,7 +21,7 @@ namespace EcommerceAPI.Extensions
         {
             // EntityValidators
             services.AddScoped<IValidator<Category>, CategoryValidator>();
-            services.AddScoped<IValidator<EcommerceAPI.Models.Entities.Product>, ProductValidator>();
+            services.AddScoped<IValidator<Domain.Entities.Product>, ProductValidator>();
             //services.AddScoped<IValidator<OrderDetails>, OrderDetailsValidator>();
            
             services.AddScoped<IValidator<PromotionDto>, PromotionValidator>();

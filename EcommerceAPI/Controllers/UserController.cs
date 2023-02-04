@@ -1,10 +1,10 @@
-﻿using EcommerceAPI.Models.DTOs.Promotion;
-using EcommerceAPI.Models.DTOs.User;
-using EcommerceAPI.Services.IServices;
+﻿using EcommerceAPI.Services.IServices;
 using EcommerceAPI.Validators.EntityValidators;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Services.DTOs.User;
+using Services.Services.IServices;
 
 namespace EcommerceAPI.Controllers
 {

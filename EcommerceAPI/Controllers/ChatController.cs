@@ -1,13 +1,9 @@
-﻿using EcommerceAPI.Hubs.IHubs;
-using EcommerceAPI.Hubs;
-using EcommerceAPI.Models.Entities;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using EcommerceAPI.Models.DTOs.Chat;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Net.Http;
@@ -16,6 +12,9 @@ using System.Net.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Net;
 using FluentAssertions;
+using Services.Hubs;
+using Services.Hubs.IHubs;
+using Services.DTOs.Chat;
 
 namespace EcommerceAPI.Controllers
 {

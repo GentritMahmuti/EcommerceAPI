@@ -1,9 +1,10 @@
-﻿using EcommerceAPI.Models.DTOs.ShoppingCard;
-using EcommerceAPI.Services;
+﻿using EcommerceAPI.Services;
 using EcommerceAPI.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Services.DTOs.ShoppingCard;
+using Services.Services.IServices;
 using System.Security.Claims;
 
 namespace EcommerceAPI.Controllers

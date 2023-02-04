@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using EcommerceAPI.Models.DTOs.Category;
+using Services.DTOs.Category;
 
 namespace EcommerceAPI.Validators.DtoValidators.Category
 {

@@ -1,5 +1,5 @@
-﻿using EcommerceAPI.Models.DTOs.Product;
-using FluentValidation;
+﻿using FluentValidation;
+using Services.DTOs.Product;
 
 namespace EcommerceAPI.Validators.DtoValidators.Product
 {

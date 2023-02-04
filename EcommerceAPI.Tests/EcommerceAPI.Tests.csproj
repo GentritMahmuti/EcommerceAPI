@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -26,7 +26,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ClassLibrary1\Domain.csproj" />
+    <ProjectReference Include="..\DataAccess\Persistence.csproj" />
     <ProjectReference Include="..\EcommerceAPI\EcommerceAPI.csproj" />
+    <ProjectReference Include="..\Services\Core.csproj" />
   </ItemGroup>
 
 </Project>

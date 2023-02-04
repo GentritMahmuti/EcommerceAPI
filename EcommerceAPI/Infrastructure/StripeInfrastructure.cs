@@ -1,6 +1,8 @@
 ﻿using EcommerceAPI.Services.IServices;
 using EcommerceAPI.Services;
 using Stripe;
+using Services.Services.IServices;
+using Services.Services;
 
 namespace EcommerceAPI.Infrastructure
 {

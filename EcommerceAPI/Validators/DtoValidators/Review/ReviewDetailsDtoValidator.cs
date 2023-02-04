@@ -1,5 +1,5 @@
-﻿using EcommerceAPI.Models.DTOs.Review;
-using FluentValidation;
+﻿using FluentValidation;
+using Services.DTOs.Review;
 
 namespace EcommerceAPI.Validators.DtoValidators.Review
 {

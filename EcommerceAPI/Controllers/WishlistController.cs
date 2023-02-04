@@ -1,9 +1,8 @@
-﻿using EcommerceAPI.Models.Entities;
-using EcommerceAPI.Services;
-using EcommerceAPI.Services.IServices;
+﻿using Domain.Entities;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Services.Services.IServices;
 using System.Security.Claims;
 
 namespace EcommerceAPI.Controllers

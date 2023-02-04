@@ -1,8 +1,9 @@
-﻿using EcommerceAPI.Models.DTOs.Category;
-using EcommerceAPI.Services.IServices;
+﻿using EcommerceAPI.Services.IServices;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Services.DTOs.Category;
+using Services.Services.IServices;
 
 namespace EcommerceAPI.Controllers
 {

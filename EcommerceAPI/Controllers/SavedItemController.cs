@@ -1,4 +1,4 @@
-﻿using EcommerceAPI.Models.Entities;
+﻿using Domain.Entities;
 using EcommerceAPI.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

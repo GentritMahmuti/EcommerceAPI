@@ -1,4 +1,4 @@
-﻿using EcommerceAPI.Models.Entities;
+﻿using Domain.Entities;
 using FluentValidation;
 
 namespace EcommerceAPI.Validators.EntityValidators

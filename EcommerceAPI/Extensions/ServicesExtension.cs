@@ -1,5 +1,5 @@
-﻿using EcommerceAPI.Services.IServices;
-using EcommerceAPI.Services;
+﻿using Services.Services.IServices;
+using Services.Services;
 
 namespace EcommerceAPI.Extensions
 {

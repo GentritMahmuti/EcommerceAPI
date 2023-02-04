@@ -1,5 +1,5 @@
-﻿using EcommerceAPI.Models.DTOs.Order;
-using FluentValidation;
+﻿using FluentValidation;
+using Services.DTOs.Order;
 using System.Text.RegularExpressions;
 
 namespace EcommerceAPI.Validators.DtoValidators.Order

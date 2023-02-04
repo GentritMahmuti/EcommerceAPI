@@ -1,5 +1,5 @@
-﻿using EcommerceAPI.Models.DTOs.User;
-using FluentValidation;
+﻿using FluentValidation;
+using Services.DTOs.User;
 
 namespace EcommerceAPI.Validators.DtoValidators.User
 {

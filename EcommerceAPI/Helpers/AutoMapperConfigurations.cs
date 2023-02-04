@@ -1,11 +1,11 @@
 ﻿using AutoMapper;
-using EcommerceAPI.Models.DTOs.Category;
-using EcommerceAPI.Models.DTOs.Chat;
-using EcommerceAPI.Models.DTOs.Order;
-using EcommerceAPI.Models.DTOs.Product;
-using EcommerceAPI.Models.DTOs.Promotion;
-using EcommerceAPI.Models.DTOs.Review;
-using EcommerceAPI.Models.Entities;
+using Domain.Entities;
+using Services.DTOs.Category;
+using Services.DTOs.Chat;
+using Services.DTOs.Order;
+using Services.DTOs.Product;
+using Services.DTOs.Promotion;
+using Services.DTOs.Review;
 
 namespace EcommerceAPI.Helpers
 {

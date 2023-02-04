@@ -1,9 +1,10 @@
-﻿using EcommerceAPI.Models.DTOs.Stripe;
-using EcommerceAPI.Models.Entities;
+﻿using Domain.Entities;
 using EcommerceAPI.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Services.DTOs.Stripe;
+using Services.Services.IServices;
 using Stripe;
 using System.Security.Claims;
 

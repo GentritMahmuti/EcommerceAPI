@@ -1,14 +1,10 @@
-﻿using EcommerceAPI.Models.DTOs.Category;
-using EcommerceAPI.Models.DTOs.Product;
-using EcommerceAPI.Models.DTOs.Review;
-using EcommerceAPI.Models.Entities;
-using EcommerceAPI.Services;
-using EcommerceAPI.Services.IServices;
-using EcommerceAPI.Validators;
+﻿using EcommerceAPI.Validators;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
+using Services.DTOs.Review;
+using Services.Services.IServices;
 using System.Data;
 using System.Security.Claims;
 

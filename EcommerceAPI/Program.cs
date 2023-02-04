@@ -1,11 +1,6 @@
 using AutoMapper;
-using EcommerceAPI.Data;
-using EcommerceAPI.Data.UnitOfWork;
 using EcommerceAPI.Helpers;
 using EcommerceAPI.Helpers.EmailSender;
-using EcommerceAPI.Models.DTOs.Product;
-using EcommerceAPI.Models.DTOs.Review;
-using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.IServices;
 using EcommerceAPI.Services;
 using Elasticsearch.Net;
@@ -22,12 +17,16 @@ using claims = System.Security.Claims;
 using Stripe;
 using EcommerceAPI;
 using EcommerceAPI.Infrastructure;
-using EcommerceAPI.Hubs;
 using EcommerceAPI.Workers;
 using FluentAssertions.Common;
-using EcommerceAPI.Models.DTOs.Promotion;
 using EcommerceAPI.Validators.EntityValidators;
 using EcommerceAPI.Extensions;
+using Domain.Entities;
+using DataAccess.UnitOfWork.IUnitOfWork;
+using DataAccess;
+using Services.Services.IServices;
+using Services.Services;
+using Services.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -1,12 +1,14 @@
-﻿using EcommerceAPI.Models.DTOs.Order;
-using EcommerceAPI.Models.DTOs.ShoppingCard;
-using EcommerceAPI.Models.Entities;
+﻿using Domain.Entities;
 using EcommerceAPI.Services.IServices;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Services.DTOs.Order;
+using Services.DTOs.ShoppingCard;
+using Services.Services.IServices;
 using System.Security.Claims;
+
 
 namespace EcommerceAPI.Controllers
 {

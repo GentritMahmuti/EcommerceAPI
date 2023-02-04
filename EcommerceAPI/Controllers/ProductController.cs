@@ -1,8 +1,8 @@
-﻿using EcommerceAPI.Models.DTOs.Product;
-using EcommerceAPI.Services.IServices;
-using FluentValidation;
+﻿using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Services.DTOs.Product;
+using Services.Services.IServices;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 
