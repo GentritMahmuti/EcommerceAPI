@@ -30,9 +30,12 @@ namespace EcommerceAPI.Controllers
             _chatHub = chatHub;
         }
 
-      
 
-    [HttpPost("messages")]
+        /// <summary>
+        /// Posts a new chat message to the chat system.
+        /// </summary>
+        /// <param name="message">The chat message to be posted</param>
+        [HttpPost("messages")]
         public async Task Post(ChatDTO message)
         {
             var userData = (ClaimsIdentity)User.Identity;

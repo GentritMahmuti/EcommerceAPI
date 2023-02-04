@@ -48,7 +48,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Common\Constants\" />
     <Folder Include="Validators\DtoValidators\Stripe\" />
     <Folder Include="Validators\DtoValidators\ShoppingCard\" />
 

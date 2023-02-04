@@ -28,11 +28,12 @@ namespace EcommerceAPI.Controllers
 
 
         /// <summary>
-        /// Adds a product to card.
+        /// Adds a product to the user's shopping card.
         /// </summary>
-        /// <param name="count"></param>
-        /// <param name="productId"></param>
-        /// <returns></returns>
+        /// <param name="count">The quantity of the product to be added to the shopping card.</param>
+        /// <param name="productId">The id of the product to be added to the shopping card.</param>
+        /// <returns>Ok result if the product was added to the shopping card, 
+        /// a BadRequest result with a message if an error occurred, or an Unauthorized result if the user is not authenticated.</returns>
         [Authorize]
         [HttpPost("AddToCard")]
         public async Task<IActionResult> AddProductToCard(int count, int productId)
@@ -56,10 +57,18 @@ namespace EcommerceAPI.Controllers
         }
 
         /// <summary>
-        /// Removes a product from card if it exists, else returns BadRequest();
+        /// Removes a product from the shopping card
         /// </summary>
-        /// <param name="shoppingCardItemId"></param>
-        /// <returns></returns>
+        /// <param name="shoppingCardItemId">The id of the shopping card item to remove</param>
+        /// <returns>A message indicating if the item was removed successfully</returns>
+        /// <response code="200">The item was removed successfully</response>
+        /// <response code="400">An error occurred while removing the item</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="404">If the shopping card item could not be found</response>
+        /// <tags>Shopping Card</tags>
+        /// <remarks>
+        /// This action requires authentication and the "LifeAdmin" or "LifeUser" role to access.
+        /// </remarks>
         [Authorize]
         [HttpDelete("RemoveFromCard")]
         public async Task<IActionResult> RemoveProductFromCard(int shoppingCardItemId)
@@ -82,9 +91,16 @@ namespace EcommerceAPI.Controllers
         }
 
         /// <summary>
-        /// Empties the shoppingCard of the user.
+        /// Remove all products from shopping card
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A message indicating if all products were removed successfully</returns>
+        /// <response code="200">The products were removed successfully</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user does not have permission to access the resources</response>
+        /// <tags>Shopping Card</tags>
+        /// <remarks>
+        /// This action requires authentication and the "LifeAdmin" or "LifeUser" role to access.
+        /// </remarks>
         [Authorize]
         [HttpDelete("RemoveAllProductsFromCard")]
         public async Task<IActionResult> RemoveAllProductsFromCard()
@@ -108,9 +124,17 @@ namespace EcommerceAPI.Controllers
 
 
         /// <summary>
-        /// Gets shoppingCard details that a user has.
+        /// Gets the shopping card content for the current user
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The shopping card content for the current user</returns>
+        /// <response code="200">The shopping card content was retrieved successfully</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user does not have permission to access the resources</response>
+        /// <response code="404">If the shopping card content is not found</response>
+        /// <tags>Shopping Card</tags>
+        /// <remarks>
+        /// This action requires authentication and the "LifeAdmin" or "LifeUser" role to access.
+        /// </remarks>
         [Authorize]
         [HttpGet("ShoppingCardContent")]
         public async Task<IActionResult> ShoppingCardContent()
@@ -130,11 +154,19 @@ namespace EcommerceAPI.Controllers
 
 
         /// <summary>
-        /// Increases the quantity of a product in shoppingCard of a user.
+        /// Increases the quantity of a product in the shopping card
         /// </summary>
-        /// <param name="newQuantity"></param>
-        /// <param name="shoppingCardItemId"></param>
-        /// <returns></returns>
+        /// <param name="newQuantity">The new quantity for the product</param>
+        /// <param name="shoppingCardItemId">The id of the shopping card item</param>
+        /// <returns>An indication of whether the quantity was increased successfully</returns>
+        /// <response code="200">The quantity was increased successfully</response>
+        /// <response code="400">An error occurred while increasing the quantity</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user does not have permission to access the resources</response>
+        /// <tags>Shopping Card</tags>
+        /// <remarks>
+        /// This action requires authentication and the "LifeAdmin" or "LifeUser" role to access.
+        /// </remarks>
         [Authorize]
         [HttpPost("IncreaseQuantityForProduct")]
         public async Task<IActionResult> IncreaseProductQuantity(int? newQuantity, int shoppingCardItemId)
@@ -159,11 +191,12 @@ namespace EcommerceAPI.Controllers
         }
 
         /// <summary>
-        /// Decreases the quantity of a product in shopppingCard of a user.
+        /// This method is responsible for decreasing the quantity of a product in the shopping cart.
         /// </summary>
-        /// <param name="newQuantity"></param>
-        /// <param name="shoppingCardItemId"></param>
-        /// <returns></returns>
+        /// <param name="newQuantity">The new quantity to be set for the product in the cart</param>
+        /// <param name="shoppingCardItemId">The unique identifier of the item in the shopping cart</param>
+        /// <returns>Ok result if the operation was successful, Unauthorized result if the user is not authorized,
+        /// BadRequest if an error occurs while decreasing the quantity of the product in the cart</returns>
         [Authorize]
         [HttpPost("DecreaseQuantityForProduct")]
         public async Task<IActionResult> DecreaseProductQuantity(int? newQuantity, int shoppingCardItemId)

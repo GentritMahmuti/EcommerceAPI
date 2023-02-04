@@ -22,6 +22,14 @@ namespace EcommerceAPI.Controllers
             _emailSender = emailSender;
         }
 
+        /// <summary>
+        /// Submits a customer inquiry.
+        /// </summary>
+        /// <param name="inquiry">The inquiry data including email and message from the customer</param>
+        /// <returns>An HTTP 200 OK response if the inquiry was successfully submitted</returns>
+        /// <response code="200">The inquiry was successfully submitted</response>
+        /// <response code="400">If the provided data is invalid</response>
+        /// <tags>Inquiry</tags>
         [HttpPost("inquiry")]
         public async Task<IActionResult> SubmitInquiry(InquiryModel inquiry)
         {

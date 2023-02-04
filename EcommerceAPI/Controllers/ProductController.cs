@@ -24,14 +24,22 @@ namespace EcommerceAPI.Controllers
             _productCreateDtoValidator = productCreateDtoValidator;
         }
 
-        
+
 
 
         /// <summary>
-        /// Gets a specific product by id!
+        /// Gets a specific product by ID
         /// </summary>
-        /// <param name="id"></param>
-        /// <returns>A product</returns>
+        /// <param name="id">The ID of the product to retrieve</param>
+        /// <returns>The specified product</returns>
+        /// <response code="200">Returns the specified product</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user does not have permission to access the resources</response>
+        /// <response code="404">If the specified product is not found</response>
+        /// <tags>Product</tags>
+        /// <remarks>
+        /// This action requires authentication and either the "LifeAdmin" or "LifeUser" role to access.
+        /// </remarks>
         [Authorize]
         [HttpGet("GetProduct")]
         public async Task<IActionResult> Get(int id)
@@ -46,6 +54,18 @@ namespace EcommerceAPI.Controllers
             return Ok(product);
         }
 
+        /// <summary>
+        /// Gets all products
+        /// </summary>
+        /// <returns>A list of products</returns>
+        /// <response code="200">Returns the list of all products</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user does not have permission to access the resources</response>
+        /// <response code="404">If there are no products to return</response>
+        /// <tags>Product</tags>
+        /// <remarks>
+        /// This action requires authentication and the "LifeAdmin" role to access.
+        /// </remarks>
         [Authorize(Roles = "LifeAdmin")]
         [HttpGet("GetAllProducts")]
         public async Task<IActionResult> GetAllProducts()
@@ -59,11 +79,18 @@ namespace EcommerceAPI.Controllers
         }
 
         /// <summary>
-        /// Gets products in paginated form!
+        /// Gets a paginated list of products
         /// </summary>
-        /// <param name="pageIndex"></param>
-        /// <param name="pageSize"></param>
-        /// <returns>List of products</returns>
+        /// <param name="pageIndex">The index of the page to retrieve (defaults to 1)</param>
+        /// <param name="pageSize">The number of products per page (defaults to 10)</param>
+        /// <returns>A paginated list of products</returns>
+        /// <response code="200">Returns the paginated list of products</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user does not have permission to access the resources</response>
+        /// <tags>Product</tags>
+        /// <remarks>
+        /// This action requires authentication and either the "LifeUser" or "LifeAdmin" role to access.
+        /// </remarks>
         [Authorize]
         [HttpGet("GetProductsPaginated")]
         public async Task<IActionResult> GetProductsPaginated(int pageIndex = 1, int pageSize = 10)
@@ -74,11 +101,19 @@ namespace EcommerceAPI.Controllers
 
 
         /// <summary>
-        /// Gets products by category!
+        /// Gets a paginated list of products filtered by category
         /// </summary>
-        /// <param name="pageIndex"></param>
-        /// <param name="pageSize"></param>
-        /// <returns>List of products</returns>
+        /// <param name="categoryId">The ID of the category to filter products by</param>
+        /// <param name="pageIndex">The index of the page to retrieve (defaults to 1)</param>
+        /// <param name="pageSize">The number of products per page (defaults to 10)</param>
+        /// <returns>A paginated list of products filtered by category</returns>
+        /// <response code="200">Returns the paginated list of products filtered by category</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user does not have permission to access the resources</response>
+        /// <tags>Product</tags>
+        /// <remarks>
+        /// This action requires authentication and either the "LifeUser" or "LifeAdmin" role to access.
+        /// </remarks>
         [Authorize]
         [HttpGet("GetProductsByCategory")]
         public async Task<IActionResult> GetProductsByCategory(int categoryId, int pageIndex = 1, int pageSize = 10)
@@ -91,9 +126,16 @@ namespace EcommerceAPI.Controllers
         /// <summary>
         /// Gets products based on the categories of the products which user has reviewed or sorts by popularity!
         /// </summary>
-        /// <param name="pageIndex"></param>
-        /// <param name="pageSize"></param>
+        /// <param name="pageIndex">The index of the page to retrieve (defaults to 1)</param>
+        /// <param name="pageSize">The number of products per page (defaults to 10)</param>
         /// <returns>List of products</returns>
+        /// <response code="200">Returns the list of recommended products for the user</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user does not have permission to access the resources</response>
+        /// <tags>Product</tags>
+        /// <remarks>
+        /// This action requires authentication and either the "LifeUser" or "LifeAdmin" role to access.
+        /// </remarks>
         [Authorize]
         [HttpGet("GetRecommendedProducts")]
         public async Task<IActionResult> GetRecommendedProducts(int pageIndex = 1, int pageSize = 10)
