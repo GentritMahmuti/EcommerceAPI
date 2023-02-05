@@ -152,9 +152,13 @@ namespace Services.Services
 
         }
 
-        private async Task<Review> GetReview(int id)
+        public async Task<Review> GetReview(int id)
         {
             var review = await _unitOfWork.Repository<Review>().GetById(x => x.Id == id).FirstOrDefaultAsync();
+            if (review == null)
+            {
+                throw new NullReferenceException("The review you're trying to retrieve doesn't exist.");
+            }
             return review;
         }
     }

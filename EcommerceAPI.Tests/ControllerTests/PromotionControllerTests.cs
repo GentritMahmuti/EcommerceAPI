@@ -1,13 +1,10 @@
 ﻿using EcommerceAPI.Controllers;
-using EcommerceAPI.Services.IServices;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Services.DTOs.Promotion;
 using Services.Services.IServices;
-using System;
 using Xunit;
 
 namespace EcommerceAPI.Tests.ControllerTests

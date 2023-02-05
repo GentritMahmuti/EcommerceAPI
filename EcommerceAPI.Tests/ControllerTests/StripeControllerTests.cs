@@ -1,18 +1,11 @@
 ﻿using Domain.Entities;
 using EcommerceAPI.Controllers;
-using EcommerceAPI.Services.IServices;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Services.DTOs.Stripe;
 using Services.Services.IServices;
-using Stripe;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace EcommerceAPI.Tests.ControllerTests
@@ -29,30 +22,6 @@ namespace EcommerceAPI.Tests.ControllerTests
 
         }
 
-        //[Fact]
-        //public async Task AddStripeCustomer_ReturnsUnauthorizedResult_WhenUserIdIsNull()
-        //{
-        //    // Arrange
-        //    var mockStripeService = new Mock<IStripeAppService>();
-        //    var stripeController = new StripeController(mockStripeService.Object, null);
-
-        //    var identity = new ClaimsIdentity();
-        //    var claimsPrincipal = new ClaimsPrincipal(identity);
-        //    stripeController.ControllerContext = new ControllerContext
-        //    {
-        //        HttpContext = new DefaultHttpContext
-        //        {
-        //            User = claimsPrincipal
-        //        }
-        //    };
-        //    var customer = new AddStripeCustomer();
-
-        //    // Act
-        //    var result = await stripeController.AddStripeCustomer(customer, default);
-
-        //    // Assert
-        //    Assert.IsType<UnauthorizedResult>(result.Result);
-        //}
 
         [Fact]
         public async Task AddStripeCustomer_ReturnsOkResult_WithStripeCustomer_WhenUserIdIsNotNull()
@@ -117,19 +86,6 @@ namespace EcommerceAPI.Tests.ControllerTests
 
         }
 
-        //[Fact]
-        //public async Task AddStripePayment_ReturnsUnauthorizedResult_WhenUserIdIsNull()
-        //{
-        //    // Arrange
-        //    var mockStripeService = new Mock<IStripeAppService>();
-        //    var stripeController = new StripeController(mockStripeService.Object, null);
-
-        //    // Act
-        //    var result = await stripeController.AddStripePayment("test_customer_id", "test_payment_id", "test_order_id");
-
-        //    // Assert
-        //    Assert.IsType<UnauthorizedResult>(result);
-        //}
 
         [Fact]
         public async Task AttachPaymentMethodToCustomer_ReturnsOkResult_WhenPaymentMethodAttachedSuccessfully()
@@ -145,21 +101,6 @@ namespace EcommerceAPI.Tests.ControllerTests
             Assert.IsType(typeof(StatusCodeResult), result);
             _stripeService.Verify(x => x.AttachPaymentMethodToCustomer("customerId", "paymentMethodId"), Times.Once());
         }
-
-
-        //[Fact]
-        //public async Task AttachPaymentMethodToCustomer_ReturnsNotFoundResult_WhenCustomerIdIsInvalid()
-        //{
-        //    // Arrange
-        //    _stripeService.Setup(x => x.AttachPaymentMethodToCustomer(It.IsAny<string>(), It.IsAny<string>()))
-        //    .Throws(new Exception("Invalid customer Id"));
-        //    // Act
-        //    var result = await stripeController.AttachPaymentMethodToCustomer("customerId", "paymentMethodId");
-
-        //    // Assert
-        //    Assert.IsType(typeof(NotFoundResult), result);
-        //    _stripeService.Verify(x => x.AttachPaymentMethodToCustomer("customerId", "paymentMethodId"), Times.Once());
-        //}
 
         [Fact]
         public async Task AddPaymentMethod_ReturnsOkResult_WithPaymentMethod_WhenUserIdIsNotNull()

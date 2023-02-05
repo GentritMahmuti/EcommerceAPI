@@ -1,20 +1,11 @@
 ﻿using EcommerceAPI.Controllers;
-using EcommerceAPI.Services;
-using EcommerceAPI.Services.IServices;
-using EcommerceAPI.Validators.EntityValidators;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Services.DTOs.ShoppingCard;
 using Services.Services.IServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace EcommerceAPI.Tests.ControllerTests
@@ -104,7 +95,7 @@ namespace EcommerceAPI.Tests.ControllerTests
             var claimsIdentity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, userId) });
             var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
 
-            var controller = new ShoppingCardController(_cardService.Object,  null);
+            var controller = new ShoppingCardController(_cardService.Object, null);
             controller.ControllerContext = new ControllerContext
             {
                 HttpContext = new DefaultHttpContext

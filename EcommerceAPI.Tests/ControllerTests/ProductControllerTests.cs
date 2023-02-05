@@ -1,15 +1,9 @@
-﻿using Amazon.Runtime.Internal.Util;
-using AutoMapper;
-using Domain.Entities;
+﻿using Domain.Entities;
 using EcommerceAPI.Controllers;
-using EcommerceAPI.Services;
-using EcommerceAPI.Services.IServices;
-//using FakeItEasy;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Services.DTOs.Product;
@@ -38,27 +32,6 @@ namespace EcommerceAPI.Tests.ControllerTests
         }
 
 
-        //[Fact]
-        //public async Task GetProducts_ReturnsOkResult_WithExpectedProducts()
-        //{
-        //    // Arrange
-        //    var product1 = new Product { Id = 1, Name = "Telefon" };
-        //    var product2 = new Product { Id = 2, Name = "Llaptop" };
-        //    var productFilter = new ProductFilter { CategoryId = 1 };
-        //    var productSort = new ProductSort { SortBy = "Price" };
-        //    var expectedProducts = new List<Product> { product1, product2 };
-        //    _productService.Setup(s => s.GetFilterProducts(productFilter, productSort)).Returns(Task.FromResult(expectedProducts));
-
-        //    var result = await productController.GetAllProducts(productFilter, productSort);
-
-        //    // Assert
-        //    // Assert
-        //    var okResult = Assert.IsType<ActionResult<IEnumerable<Product>>>(result);
-        //    Assert.Equal(expectedProducts, okResult.Value);
-
-        //    _productService.Verify(s => s.GetFilterProducts(productFilter, productSort), Times.Once);
-        //}
-
 
         [Fact]
         public async Task Get_ReturnsNotFoundResult_WhenProductIsNotFound()
@@ -73,23 +46,7 @@ namespace EcommerceAPI.Tests.ControllerTests
             // Assert
             var notFoundResult = Assert.IsType<NotFoundResult>(result);
         }
-
-        public async Task Get_ReturnsOkResult_WithExpectedProduct()
-        {
-            // Arrange
-            var productId = 1;
-            var expectedProduct = new Product { Id = productId, Name = "Test product" };
-            _productService.Setup(x => x.GetProduct(productId)).ReturnsAsync(expectedProduct);
-            var controller = new ProductController(null, null, null, null);
-
-            // Act
-            var result = await controller.Get(productId);
-
-            // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result);
-            Assert.Equal(expectedProduct, okResult.Value);
-            _productService.Verify(x => x.GetProduct(productId), Times.Once);
-        }
+   
         [Fact]
         public async Task GetAllProducts_ReturnsOkResult_WithExpectedProducts()
         {

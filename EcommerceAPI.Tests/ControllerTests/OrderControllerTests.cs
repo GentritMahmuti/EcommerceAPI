@@ -1,22 +1,15 @@
-﻿using EcommerceAPI.Controllers;
+﻿using Domain.Entities;
+using EcommerceAPI.Controllers;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
-using Moq.Language.Flow;
-using Services.Services.IServices;
 using Services.DTOs.Order;
-using Domain.Entities;
 using Services.DTOs.ShoppingCard;
+using Services.Services.IServices;
+using System.Security.Claims;
+using Xunit;
 
 namespace EcommerceAPI.Tests.ControllerTests
 {
