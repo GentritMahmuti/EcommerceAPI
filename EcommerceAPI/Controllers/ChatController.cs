@@ -16,18 +16,18 @@ namespace EcommerceAPI.Controllers
     [ApiController]
     public class ChatController : Controller
     {
-        private readonly IHubContext<ChatHub> _hubContext;
-        private readonly IMessageService _messageService;
+        //private readonly IHubContext<ChatHub> _hubContext;
+        //private readonly IMessageService _messageService;
 
 
-        public ChatController(
-                               IHubContext<ChatHub> hubContext,
-                               IMessageService messageService
-                              )
-        {
-            _messageService = messageService;
-            _hubContext = hubContext;
-        }
+        //public ChatController(
+        //                       IHubContext<ChatHub> hubContext,
+        //                       IMessageService messageService
+        //                      )
+        //{
+        //    _messageService = messageService;
+        //    _hubContext = hubContext;
+        //}
 
 
         /// <summary>

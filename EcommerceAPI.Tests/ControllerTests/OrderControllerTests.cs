@@ -167,7 +167,7 @@ namespace EcommerceAPI.Tests.ControllerTests
             var result = await orderController.CreateOrderFromShoppingCard(productSummaryModel);
 
             // Assert
-            Assert.IsType<OkResult>(result);
+            Assert.IsType<OkObjectResult>(result);
         }
 
         [Fact]

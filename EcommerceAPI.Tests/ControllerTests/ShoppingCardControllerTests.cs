@@ -229,7 +229,7 @@ namespace EcommerceAPI.Tests.ControllerTests
             var result = await shoppingCardController.IncreaseProductQuantity(10, 1);
 
             // Assert
-            Assert.IsType(typeof(OkResult), result);
+            Assert.IsType(typeof(OkObjectResult), result);
         }
 
         [Fact]
@@ -274,7 +274,7 @@ namespace EcommerceAPI.Tests.ControllerTests
             var result = await shoppingCardController.DecreaseProductQuantity(10, 1);
 
             // Assert
-            Assert.IsType(typeof(OkResult), result);
+            Assert.IsType(typeof(OkObjectResult), result);
         }
 
         [Fact]

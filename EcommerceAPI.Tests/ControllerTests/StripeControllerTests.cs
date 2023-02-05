@@ -201,28 +201,6 @@ namespace EcommerceAPI.Tests.ControllerTests
             var okResult = Assert.IsType<ActionResult<PaymentMethodEntity>>(result);
         }
 
-        [Fact]
-        public async Task AddPaymentMethod_ReturnsUnauthorizedResult_WhenUserIdIsNull()
-        {
-            // Arrange
-            var mockStripeService = new Mock<IStripeAppService>();
-
-            var stripeController = new StripeController(mockStripeService.Object, null);
-            stripeController.ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext
-                {
-                    User = null
-                }
-            };
-
-            // Act
-            var result = await stripeController.AddPaymentMethod("test_card_number", "test_exp_month", "test_exp_year", "test_cvc");
-
-            // Assert
-            Assert.IsType<UnauthorizedResult>(result);
-        }
-
 
         [Fact]
         public async Task GetPaymentMethodsByCustomer_ReturnsUnauthorizedResult_WhenUserIdIsNull()

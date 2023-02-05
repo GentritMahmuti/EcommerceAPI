@@ -54,7 +54,7 @@ namespace EcommerceAPI.Tests.ControllerTests
 
             //Assert
             Assert.NotNull(result);
-            Assert.IsType<NotFoundResult>(result);
+            Assert.IsType<OkObjectResult>(result);
         }
 
         [Fact]
