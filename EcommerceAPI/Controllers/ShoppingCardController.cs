@@ -31,13 +31,10 @@ namespace EcommerceAPI.Controllers
         [HttpPost("AddToCard")]
         public async Task<IActionResult> AddProductToCard(int count, int productId)
         {
-            var userData = (ClaimsIdentity)User.Identity;
-            var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-            if (userId == null) { return Unauthorized(); }
-
             try 
-            { 
+            {
+                var userData = (ClaimsIdentity)User.Identity;
+                var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
                 await _cardService.AddProductToCard(userId, productId, count);
 
                 return Ok("Added to card!");
@@ -98,8 +95,6 @@ namespace EcommerceAPI.Controllers
             {
                 var userData = (ClaimsIdentity)User.Identity;
                 var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-                if (userId == null) { return Unauthorized(); }
 
                 await _cardService.RemoveAllProductsFromCard(userId);
 

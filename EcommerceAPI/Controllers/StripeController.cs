@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.DTOs.Stripe;
 using Services.Services.IServices;
-using Stripe;
 using System.Security.Claims;
 
 namespace EcommerceAPI.Controllers
@@ -14,12 +13,10 @@ namespace EcommerceAPI.Controllers
     public class StripeController : ControllerBase
     {
         private readonly IStripeAppService _stripeService;
-        private readonly PaymentMethodService _paymentMethodService;
 
-        public StripeController(IStripeAppService stripeService, PaymentMethodService paymentMethodService)
+        public StripeController(IStripeAppService stripeService)
         {
             _stripeService = stripeService;
-            _paymentMethodService = paymentMethodService;
         }
 
         /// <summary>

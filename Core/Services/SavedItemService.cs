@@ -11,13 +11,11 @@ namespace Services.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<SavedItem> _logger;
-        private readonly ShoppingCardService _shoppingCardService;
 
-        public SavedItemService(IUnitOfWork unitOfWork, ILogger<SavedItem> logger, ShoppingCardService shoppingCardService)
+        public SavedItemService(IUnitOfWork unitOfWork, ILogger<SavedItem> logger)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
-            _shoppingCardService = shoppingCardService;
         }
 
         public async Task<List<Product>> GetSavedItemsContent(string userId)

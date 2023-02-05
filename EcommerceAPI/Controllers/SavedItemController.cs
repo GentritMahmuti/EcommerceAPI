@@ -37,13 +37,10 @@ namespace EcommerceAPI.Controllers
         [HttpGet("GetSavedItemContent")]
         public async Task<ActionResult<List<Product>>> GetSavedItemsContent()
         {
-            var userData = (ClaimsIdentity)User.Identity;
-            var userIdClaim = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-            if (userIdClaim == null) { return Unauthorized(); }
-
             try
             {
+                var userData = (ClaimsIdentity)User.Identity;
+                var userIdClaim = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var products = await _savedItemService.GetSavedItemsContent(userIdClaim);
                 if (products == null)
                 {
@@ -72,14 +69,11 @@ namespace EcommerceAPI.Controllers
         [HttpPost("AddToSavedItems")]
         public async Task<IActionResult> AddProductToSavedItems(int productId)
         {
-            var userData = (ClaimsIdentity)User.Identity;
-            var userIdClaim = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-            if (userIdClaim == null) { return Unauthorized(); }
-
             try
             {
-                await _savedItemService.AddProductToSavedItems(userIdClaim, productId);
+                var userData = (ClaimsIdentity)User.Identity;
+                var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _savedItemService.AddProductToSavedItems(userId, productId);
                 return Ok("Added to saved items!");
             }
             catch (Exception ex)
@@ -101,13 +95,10 @@ namespace EcommerceAPI.Controllers
         [HttpDelete("RemoveProductFromSavedItems")]
         public async Task<IActionResult> RemoveProductFromSavedItems(int productId)
         {
-            var userData = (ClaimsIdentity)User.Identity;
-            var userIdClaim = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-            if (userIdClaim == null) { return Unauthorized(); }
-
             try
             {
+                var userData = (ClaimsIdentity)User.Identity;
+                var userIdClaim = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
                 await _savedItemService.RemoveProductFromSavedItems(userIdClaim, productId);
                 return Ok("Removed from saved items!");
             }

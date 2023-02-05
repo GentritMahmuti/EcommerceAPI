@@ -20,14 +20,12 @@ namespace EcommerceAPI.Tests.ControllerTests
     public class StripeControllerTests
     {
         private readonly Mock<IStripeAppService> _stripeService;
-        private readonly Mock<PaymentMethodService> _paymentMethodService;
         private StripeController stripeController;
 
         public StripeControllerTests()
         {
             _stripeService = new Mock<IStripeAppService>();
-            _paymentMethodService = new Mock<PaymentMethodService>();
-            stripeController = new StripeController(_stripeService.Object, _paymentMethodService.Object);
+            stripeController = new StripeController(_stripeService.Object);
 
         }
 
@@ -65,7 +63,7 @@ namespace EcommerceAPI.Tests.ControllerTests
                 .Setup(x => x.AddStripeCustomerAsync(It.IsAny<string>(), It.IsAny<AddStripeCustomer>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new StripeCustomer("Test Name", "test@email.com", "test_customer_id"));
 
-            var stripeController = new StripeController(mockStripeService.Object, null);
+            var stripeController = new StripeController(mockStripeService.Object);
 
             var identity = new ClaimsIdentity(new[] {
             new Claim(ClaimTypes.NameIdentifier, "test_user_id")
@@ -97,7 +95,7 @@ namespace EcommerceAPI.Tests.ControllerTests
                 .Setup(x => x.AddStripePayment(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync("test_payment_id");
 
-            var stripeController = new StripeController(mockStripeService.Object, null);
+            var stripeController = new StripeController(mockStripeService.Object);
 
             var identity = new ClaimsIdentity(new[] {
             new Claim(ClaimTypes.NameIdentifier, "test_user_id")
@@ -180,7 +178,7 @@ namespace EcommerceAPI.Tests.ControllerTests
                     ExpYear = 2030
                 });
 
-            var stripeController = new StripeController(mockStripeService.Object, null);
+            var stripeController = new StripeController(mockStripeService.Object);
 
             var identity = new ClaimsIdentity(new[] {
             new Claim(ClaimTypes.NameIdentifier, "test_user_id")
@@ -268,7 +266,7 @@ namespace EcommerceAPI.Tests.ControllerTests
             var mockStripeService = new Mock<IStripeAppService>();
             mockStripeService.Setup(x => x.DeletePaymentMethod(It.IsAny<string>()))
             .Returns(Task.CompletedTask);
-            var stripeController = new StripeController(mockStripeService.Object, null);
+            var stripeController = new StripeController(mockStripeService.Object);
 
             // Act
             await stripeController.DeletePaymentMethod("paymentMethodId");
@@ -285,7 +283,7 @@ namespace EcommerceAPI.Tests.ControllerTests
             var mockStripeService = new Mock<IStripeAppService>();
             mockStripeService.Setup(x => x.UpdatePaymentMethodExpiration(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()))
             .Returns(Task.CompletedTask);
-            var stripeController = new StripeController(mockStripeService.Object, null);
+            var stripeController = new StripeController(mockStripeService.Object);
 
             // Act
             await stripeController.UpdatePaymentMethodExpiration("paymentMethodId", 2022, 2);

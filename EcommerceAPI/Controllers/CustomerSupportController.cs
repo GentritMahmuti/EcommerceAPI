@@ -1,5 +1,6 @@
 ﻿
 using Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Persistence.UnitOfWork.IUnitOfWork;
@@ -28,6 +29,7 @@ namespace EcommerceAPI.Controllers
         /// <response code="200">The inquiry was successfully submitted</response>
         /// <response code="400">If the provided data is invalid</response>
         /// <tags>Inquiry</tags>
+        [Authorize]
         [HttpPost("inquiry")]
         public async Task<IActionResult> SubmitInquiry(InquiryModel inquiry)
         {
