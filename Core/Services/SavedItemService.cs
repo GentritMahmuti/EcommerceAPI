@@ -70,7 +70,7 @@ namespace Services.Services
                     };
 
                     _unitOfWork.Repository<SavedItem>().Create(item);
-                    _unitOfWork.Complete();
+                    await _unitOfWork.CompleteAsync();
                 }
             }
             catch (Exception ex)
@@ -95,7 +95,7 @@ namespace Services.Services
                 if (savedItems.Any(x => x.ProductId == productId))
                 {
                     _unitOfWork.Repository<SavedItem>().Delete(savedItems.FirstOrDefault(x => x.ProductId == productId));
-                    _unitOfWork.Complete();
+                    await _unitOfWork.CompleteAsync();
                 }
             }
             catch (Exception ex)

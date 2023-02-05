@@ -259,10 +259,10 @@ namespace Services.Services
 
             var productDto = _mapper.Map<ProductDto>(product);
             await _productService.UpdateProduct(productDto);
-            _unitOfWork.Complete();
+            await _unitOfWork.CompleteAsync();
+
             await _productService.UpdateSomeElastic(product.Id, product.Stock, product.TotalSold);
 
-            await _unitOfWork.CompleteAsync();
             await ChangeOrderStatus(order.OrderId, StaticDetails.Created);
         }
 

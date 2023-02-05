@@ -108,7 +108,7 @@ builder.Services.AddAuthentication(options =>
                               userService.Repository<User>().Update(existingUser);
                           }
 
-                          userService.Complete();
+                          await userService.CompleteAsync();
                       }
                   };
 
