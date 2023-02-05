@@ -7,6 +7,10 @@ using Services.DTOs.Stripe;
 using Services.Services.IServices;
 using StackExchange.Redis;
 using Stripe;
+using Services.DTOs.Order;
+using Newtonsoft.Json;
+using RabbitMQ.Client;
+using System.Text;
 
 namespace Services.Services
 {
@@ -123,6 +127,19 @@ namespace Services.Services
 
                     _unitOfWork.Complete();
 
+                    var orderConfirmationDto = new OrderConfirmationDto
+                    {
+                        UserName = orderData.Name,
+                        OrderDate = DateTime.Now,
+                        Price = orderData.OrderFinalPrice,
+                        OrderId = orderId,
+                        Email = orderData.User.Email,
+                        PhoheNumber = orderData.PhoheNumber,
+                        StreetAddress = orderData.StreetAddress,
+                        City = orderData.City,
+                        PostalCode = orderData.PostalCode,
+                    };
+                    PublishOrderConfirmation(orderConfirmationDto);
                     return "Payment was successful!";
                 }
                 else
@@ -307,6 +324,28 @@ namespace Services.Services
             {
                 _logger.LogError("There was an error while attaching the payment to costumer");
                 throw new Exception(ex.Message);
+            }
+        }
+
+        public void PublishOrderConfirmation(OrderConfirmationDto rabbitData)
+        {
+            var factory = new ConnectionFactory() { HostName = "localhost" };
+            using (var connection = factory.CreateConnection())
+            using (var channel = connection.CreateModel())
+            {
+                channel.QueueDeclare(queue: "order-confirmations",
+                                     durable: true,
+                                     exclusive: false,
+                                     autoDelete: false,
+                                     arguments: null);
+
+                var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(rabbitData));
+
+                channel.BasicPublish(exchange: "",
+                                     routingKey: "order-confirmations",
+                                     basicProperties: null,
+                                     body: body);
+                _logger.LogInformation("Data for order confirmation is published to the rabbit!");
             }
         }
     }
