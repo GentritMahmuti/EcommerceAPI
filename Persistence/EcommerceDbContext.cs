@@ -60,6 +60,7 @@ namespace Persistence
         public DbSet<PaymentMethodEntity> PaymentMethods { get; set; }
         public DbSet<SavedItem> SavedItems { get; set; }
         public DbSet<Inquiry> Inquiries { get; set; }
-
+        public DbSet<NotificationRequest> Notifications { get; set; }
+        public DbSet<Message> Messages { get; set; }
     }
 }

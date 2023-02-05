@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Domain.Entities
 {
-    public class TextMessage
+    public class Message
     {
         public int Id { get; set; }
         public int FromUserId { get; set; }
@@ -16,6 +16,6 @@ namespace Domain.Entities
         public int ConversationId { get; set; }
         public Guid ConversationGuid { get; set; }
         public string Value { get; set; }
-        public DateTime CreatedOn { get; set; } = DateTime.Now;
+        public DateTime? CreatedOn { get; set; }
     }
 }

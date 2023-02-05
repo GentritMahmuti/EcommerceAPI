@@ -11,6 +11,7 @@ namespace Core.Hubs
             return Clients.User(user).SendAsync("ReceiveNotification", user, message);
         }
 
+
         [Authorize]
         public override async Task OnConnectedAsync()
         {

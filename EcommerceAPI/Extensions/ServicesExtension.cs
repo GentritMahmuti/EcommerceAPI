@@ -1,6 +1,8 @@
 ﻿using Services.Services.IServices;
 using Services.Services;
 using EcommerceAPI.Services.IServices;
+using Core.IServices;
+using Core.Services;
 
 namespace EcommerceAPI.Extensions
 {
@@ -13,7 +15,8 @@ namespace EcommerceAPI.Extensions
 
             services.AddScoped<IWishlistService, WishlistService>();
             services.AddScoped<ShoppingCardService>();
-
+            services.AddTransient<INotificationService, NotificationService>();
+            services.AddTransient<IMessageService, MessageService>();
             services.AddTransient<IProductService, ProductService>();
             services.AddTransient<ICategoryService, CategoryService>();
             services.AddTransient<IUserService, UserService>();
