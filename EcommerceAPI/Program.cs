@@ -244,18 +244,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapGet("/", async context =>
-    {
-        context.Response.Redirect("/swagger", permanent: false);
-        await Task.CompletedTask;
-    });
-    endpoints.MapHub<InventoryHub>("/hubs/stock");
-    endpoints.MapHub<ChatHub>($"/{nameof(ChatHub)}");
-    endpoints.MapHub<NotificationHub>($"/{nameof(NotificationHub)}");
-    endpoints.MapControllers();
-});
 
 app.MapUserEndpoints();
 
