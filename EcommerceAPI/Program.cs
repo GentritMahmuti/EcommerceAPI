@@ -1,4 +1,5 @@
 using AutoMapper;
+using Core.Hubs;
 using Domain.Entities;
 using EcommerceAPI.Extensions;
 using EcommerceAPI.Helpers;
@@ -243,6 +244,18 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapGet("/", async context =>
+    {
+        context.Response.Redirect("/swagger", permanent: false);
+        await Task.CompletedTask;
+    });
+    endpoints.MapHub<InventoryHub>("/hubs/stock");
+    endpoints.MapHub<ChatHub>($"/{nameof(ChatHub)}");
+    endpoints.MapHub<NotificationHub>($"/{nameof(NotificationHub)}");
+    endpoints.MapControllers();
+});
 
 app.MapUserEndpoints();
 
