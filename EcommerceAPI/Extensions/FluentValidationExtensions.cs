@@ -24,7 +24,6 @@ namespace EcommerceAPI.Extensions
             // EntityValidators
             services.AddScoped<IValidator<Category>, CategoryValidator>();
             services.AddScoped<IValidator<Domain.Entities.Product>, ProductValidator>();
-            //services.AddScoped<IValidator<OrderDetails>, OrderDetailsValidator>();
            
             services.AddScoped<IValidator<PromotionDto>, PromotionValidator>();
             services.AddScoped<IValidator<ProductDto>, ProductDtoValidator>();

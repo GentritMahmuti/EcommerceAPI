@@ -1,8 +1,10 @@
 using AutoMapper;
+using Domain.Entities;
+using EcommerceAPI.Extensions;
 using EcommerceAPI.Helpers;
 using EcommerceAPI.Helpers.EmailSender;
-using EcommerceAPI.Services.IServices;
-using EcommerceAPI.Services;
+using EcommerceAPI.Infrastructure;
+using EcommerceAPI.Workers;
 using Elasticsearch.Net;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -10,29 +12,17 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Nest;
+using Persistence;
+using Persistence.UnitOfWork.IUnitOfWork;
 using Serilog;
+using Stripe;
 using System.Security.Claims;
 using System.Text;
 using claims = System.Security.Claims;
-using Stripe;
-using EcommerceAPI;
-using EcommerceAPI.Infrastructure;
-using EcommerceAPI.Workers;
-using FluentAssertions.Common;
-using EcommerceAPI.Validators.EntityValidators;
-using EcommerceAPI.Extensions;
-using Domain.Entities;
-using Persistence.UnitOfWork.IUnitOfWork;
-using Persistence;
-using Services.Services.IServices;
-using Services.Services;
-using Core.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
-
+#region [JWTAuthentication]
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -117,10 +107,13 @@ builder.Services.AddAuthentication(options =>
               });
 
 
+#endregion 
 
+
+#region[Swagger Gen]
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Life ETS", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "ECommerceProject", Version = "v1" });
     c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
     c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
     {
@@ -140,6 +133,9 @@ builder.Services.AddSwaggerGen(c =>
     c.OperationFilter<AuthorizeCheckOperationFilter>();
     c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "EcommerceAPI.xml"));
 });
+
+#endregion
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -149,6 +145,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddStripeInfrastructure(builder.Configuration);
 
 
+#region [Serilog]
 var logger = new LoggerConfiguration()
         .ReadFrom.Configuration(builder.Configuration)
         .Enrich.FromLogContext()
@@ -157,16 +154,22 @@ var logger = new LoggerConfiguration()
 builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(logger);
 
+#endregion
+
 
 builder.Services.AddHostedService<UpdateElasticBackgroundService>();
-
-
 builder.Services.AddFluentValidations();
-builder.Services.AddEmailSenders(builder.Configuration);
 
+
+#region [Email Senders]
 var smtpConfigurations = builder.Configuration.GetSection(nameof(SmtpConfiguration)).Get<SmtpConfiguration>();
 builder.Services.AddSingleton(smtpConfigurations);
 builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
+
+#endregion
+
+builder.Services.AddEmailSenders(builder.Configuration);
+
 
 builder.Services.AddHttpClient();
 
@@ -187,20 +190,16 @@ builder.Services.AddCors(options =>
     });
 });
 
+#region [Mapper]
 var mapperConfiguration = new MapperConfiguration(
     mc => mc.AddProfile(new AutoMapperConfigurations()));
 
 IMapper mapper = mapperConfiguration.CreateMapper();
-
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
 builder.Services.AddSingleton(mapper);
-builder.Services.AddDbContext<EcommerceDbContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddServices();
+#endregion
 
-
+#region [ElasticSearch]
 var pool = new SingleNodeConnectionPool(new Uri("https://localhost:9200"));
 
 var connectionSettings = new ConnectionSettings(pool)
@@ -209,35 +208,26 @@ var connectionSettings = new ConnectionSettings(pool)
 
 var client = new ElasticClient(connectionSettings);
 
+#endregion
+
+builder.Services.AddDbContext<EcommerceDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+builder.Services.AddServices();
+
+
+
 builder.Services.AddSingleton(client);
 
-builder.Services.AddScoped<ICacheService, CacheService>();
-builder.Services.AddScoped<ISavedItemService, SavedItemService>();
-
-builder.Services.AddScoped<IWishlistService, WishlistService>();
 builder.Services.AddTransient<PaymentMethodService>();
 builder.Services.AddTransient<PaymentIntentService>();
-builder.Services.AddScoped<ShoppingCardService>();
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.DisplayRequestDuration();
-        c.DefaultModelExpandDepth(0);
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "ECommerceProject");
-        c.OAuthClientId("fb1b97e4-778a-431d-abb1-78bbdca9253b");
-        c.OAuthClientSecret("21551351-fc9a-4d8e-8619-8c7e5acb6d47");
-        c.OAuthAppName("ECommerceProject");
-        c.OAuthUsePkce();
-        c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
-    });
-
-}
+app.ConfigureSwagger();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseCors("ClientPermission");
@@ -253,17 +243,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapGet("/", async context =>
-    {
-        context.Response.Redirect("/swagger", permanent: false);
-        await Task.CompletedTask;
-    });
-    endpoints.MapHub<InventoryHub>("/hubs/stock");
-    endpoints.MapHub<ChatHub>($"/{nameof(ChatHub)}");
-    endpoints.MapHub<NotificationHub>($"/{nameof(NotificationHub)}");
-    endpoints.MapControllers();
-});
+
+app.MapUserEndpoints();
 
 app.Run();
