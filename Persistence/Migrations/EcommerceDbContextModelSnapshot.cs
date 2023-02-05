@@ -143,23 +143,24 @@ namespace Persistence.Migrations
                     b.Property<Guid>("ConversationGuid")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("ConversationId")
-                        .HasColumnType("int");
+                    b.Property<string>("ConversationId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("CreatedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("FromUserGuid")
+                    b.Property<Guid?>("FromUserGuid")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("FromUserId")
-                        .HasColumnType("int");
+                    b.Property<string>("FromUserId")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("ToUserGuid")
+                    b.Property<Guid?>("ToUserGuid")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("ToUserId")
-                        .HasColumnType("int");
+                    b.Property<string>("ToUserId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Value")
                         .IsRequired()

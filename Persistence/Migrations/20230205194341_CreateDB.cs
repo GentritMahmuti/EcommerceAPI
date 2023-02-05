@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class createdb : Migration
+    public partial class CreateDB : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -64,11 +64,11 @@ namespace Persistence.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    FromUserId = table.Column<int>(type: "int", nullable: false),
-                    FromUserGuid = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ToUserId = table.Column<int>(type: "int", nullable: false),
-                    ToUserGuid = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ConversationId = table.Column<int>(type: "int", nullable: false),
+                    FromUserId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    FromUserGuid = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    ToUserId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ToUserGuid = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    ConversationId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ConversationGuid = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Value = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedOn = table.Column<DateTime>(type: "datetime2", nullable: true)

@@ -27,12 +27,17 @@ namespace Core.Services
 
         public async Task<Response<MessageDto>> CreateMessage(string userId, MessageDtoModel request, CancellationToken cancellationToken)
         {
+            
             try
             {
                 var message = new Message
                 {
-                    FromUserId = Convert.ToInt32(userId),
-                    ToUserGuid = request.ConversationGuid,
+                    FromUserId = userId,
+                    FromUserGuid = Guid.Parse(userId),
+                    ConversationGuid = request.ConversationGuid,
+                    ConversationId = request.ConversationGuid.ToString(),
+                    ToUserId = "d71e4112-959d-412a-acb0-cfe8223d280a",
+                    ToUserGuid = Guid.Parse("d71e4112-959d-412a-acb0-cfe8223d280a"),
                     Value = request.Value,
                     CreatedOn = DateTime.Now
                 };
@@ -45,8 +50,12 @@ namespace Core.Services
                     Data = new MessageDto
                     {
                         Id = message.Id,
-                        FromUserGuid = message.FromUserGuid,
-                        ToUserGuid = message.ToUserGuid,
+                        FromUserId = userId,
+                        FromUserGuid = Guid.Parse(userId),
+                        ConversationGuid = message.ConversationGuid,
+                        ConversationId = message.ConversationGuid.ToString(),
+                        ToUserId = "d71e4112-959d-412a-acb0-cfe8223d280a",
+                        ToUserGuid = Guid.Parse("d71e4112-959d-412a-acb0-cfe8223d280a"),
                         Value = message.Value,
                         CreatedOn = message.CreatedOn
                     },
@@ -65,7 +74,7 @@ namespace Core.Services
         }
 
 
-        public async Task ReadMessages(string userId, Guid conversationGuid, CancellationToken cancellationToken)
+        public async Task<List<string>> ReadMessages(string userId, Guid conversationGuid, CancellationToken cancellationToken)
         {
             var user = await _unitOfWork.Repository<User>().GetById(x => x.Id.Equals(userId)).FirstOrDefaultAsync();
 
@@ -74,9 +83,11 @@ namespace Core.Services
                 throw new Exception("User not found");
             }
 
-            var messages = _unitOfWork.Repository<Message>().GetByCondition(x => x.ConversationGuid == conversationGuid && x.ToUserId == Convert.ToInt32(userId));
+            var messages = _unitOfWork.Repository<Message>().GetByCondition(x => x.ConversationGuid == conversationGuid && x.ToUserId == userId).ToList();
 
             _unitOfWork.Complete();
+
+            return messages.Select(x => x.Value).ToList();
         }
     }
 }

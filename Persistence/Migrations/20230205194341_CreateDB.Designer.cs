@@ -12,8 +12,8 @@ using Persistence;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(EcommerceDbContext))]
-    [Migration("20230205180109_createdb")]
-    partial class createdb
+    [Migration("20230205194341_CreateDB")]
+    partial class CreateDB
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -146,23 +146,24 @@ namespace Persistence.Migrations
                     b.Property<Guid>("ConversationGuid")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("ConversationId")
-                        .HasColumnType("int");
+                    b.Property<string>("ConversationId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("CreatedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("FromUserGuid")
+                    b.Property<Guid?>("FromUserGuid")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("FromUserId")
-                        .HasColumnType("int");
+                    b.Property<string>("FromUserId")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("ToUserGuid")
+                    b.Property<Guid?>("ToUserGuid")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("ToUserId")
-                        .HasColumnType("int");
+                    b.Property<string>("ToUserId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Value")
                         .IsRequired()

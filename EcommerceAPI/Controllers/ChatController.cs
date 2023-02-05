@@ -81,11 +81,11 @@ namespace EcommerceAPI.Controllers
             var userData = (ClaimsIdentity)User.Identity;
             var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-            await _messageService.ReadMessages(userId, conversationGuid, cancellationToken);
+            var message = await _messageService.ReadMessages(userId, conversationGuid, cancellationToken);
 
             await _hubContext.Clients.Group("idOfUserWhereToSendSeen").SendAsync("SeenMessage", conversationGuid.ToString(), cancellationToken);
 
-            return Ok();
+            return Ok(message);
         }
 
     }

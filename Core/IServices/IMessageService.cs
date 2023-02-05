@@ -11,6 +11,6 @@ namespace Core.IServices
     public interface IMessageService
     {
         Task<Response<MessageDto>> CreateMessage(string userId, MessageDtoModel request, CancellationToken cancellationToken);
-        Task ReadMessages(string userId, Guid conversationGuid, CancellationToken cancellationToken);
+        Task<List<string>> ReadMessages(string userId, Guid conversationGuid, CancellationToken cancellationToken);
     }
 }
