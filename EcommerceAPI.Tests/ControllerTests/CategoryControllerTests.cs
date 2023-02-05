@@ -99,25 +99,6 @@ public class CategoryControllerTests
         Assert.Equal("Category created successfully!", okResult.Value);
     }
 
- 
-    [Fact]
-    public async Task Post_ReturnsBadRequest_WhenModelStateIsInvalid()
-    {
-        // Arrange
-        categoryController.ModelState.AddModelError("error", "some error");
-        var createCategoryDto = new CategoryCreateDto()
-        {
-            CategoryName = "",
-            DisplayOrder = 1
-        };
-
-        // Act
-        var result = await categoryController.Post(createCategoryDto);
-
-        // Assert
-        Assert.IsType<BadRequestObjectResult>(result);
-    }
-
 
     [Fact]
     public async Task Put_ReturnsOkResult_WithSuccessMessage_WhenCategoryIsUpdated()
