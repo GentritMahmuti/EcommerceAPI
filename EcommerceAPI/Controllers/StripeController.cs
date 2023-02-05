@@ -30,7 +30,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="customer">The customer details to be added to Stripe</param>
         /// <param name="ct">The cancellation token</param>
         /// <returns>The created Stripe customer</returns>
-        [HttpPost("customer/add")]
+        [HttpPost("AddCustomer")]
         public async Task<ActionResult<StripeCustomer>> AddStripeCustomer([FromBody] AddStripeCustomer customer, CancellationToken ct)
         {
             var userData = (ClaimsIdentity)User.Identity;
@@ -50,7 +50,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="PaymentId">The payment id</param>
         /// <param name="orderId">The order id associated with the payment</param>
         /// <returns>The payment id</returns>
-        [HttpPost("payment/add")]
+        [HttpPost("CreatePaymentForOrder")]
         public async Task<ActionResult<string>> AddStripePayment(string CustomerId, string PaymentId, string orderId)
         {
             var userData = (ClaimsIdentity)User.Identity;
@@ -72,7 +72,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="expYear">The expiration year of the payment method</param>
         /// <param name="cvc">The CVC code of the payment method</param>
         /// <returns>The created payment method</returns>
-        [HttpPost("payment/method/add")]
+        [HttpPost("AddPaymentMethod")]
         public async Task<ActionResult<PaymentMethodEntity>> AddPaymentMethod(string cardNumber, string expMonth, string expYear, string cvc)
         {
             var userData = (ClaimsIdentity)User.Identity;
@@ -93,7 +93,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="expYear">The expiration year of the payment method</param>
         /// <param name="cvc">The cvc of the payment method</param>
         /// <returns>A payment method entity</returns>
-        [HttpPost("payment/method/attach")]
+        [HttpPost("AttachPaymentMethod")]
         public async Task<ActionResult> AttachPaymentMethodToCustomer(string customerId, string paymentMethodId)
         {
             await _stripeService.AttachPaymentMethodToCustomer(customerId, paymentMethodId);
@@ -108,7 +108,7 @@ namespace EcommerceAPI.Controllers
         /// <returns>A list of <see cref="PaymentMethodEntity"/> that belong to the current user.</returns>
         /// <response code="200">The payment methods were successfully retrieved.</response>
         /// <response code="401">The user is unauthorized to access this resource.</response>
-        [HttpGet("payment/methods")]
+        [HttpGet("GetPaymentMethods")]
         public ActionResult<List<PaymentMethodEntity>> GetPaymentMethodsByCustomer()
         {
             var userData = (ClaimsIdentity)User.Identity;
@@ -128,7 +128,7 @@ namespace EcommerceAPI.Controllers
         /// </summary>
         /// <param name="paymentMethodId">The identifier of the payment method to delete.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        [HttpDelete("payment/method/delete")]
+        [HttpDelete("DeletePaymentMethod")]
         public async Task DeletePaymentMethod(string paymentMethodId)
         {
             await _stripeService.DeletePaymentMethod(paymentMethodId);
@@ -141,7 +141,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="expYear">The new expiration year of the payment method</param>
         /// <param name="expMonth">The new expiration month of the payment method</param>
         /// <returns></returns>
-        [HttpPut("payment/method/update")]
+        [HttpPut("UpdatePaymentMethod")]
         public async Task UpdatePaymentMethodExpiration(string paymentMethodId, int expYear, int expMonth)
         {
             await _stripeService.UpdatePaymentMethodExpiration(paymentMethodId, expYear, expMonth);

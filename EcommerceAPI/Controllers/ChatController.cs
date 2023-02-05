@@ -7,6 +7,9 @@ using System.Net;
 using Core.Helpers;
 using Domain.Entities;
 using Core.IServices;
+using Services.DTOs.Chat;
+using System.Security.Claims;
+using Newtonsoft.Json;
 
 namespace EcommerceAPI.Controllers
 {
@@ -31,40 +34,40 @@ namespace EcommerceAPI.Controllers
         /// Posts a new chat message to the chat system.
         /// </summary>
         /// <param name="message">The chat message to be posted</param>
-        [HttpPost("messages")]
-        public async Task Post(ChatDTO message)
-        {
-            var userData = (ClaimsIdentity)User.Identity;
+        //[HttpPost("messages")]
+        //public async Task Post(ChatDTO message)
+        //{
+        //    var userData = (ClaimsIdentity)User.Identity;
         
-            message.Name = userData.FindFirst(ClaimTypes.GivenName).Value;
-            message.Surname = userData.FindFirst(ClaimTypes.Surname).Value;
+        //    message.Name = userData.FindFirst(ClaimTypes.GivenName).Value;
+        //    message.Surname = userData.FindFirst(ClaimTypes.Surname).Value;
       
-            string jsonString = JsonConvert.SerializeObject(message);
+        //    string jsonString = JsonConvert.SerializeObject(message);
 
-            if (!string.IsNullOrWhiteSpace(response.Message))
-            {
-                if (response.StatusCode == (int)HttpStatusCode.Forbidden)
-                {
-                    return BadRequest(response.Forbidden(response.Message));
-                }
-                else if (response.StatusCode == (int)HttpStatusCode.InternalServerError)
-                {
-                    return BadRequest(response.InternalServerError(response.Message));
-                }
-                else if (response.StatusCode == (int)HttpStatusCode.BadRequest)
-                {
-                    return BadRequest(response.BadRequest(response.Message));
-                }
-            }
+        //    if (!string.IsNullOrWhiteSpace(response.Message))
+        //    {
+        //        if (response.StatusCode == (int)HttpStatusCode.Forbidden)
+        //        {
+        //            return BadRequest(response.Forbidden(response.Message));
+        //        }
+        //        else if (response.StatusCode == (int)HttpStatusCode.InternalServerError)
+        //        {
+        //            return BadRequest(response.InternalServerError(response.Message));
+        //        }
+        //        else if (response.StatusCode == (int)HttpStatusCode.BadRequest)
+        //        {
+        //            return BadRequest(response.BadRequest(response.Message));
+        //        }
+        //    }
 
-            if (response.Data.FromUserGuid != response.Data.ToUserGuid)
-            {
-                await _hubContext.Clients.GroupExcept(response.Data.FromUserGuid.ToString(), getConnectionId).SendAsync("ReceiveMessage", response.Data, cancellationToken);
-                await _hubContext.Clients.Group(response.Data.ToUserGuid.ToString()).SendAsync("ReceiveMessage", response.Data, cancellationToken);
-            }
+        //    if (response.Data.FromUserGuid != response.Data.ToUserGuid)
+        //    {
+        //        await _hubContext.Clients.GroupExcept(response.Data.FromUserGuid.ToString(), getConnectionId).SendAsync("ReceiveMessage", response.Data, cancellationToken);
+        //        await _hubContext.Clients.Group(response.Data.ToUserGuid.ToString()).SendAsync("ReceiveMessage", response.Data, cancellationToken);
+        //    }
 
-            return Ok(response.Ok(response.Data));
-        }
+        //    return Ok(response.Ok(response.Data));
+        //}
 
         //[HttpGet("ReadMessages/{conversationGuid}")]
         //public async Task<IActionResult> ReadMessages(Guid conversationGuid, CancellationToken cancellationToken)
