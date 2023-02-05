@@ -7,6 +7,10 @@ using Services.DTOs.Stripe;
 using Services.Services.IServices;
 using StackExchange.Redis;
 using Stripe;
+using Services.DTOs.Order;
+using Newtonsoft.Json;
+using RabbitMQ.Client;
+using System.Text;
 
 namespace Services.Services
 {
@@ -75,7 +79,7 @@ namespace Services.Services
                     UserId = userId
                 };
                 _unitOfWork.Repository<PaymentMethodEntity>().Create(newPaymentMethod);
-                _unitOfWork.Complete();
+                await _unitOfWork.CompleteAsync();
 
                 // Return the created customer at stripe
                 return new StripeCustomer(createdCustomer.Name, createdCustomer.Email, createdCustomer.Id);
@@ -121,8 +125,21 @@ namespace Services.Services
                     orderData.PaymentDueDate = DateTime.Now.AddDays(30);
                     orderData.PaymentMethodId = paymentMethod.PaymentMethodId;
 
-                    _unitOfWork.Complete();
+                    await _unitOfWork.CompleteAsync();
 
+                    var orderConfirmationDto = new OrderConfirmationDto
+                    {
+                        UserName = orderData.Name,
+                        OrderDate = DateTime.Now,
+                        Price = orderData.OrderFinalPrice,
+                        OrderId = orderId,
+                        Email = orderData.User.Email,
+                        PhoheNumber = orderData.PhoheNumber,
+                        StreetAddress = orderData.StreetAddress,
+                        City = orderData.City,
+                        PostalCode = orderData.PostalCode,
+                    };
+                    PublishOrderConfirmation(orderConfirmationDto);
                     return "Payment was successful!";
                 }
                 else
@@ -165,7 +182,7 @@ namespace Services.Services
                     orderData.PaymentDueDate = DateTime.Now.AddDays(30);
                     orderData.PaymentMethodId = createdPayment.PaymentMethod;
 
-                    _unitOfWork.Complete();
+                    await _unitOfWork.CompleteAsync();
 
                     return "Payment was successful!";
                 }
@@ -202,7 +219,7 @@ namespace Services.Services
                 // Delete the payment method from the database
                 var paymentMethod = _unitOfWork.Repository<PaymentMethodEntity>().GetByCondition(p => p.PaymentMethodId == paymentMethodId).FirstOrDefault();
                 _unitOfWork.Repository<PaymentMethodEntity>().Delete(paymentMethod);
-                _unitOfWork.Complete();
+                await _unitOfWork.CompleteAsync();
 
                 // Delete the payment method from the Stripe API
                 await _paymentMethodService.DetachAsync(paymentMethodId);
@@ -222,7 +239,7 @@ namespace Services.Services
                 var paymentMethod = _unitOfWork.Repository<PaymentMethodEntity>().GetByCondition(p => p.PaymentMethodId == paymentMethodId).FirstOrDefault();
                 paymentMethod.ExpYear = expYear;
                 paymentMethod.ExpMonth = expMonth;
-                _unitOfWork.Complete();
+                await _unitOfWork.CompleteAsync();
 
                 // Update the expiration year and month in the Stripe API
                 var updateOptions = new PaymentMethodUpdateOptions
@@ -276,7 +293,7 @@ namespace Services.Services
                 };
 
                 _unitOfWork.Repository<PaymentMethodEntity>().Create(paymentMethodEntity);
-                _unitOfWork.Complete();
+                await _unitOfWork.CompleteAsync();
                 _logger.LogInformation("Payment method created successfully");
 
                 return paymentMethodEntity;
@@ -299,7 +316,7 @@ namespace Services.Services
 
                 var paymentMethod = _unitOfWork.Repository<PaymentMethodEntity>().GetByCondition(p => p.PaymentMethodId == paymentMethodId).FirstOrDefault();
                 paymentMethod.CustomerId = customerId;
-                _unitOfWork.Complete();
+                await _unitOfWork.CompleteAsync();
 
                 await _paymentMethodService.AttachAsync(paymentMethodId, paymentMethodAttachOptions);
             }
@@ -307,6 +324,28 @@ namespace Services.Services
             {
                 _logger.LogError("There was an error while attaching the payment to costumer");
                 throw new Exception(ex.Message);
+            }
+        }
+
+        public void PublishOrderConfirmation(OrderConfirmationDto rabbitData)
+        {
+            var factory = new ConnectionFactory() { HostName = "localhost" };
+            using (var connection = factory.CreateConnection())
+            using (var channel = connection.CreateModel())
+            {
+                channel.QueueDeclare(queue: "order-confirmations",
+                                     durable: true,
+                                     exclusive: false,
+                                     autoDelete: false,
+                                     arguments: null);
+
+                var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(rabbitData));
+
+                channel.BasicPublish(exchange: "",
+                                     routingKey: "order-confirmations",
+                                     basicProperties: null,
+                                     body: body);
+                _logger.LogInformation("Data for order confirmation is published to the rabbit!");
             }
         }
     }

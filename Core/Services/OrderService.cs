@@ -181,19 +181,7 @@ namespace Services.Services
                 
             await _unitOfWork.CompleteAsync();
 
-            var orderConfirmationDto = new OrderConfirmationDto
-            {
-                UserName = addressDetails.Name,
-                OrderDate = DateTime.Now,
-                Price = order.OrderFinalPrice,
-                OrderId = orderId,
-                Email = addressDetails.Email,
-                PhoheNumber = addressDetails.PhoheNumber,
-                StreetAddress = addressDetails.StreetAddress,
-                City = addressDetails.City,
-                PostalCode = addressDetails.PostalCode,
-            };
-            PublishOrderConfirmation(orderConfirmationDto);
+            await ChangeOrderStatus(order.OrderId, StaticDetails.Created);
         }
 
 
@@ -261,7 +249,7 @@ namespace Services.Services
 
             product.Stock -= count;
             product.TotalSold += count;
-            _stockHub.Clients.All.SendAsync(product.Stock);
+            await _stockHub.Clients.All.SendAsync(product.Stock);
 
 
             if (product.Stock == 0 || product.Stock == 10)
@@ -271,24 +259,11 @@ namespace Services.Services
 
             var productDto = _mapper.Map<ProductDto>(product);
             await _productService.UpdateProduct(productDto);
-            _unitOfWork.Complete();
-            await _productService.UpdateSomeElastic(product.Id, product.Stock, product.TotalSold);
-
             await _unitOfWork.CompleteAsync();
 
-            var orderConfirmationDto = new OrderConfirmationDto
-            {
-                UserName = addressDetails.Name,
-                OrderDate = DateTime.Now,
-                Price = product.Price * count,
-                OrderId = order.OrderId,
-                Email = addressDetails.Email,
-                PhoheNumber = addressDetails.PhoheNumber,
-                StreetAddress = addressDetails.StreetAddress,
-                City = addressDetails.City,
-                PostalCode = addressDetails.PostalCode,
-            };
-            PublishOrderConfirmation(orderConfirmationDto);
+            await _productService.UpdateSomeElastic(product.Id, product.Stock, product.TotalSold);
+
+            await ChangeOrderStatus(order.OrderId, StaticDetails.Created);
         }
 
         /// <summary>
@@ -332,7 +307,7 @@ namespace Services.Services
 
             product.Stock -= item.Count;
             product.TotalSold += item.Count;
-            _stockHub.Clients.All.SendAsync(product.Stock);
+            await _stockHub.Clients.All.SendAsync(product.Stock);
 
             var productDto = _mapper.Map<ProductDto>(product);
             await _productService.UpdateProduct(productDto);
@@ -400,27 +375,7 @@ namespace Services.Services
         /// Publishes the message to the "order-confirmations" queue when an order is done which then sends email to the user who has done that order to notify them that the order has been confirmed.
         /// </summary>
         /// <param name="rabbitData"></param>
-        public void PublishOrderConfirmation(OrderConfirmationDto rabbitData)
-        {
-            var factory = new ConnectionFactory() { HostName = "localhost" };
-            using (var connection = factory.CreateConnection())
-            using (var channel = connection.CreateModel())
-            {
-                channel.QueueDeclare(queue: "order-confirmations",
-                                     durable: true,
-                                     exclusive: false,
-                                     autoDelete: false,
-                                     arguments: null);
-
-                var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(rabbitData));
-
-                channel.BasicPublish(exchange: "",
-                                     routingKey: "order-confirmations",
-                                     basicProperties: null,
-                                     body: body);
-                _logger.LogInformation("Data for order confirmation is published to the rabbit!");
-            }
-        }
+        
 
 
         /// <summary>

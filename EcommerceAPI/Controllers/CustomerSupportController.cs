@@ -47,7 +47,7 @@ namespace EcommerceAPI.Controllers
                 SubmittedAt = DateTime.UtcNow
             };
             _unitOfWork.Repository<Inquiry>().Create(newInquiry);
-            _unitOfWork.Complete();
+            await _unitOfWork.CompleteAsync();
 
             // Send email notification to support agents
             await _emailSender.SendEmailAsync("elmedina.lahu@life.gjirafa.com","New Customer Inquiry", $"A new customer inquiry was submitted by {inquiry.Email}. Message: {inquiry.Message}");

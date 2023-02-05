@@ -7,6 +7,9 @@ using System.Net;
 using Core.Helpers;
 using Domain.Entities;
 using Core.IServices;
+using Services.DTOs.Chat;
+using System.Security.Claims;
+using Newtonsoft.Json;
 
 namespace EcommerceAPI.Controllers
 {
@@ -27,10 +30,10 @@ namespace EcommerceAPI.Controllers
         //}
 
 
-        ///// <summary>
-        ///// Posts a new chat message to the chat system.
-        ///// </summary>
-        ///// <param name="message">The chat message to be posted</param>
+        /// <summary>
+        /// Posts a new chat message to the chat system.
+        /// </summary>
+        /// <param name="message">The chat message to be posted</param>
         //[HttpPost("messages")]
         //public async Task Post(ChatDTO message)
         //{

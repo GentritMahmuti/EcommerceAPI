@@ -74,7 +74,7 @@ namespace Services.Services
                     };
 
                     _unitOfWork.Repository<WishListItem>().Create(item);
-                    _unitOfWork.Complete();
+                    await _unitOfWork.CompleteAsync();
                 }
             }
             catch (Exception ex)
@@ -99,7 +99,7 @@ namespace Services.Services
                 if (wishlist.Any(x => x.ProductId == productId))
                 {
                     _unitOfWork.Repository<WishListItem>().Delete(wishlist.FirstOrDefault(x => x.ProductId == productId));
-                    _unitOfWork.Complete();
+                    await _unitOfWork.CompleteAsync();
                 }
             }
             catch (Exception ex)
@@ -127,7 +127,7 @@ namespace Services.Services
                     await _shoppingCardService.AddProductToCard(userId, productId, 1);
 
                     _unitOfWork.Repository<WishListItem>().Delete(wishlist.FirstOrDefault(x => x.ProductId == productId));
-                    _unitOfWork.Complete();
+                    await _unitOfWork.CompleteAsync();
                 }
             }
             catch (Exception ex)
