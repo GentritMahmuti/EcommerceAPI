@@ -1,10 +1,9 @@
 ﻿
 using AutoMapper;
-using Persistence.UnitOfWork.IUnitOfWork;
 using Domain.Entities;
-using EcommerceAPI.Services.IServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Persistence.UnitOfWork.IUnitOfWork;
 using Services.DTOs.Category;
 using Services.Services.IServices;
 
@@ -77,7 +76,7 @@ namespace Services.Services
         /// <exception cref="NullReferenceException"></exception>
         public async Task UpdateCategory(CategoryDto categoryToUpdate)
         {
-           
+
             var category = await GetCategory(categoryToUpdate.CategoryId);
             if (category == null)
             {
@@ -85,7 +84,7 @@ namespace Services.Services
             }
 
             category.CategoryName = categoryToUpdate.CategoryName;
-            category.DisplayOrder= categoryToUpdate.DisplayOrder;
+            category.DisplayOrder = categoryToUpdate.DisplayOrder;
 
             _unitOfWork.Repository<Category>().Update(category);
             await _unitOfWork.CompleteAsync();

@@ -52,7 +52,7 @@ namespace ECommerce.Consumer.Workers
             }
         }
 
-        private void SendConfirmationEmail(OrderConfirmationDto data)
+        private async Task SendConfirmationEmail(OrderConfirmationDto data)
         {
             var pathToFile = "Templates/orderConfirmation.html";
 
@@ -69,8 +69,8 @@ namespace ECommerce.Consumer.Workers
             try
             {
                 _logger.LogInformation("Sending 'Order Confirmation' email!");
-                //_emailSender.SendEmailAsync(data.Email, "Order Confirmation", content);
-                _emailSender.SendEmailAsync("jetonsllamniku@gmail.com", "Order Confirmation", content);
+                // await _emailSender.SendEmailAsync(data.Email, "Order Confirmation", content);
+                await _emailSender.SendEmailAsync("jetonsllamniku@gmail.com", "Order Confirmation", content);
             }
             catch (Exception ex)
             {

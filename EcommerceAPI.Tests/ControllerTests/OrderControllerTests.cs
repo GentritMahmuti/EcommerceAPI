@@ -23,7 +23,6 @@ namespace EcommerceAPI.Tests.ControllerTests
     public class OrderControllerTests
     {
         private readonly Mock<IOrderService> _orderService;
-        private readonly Mock<IConfiguration> _configuration;
         private readonly Mock<IValidator<AddressDetails>> _addressDetailsValidator;
         private readonly Mock<ILogger<OrderController>> _logger;
         private OrderController orderController;
@@ -31,11 +30,10 @@ namespace EcommerceAPI.Tests.ControllerTests
         public OrderControllerTests()
         {
             _orderService = new Mock<IOrderService>();
-            _configuration = new Mock<IConfiguration>();
             _addressDetailsValidator = new Mock<IValidator<AddressDetails>>();
             _logger = new Mock<ILogger<OrderController>>();
             _orderService.Setup(os => os.GetCustomerOrderHistory(It.IsAny<string>())).Returns(new List<OrderData>());
-            orderController = new OrderController(_orderService.Object, _configuration.Object, _logger.Object);
+            orderController = new OrderController(_orderService.Object, _logger.Object);
         }
 
         [Fact]
@@ -162,7 +160,7 @@ namespace EcommerceAPI.Tests.ControllerTests
             var claimsIdentity = new ClaimsIdentity(claims, "Test");
             var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
 
-            var orderController = new OrderController(mockOrderService.Object, null, _logger.Object);
+            var orderController = new OrderController(mockOrderService.Object,  _logger.Object);
             orderController.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { User = claimsPrincipal } };
 
             // Act
@@ -184,7 +182,7 @@ namespace EcommerceAPI.Tests.ControllerTests
                 PromoCode = "promocode"
             };
 
-            var orderController = new OrderController(mockOrderService.Object, null, null);
+            var orderController = new OrderController(mockOrderService.Object,  null);
             orderController.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal() } };
 
             // Act

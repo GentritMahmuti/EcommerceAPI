@@ -18,7 +18,7 @@ namespace Services.Services.IServices
         Task<List<Product>> GetAllProducts();
         Task<Product> GetProduct(int id);
         Task<List<Product>> GetProductsPaginated(int pageIndex, int pageSize);
-        Task<List<Product>> GetProductsByCategory(int categoryId, int pageIndex = 1, int pageSize = 10);
+        Task<List<Product>> GetProductsByCategory(int categoryId, int pageIndex, int pageSize);
         Task<List<Product>> GetRecommendedProducts(string userId, int pageIndex, int pageSize);
         Task UpdateProduct(ProductDto productToUpdate);
         Task<string> UploadImage(IFormFile? file, int productId);

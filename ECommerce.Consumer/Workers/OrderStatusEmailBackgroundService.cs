@@ -54,7 +54,7 @@ namespace ECommerce.Consumer.Workers
             }
         }
 
-        private void SendStatusEmail(OrderStatusDto data) 
+        private async Task SendStatusEmail(OrderStatusDto data) 
         {
             var pathToFile = "Templates/orderStatus.html";
 
@@ -72,7 +72,7 @@ namespace ECommerce.Consumer.Workers
             {
                 _logger.LogInformation("Sending 'Order Status has changed' email!");
                 //_emailSender.SendEmailAsync(data.Email, "Order Status", content);
-                _emailSender.SendEmailAsync("jetonsllamniku@gmail.com", "Order Status", content);
+                await _emailSender.SendEmailAsync("jetonsllamniku@gmail.com", "Order Status", content);
             }catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending email for order status!");

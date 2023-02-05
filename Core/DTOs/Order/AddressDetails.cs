@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Services.DTOs.Order
+﻿namespace Services.DTOs.Order
 {
     public class AddressDetails
     {

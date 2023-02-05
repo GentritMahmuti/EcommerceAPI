@@ -1,5 +1,4 @@
 ﻿using Domain.Entities;
-using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Services.IServices;
@@ -49,14 +48,11 @@ namespace EcommerceAPI.Controllers
         [HttpPost("AddToWishlist")]
         public async Task<IActionResult> AddProductToWishlist(int productId)
         {
-            var userData = (ClaimsIdentity)User.Identity;
-            var userIdClaim = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-            if (userIdClaim == null) { return Unauthorized(); }
-
             try
             {
-                await _wishlistService.AddProductToWishlist(userIdClaim, productId);
+                var userData = (ClaimsIdentity)User.Identity;
+                var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _wishlistService.AddProductToWishlist(userId, productId);
                 return Ok("Added to wishlist!");
             }
             catch (Exception ex)
@@ -69,14 +65,12 @@ namespace EcommerceAPI.Controllers
         [HttpDelete("RemoveFromWishlist")]
         public async Task<IActionResult> RemoveProductFromWishlist(int productId)
         {
-            var userData = (ClaimsIdentity)User.Identity;
-            var userIdClaim = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-            if (userIdClaim == null) { return Unauthorized(); }
-
             try
             {
-                await _wishlistService.RemoveProductFromWishlist(userIdClaim, productId);
+                var userData = (ClaimsIdentity)User.Identity;
+                var userId= userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+                await _wishlistService.RemoveProductFromWishlist(userId, productId);
                 return Ok("Removed from wishlist!");
             }
             catch (Exception ex)

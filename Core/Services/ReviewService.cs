@@ -1,18 +1,15 @@
 ﻿using AutoMapper;
-using Persistence.UnitOfWork.IUnitOfWork;
 using Domain.Entities;
-using EcommerceAPI.Services.IServices;
 using Microsoft.EntityFrameworkCore;
-using Nest;
+using Persistence.UnitOfWork.IUnitOfWork;
 using Services.DTOs.Review;
 using Services.Services.IServices;
-using System.Linq.Expressions;
 
 namespace Services.Services
 {
     public class ReviewService : IReviewService
     {
-        
+
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
@@ -22,7 +19,7 @@ namespace Services.Services
             _mapper = mapper;
         }
 
-        
+
         /// <summary>
         /// Gets reviews that a user has done.
         /// </summary>
@@ -30,7 +27,7 @@ namespace Services.Services
         /// <returns>List of review details.</returns>
         public async Task<List<ReviewDetailsDto>> GetUserReviews(string userId)
         {
-            var reviews = await _unitOfWork.Repository<Review>().GetByCondition(x=>x.UserId.Equals(userId)).ToListAsync();
+            var reviews = await _unitOfWork.Repository<Review>().GetByCondition(x => x.UserId.Equals(userId)).ToListAsync();
             var reviewsDetails = _mapper.Map<List<Review>, List<ReviewDetailsDto>>(reviews);
             return reviewsDetails;
         }
@@ -69,7 +66,7 @@ namespace Services.Services
         /// <returns>The created review.</returns>
         public async Task<Review> CreateReview(string userId, ReviewCreateDto reviewToCreate)
         {
-            
+
             var review = _mapper.Map<Review>(reviewToCreate);
             review.UserId = userId;
 
@@ -88,7 +85,7 @@ namespace Services.Services
         /// <exception cref="Exception"></exception>
         public async Task UpdateReview(ReviewUpdateDto reviewToUpdate, string userId)
         {
-            var review = await GetReview(reviewToUpdate.ReviewId);        
+            var review = await GetReview(reviewToUpdate.ReviewId);
             if (review == null)
             {
                 throw new NullReferenceException("The review you're trying to update doesn't exist!");
@@ -132,7 +129,7 @@ namespace Services.Services
             {
                 throw new Exception("You cannot delete this review.");
             }
-            
+
         }
 
         /// <summary>

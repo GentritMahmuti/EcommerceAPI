@@ -1,11 +1,7 @@
-﻿using EcommerceAPI.Services;
-using EcommerceAPI.Services.IServices;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.DTOs.ShoppingCard;
 using Services.Services.IServices;
-using Stripe;
 using System.Security.Claims;
 
 namespace EcommerceAPI.Controllers
@@ -16,13 +12,11 @@ namespace EcommerceAPI.Controllers
     public class ShoppingCardController : ControllerBase
     {
         private readonly IShoppingCardService _cardService;
-        private readonly IConfiguration _configuration;
         private readonly ILogger<ShoppingCardController> _logger;
 
-        public ShoppingCardController(IShoppingCardService cardService, IConfiguration configuration, ILogger<ShoppingCardController> logger)
+        public ShoppingCardController(IShoppingCardService cardService, ILogger<ShoppingCardController> logger)
         {
             _cardService = cardService;
-            _configuration = configuration;
             _logger = logger;
         }
 
@@ -34,7 +28,6 @@ namespace EcommerceAPI.Controllers
         /// <param name="productId">The id of the product to be added to the shopping card.</param>
         /// <returns>Ok result if the product was added to the shopping card, 
         /// a BadRequest result with a message if an error occurred, or an Unauthorized result if the user is not authenticated.</returns>
-        [Authorize]
         [HttpPost("AddToCard")]
         public async Task<IActionResult> AddProductToCard(int count, int productId)
         {
@@ -69,17 +62,14 @@ namespace EcommerceAPI.Controllers
         /// <remarks>
         /// This action requires authentication and the "LifeAdmin" or "LifeUser" role to access.
         /// </remarks>
-        [Authorize]
         [HttpDelete("RemoveFromCard")]
         public async Task<IActionResult> RemoveProductFromCard(int shoppingCardItemId)
         {
-            var userData = (ClaimsIdentity)User.Identity;
-            var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-            if (userId == null) { return Unauthorized(); }
-            
             try
             {
+                var userData = (ClaimsIdentity)User.Identity;
+                var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+
                 await _cardService.RemoveProductFromCard(shoppingCardItemId, userId);
                 return Ok("Removed from card!");
             }catch(Exception ex)
@@ -101,7 +91,6 @@ namespace EcommerceAPI.Controllers
         /// <remarks>
         /// This action requires authentication and the "LifeAdmin" or "LifeUser" role to access.
         /// </remarks>
-        [Authorize]
         [HttpDelete("RemoveAllProductsFromCard")]
         public async Task<IActionResult> RemoveAllProductsFromCard()
         {
@@ -135,7 +124,6 @@ namespace EcommerceAPI.Controllers
         /// <remarks>
         /// This action requires authentication and the "LifeAdmin" or "LifeUser" role to access.
         /// </remarks>
-        [Authorize]
         [HttpGet("ShoppingCardContent")]
         public async Task<IActionResult> ShoppingCardContent()
         {
@@ -167,17 +155,13 @@ namespace EcommerceAPI.Controllers
         /// <remarks>
         /// This action requires authentication and the "LifeAdmin" or "LifeUser" role to access.
         /// </remarks>
-        [Authorize]
         [HttpPost("IncreaseQuantityForProduct")]
         public async Task<IActionResult> IncreaseProductQuantity(int? newQuantity, int shoppingCardItemId)
         {
-            var userData = (ClaimsIdentity)User.Identity;
-            var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-            if (userId == null) { return Unauthorized(); }
-
             try
             {
+                var userData = (ClaimsIdentity)User.Identity;
+                var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
                 await _cardService.IncreaseProductQuantityInShoppingCard(shoppingCardItemId, userId, newQuantity);
 
                 return Ok("The product quantity in the shopping card changed successfully!");
@@ -197,17 +181,14 @@ namespace EcommerceAPI.Controllers
         /// <param name="shoppingCardItemId">The unique identifier of the item in the shopping cart</param>
         /// <returns>Ok result if the operation was successful, Unauthorized result if the user is not authorized,
         /// BadRequest if an error occurs while decreasing the quantity of the product in the cart</returns>
-        [Authorize]
         [HttpPost("DecreaseQuantityForProduct")]
         public async Task<IActionResult> DecreaseProductQuantity(int? newQuantity, int shoppingCardItemId)
         {
-            var userData = (ClaimsIdentity)User.Identity;
-            var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-            if (userId == null) { return Unauthorized(); }
-
             try
             {
+                var userData = (ClaimsIdentity)User.Identity;
+                var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
+
                 await _cardService.DecreaseProductQuantityInShoppingCard(shoppingCardItemId, userId, newQuantity);
                 return Ok("The product quantity in the shopping card changed successfully!");
             }
@@ -218,15 +199,9 @@ namespace EcommerceAPI.Controllers
             }
         }
 
-        [Authorize]
         [HttpPost("ConvertToWishList")]
         public async Task<IActionResult> ConvertToWishList(int cartItemId)
         {
-            var userData = (ClaimsIdentity)User.Identity;
-            var userId = userData.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-            if (userId == null) { return Unauthorized(); }
-
             try
             {
                 var wishListItem = await _cardService.ConvertToWishList(cartItemId);

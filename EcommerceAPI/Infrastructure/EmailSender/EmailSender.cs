@@ -13,14 +13,13 @@ namespace EcommerceAPI.Helpers.EmailSender
             SendGridSecret = _config.GetValue<string>("SendGrid:SecretKey");
         }
 
-        public Task SendEmailAsync(string email, string subject, string htmlMessage)
+        public async Task SendEmailAsync(string email, string subject, string htmlMessage)
         {
             var client = new SendGridClient(SendGridSecret);
-            var from = new EmailAddress("\"life.ecommerce23@gmail.com", "LIFE");
+            var from = new EmailAddress("life.ecommerce23@gmail.com", "LIFE");
             var to = new EmailAddress(email);
             var msg = MailHelper.CreateSingleEmail(from, to, subject, "", htmlMessage);
-            return client.SendEmailAsync(msg);
-
+            await client.SendEmailAsync(msg);
         }
     }
 }

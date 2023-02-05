@@ -1,9 +1,9 @@
 ﻿
-using Persistence.UnitOfWork.IUnitOfWork;
 using Domain.Entities;
 using EcommerceAPI.Services.IServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Persistence.UnitOfWork.IUnitOfWork;
 
 namespace Services.Services
 {
@@ -120,7 +120,7 @@ namespace Services.Services
                     return null;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError("There was an error while getting the product from your saved item list. Please try again!");
                 throw new Exception(ex.Message);

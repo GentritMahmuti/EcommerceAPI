@@ -11,14 +11,12 @@ namespace EcommerceAPI.Controllers
     public class PromotionController : Controller
     {
         private readonly IPromotionService _promotionService;
-        private readonly IConfiguration _configuration;
         private readonly IValidator<PromotionDto> _promotionValidator;
         private readonly ILogger<PromotionController> _logger;
 
-        public PromotionController(IPromotionService promotionService, IConfiguration configuration, IValidator<PromotionDto> promotionValidator, ILogger<PromotionController> logger)
+        public PromotionController(IPromotionService promotionService, IValidator<PromotionDto> promotionValidator, ILogger<PromotionController> logger)
         {
             _promotionService = promotionService;
-            _configuration = configuration;
             _promotionValidator = promotionValidator;
             _logger = logger;
         }
@@ -100,8 +98,8 @@ namespace EcommerceAPI.Controllers
         /// This action requires authentication and the "LifeAdmin" role to access.
         /// </remarks>
         [Authorize(Roles = "LifeAdmin")]
-        [HttpPost("PostPromotion")]
-        public async Task<IActionResult> Post(PromotionDto createPromotion)
+        [HttpPost("CreatePromotion")]
+        public async Task<IActionResult> CreatePromotion(PromotionDto createPromotion)
         {
             try
             {
@@ -139,14 +137,15 @@ namespace EcommerceAPI.Controllers
                 await _promotionValidator.ValidateAndThrowAsync(updatePromotion);
                 await _promotionService.UpdatePromotion(id, updatePromotion);
                 return Ok("Promotion updated successfully!");
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 _logger.LogError(ex, $"{nameof(PromotionController)} - Error when updating a promotion!");
                 return BadRequest(ex.Message);
             }
         }
 
-        
+
         /// <summary>
         /// Deletes a promotion
         /// </summary>

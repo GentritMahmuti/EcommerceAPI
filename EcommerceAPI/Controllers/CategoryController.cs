@@ -1,5 +1,4 @@
-﻿using EcommerceAPI.Services.IServices;
-using FluentValidation;
+﻿using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.DTOs.Category;
@@ -12,15 +11,13 @@ namespace EcommerceAPI.Controllers
     public class CategoryController : Controller
     {
         private readonly ICategoryService _categoryService;
-        private readonly IConfiguration _configuration;
         private readonly IValidator<CategoryDto> _categoryValidator;
         private readonly IValidator<CategoryCreateDto> _categoryCreateValidator;
         private readonly ILogger<CategoryController> _logger;
 
-        public CategoryController(ICategoryService categoryService, IConfiguration _configuration, IValidator<CategoryDto> categoryValidator, IValidator<CategoryCreateDto> categoryCreateValidator, ILogger<CategoryController> logger)
+        public CategoryController(ICategoryService categoryService, IValidator<CategoryDto> categoryValidator, IValidator<CategoryCreateDto> categoryCreateValidator, ILogger<CategoryController> logger)
         {
             _categoryService = categoryService;
-            _configuration = _configuration;
             _categoryValidator = categoryValidator;
             _categoryCreateValidator = categoryCreateValidator;
             _logger = logger;
@@ -41,8 +38,8 @@ namespace EcommerceAPI.Controllers
         /// This action requires authentication and the "LifeAdmin" role to access.
         /// </remarks>
         [Authorize(Roles = "LifeAdmin")]
-        [HttpPost("PostCategory")]
-        public async Task<IActionResult> Post(CategoryCreateDto createCategory)
+        [HttpPost("CreateCategory")]
+        public async Task<IActionResult> CreateCategory(CategoryCreateDto createCategory)
         {
             try
             {

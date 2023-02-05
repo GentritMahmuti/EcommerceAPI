@@ -1,14 +1,11 @@
 ﻿using AutoMapper;
-using Persistence.UnitOfWork.IUnitOfWork;
 using Domain.Entities;
-using EcommerceAPI.Services.IServices;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Persistence.UnitOfWork.IUnitOfWork;
 using Services.DTOs.Promotion;
 using Services.Services.IServices;
-using System.Linq.Expressions;
 
 namespace Services.Services
 {
@@ -16,18 +13,16 @@ namespace Services.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IConfiguration _configuration;
         private readonly ILogger<PromotionService> _logger;
 
 
-        public PromotionService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, ILogger<PromotionService> logger)
+        public PromotionService(IUnitOfWork unitOfWork, IMapper mapper,  ILogger<PromotionService> logger)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _configuration = configuration;
             _logger = logger;
         }
-        
+
         public async Task<PromotionDetailsDto> GetPromotionDetails(int id)
         {
             var promotion = await GetPromotion(id);
@@ -39,7 +34,7 @@ namespace Services.Services
 
             return promotionDetails;
         }
-        
+
         public async Task<List<PromotionDetailsDto>> GetAllPromotions()
         {
             var promotions = await _unitOfWork.Repository<Promotion>().GetAll().ToListAsync();
@@ -47,7 +42,7 @@ namespace Services.Services
             return promotionsDetails;
         }
 
-        
+
         public async Task CreatePromotion(PromotionDto promotionToCreate)
         {
             var promotion = _mapper.Map<Promotion>(promotionToCreate);
@@ -83,7 +78,7 @@ namespace Services.Services
             await _unitOfWork.CompleteAsync();
         }
 
-       
+
 
         /// <summary>
         /// Deletes a specific promotion.

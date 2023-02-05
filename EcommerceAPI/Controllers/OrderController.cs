@@ -1,8 +1,6 @@
 ﻿using Domain.Entities;
-using EcommerceAPI.Services.IServices;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.DTOs.Order;
 using Services.DTOs.ShoppingCard;
@@ -17,14 +15,12 @@ namespace EcommerceAPI.Controllers
     public class OrderController : ControllerBase
     {
         private readonly IOrderService _orderService;
-        private readonly IConfiguration _configuration;
         private readonly IValidator<AddressDetails> _addressDetailsValidator;
         private readonly ILogger<OrderController> _logger;
 
-        public OrderController(IOrderService orderService, IConfiguration configuration, ILogger<OrderController> logger)
+        public OrderController(IOrderService orderService,  ILogger<OrderController> logger)
         {
             _orderService = orderService;
-            _configuration = configuration;
             _logger = logger;
         }
 

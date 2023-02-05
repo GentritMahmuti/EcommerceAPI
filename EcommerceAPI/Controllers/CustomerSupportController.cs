@@ -1,10 +1,8 @@
 ﻿
-using Persistence.UnitOfWork.IUnitOfWork;
 using Domain.Entities;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
-using SendGrid.Helpers.Mail;
+using Persistence.UnitOfWork.IUnitOfWork;
 using Services.DTOs;
 
 namespace EcommerceAPI.Controllers

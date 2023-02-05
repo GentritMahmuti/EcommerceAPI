@@ -11,11 +11,11 @@ namespace Ecommerce.Consumer.EmailSender
             _logger = logger;
         }
 
-        public Task SendEmailAsync(string email, string subject, string htmlMessage)
+        public async Task SendEmailAsync(string email, string subject, string htmlMessage)
         {
             _logger.LogInformation($"Email: {email}, subject: {subject}, message: {htmlMessage}");
 
-            return Task.FromResult(0);
+            await Task.FromResult(0);
         }
     }
 }

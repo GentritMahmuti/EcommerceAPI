@@ -22,15 +22,13 @@ namespace EcommerceAPI.Tests.ControllerTests
     public class ShoppingCardControllerTests
     {
         private readonly Mock<IShoppingCardService> _cardService;
-        private readonly Mock<IConfiguration> _configuration;
         private readonly Mock<ILogger<ShoppingCardController>> _logger;
         private ShoppingCardController shoppingCardController;
         public ShoppingCardControllerTests()
         {
             _cardService = new Mock<IShoppingCardService>();
-            _configuration = new Mock<IConfiguration>();
             _logger = new Mock<ILogger<ShoppingCardController>>();
-            shoppingCardController = new ShoppingCardController(_cardService.Object, _configuration.Object, _logger.Object);
+            shoppingCardController = new ShoppingCardController(_cardService.Object,  _logger.Object);
         }
 
         [Fact]
@@ -106,7 +104,7 @@ namespace EcommerceAPI.Tests.ControllerTests
             var claimsIdentity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, userId) });
             var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
 
-            var controller = new ShoppingCardController(_cardService.Object, null, null);
+            var controller = new ShoppingCardController(_cardService.Object,  null);
             controller.ControllerContext = new ControllerContext
             {
                 HttpContext = new DefaultHttpContext
@@ -134,7 +132,7 @@ namespace EcommerceAPI.Tests.ControllerTests
             var claimsIdentity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, userId) });
             var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
 
-            var controller = new ShoppingCardController(_cardService.Object, null, null);
+            var controller = new ShoppingCardController(_cardService.Object,  null);
             controller.ControllerContext = new ControllerContext
             {
                 HttpContext = new DefaultHttpContext

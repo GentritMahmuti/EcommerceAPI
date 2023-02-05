@@ -1,11 +1,8 @@
-﻿using EcommerceAPI.Validators;
-using FluentValidation;
+﻿using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Services.DTOs.Review;
 using Services.Services.IServices;
-using System.Data;
 using System.Security.Claims;
 
 namespace EcommerceAPI.Controllers
@@ -124,8 +121,8 @@ namespace EcommerceAPI.Controllers
         /// This action requires authentication and the "LifeUser" or "LifeAdmin" role to access.
         /// </remarks>
         [Authorize]
-        [HttpPost("PostReview")]
-        public async Task<IActionResult> Post([FromForm] ReviewCreateDto ReviewToCreate)
+        [HttpPost("CreateReview")]
+        public async Task<IActionResult> Create([FromForm] ReviewCreateDto ReviewToCreate)
         {
             await _createReviewValidator.ValidateAndThrowAsync(ReviewToCreate);
             var userData = (ClaimsIdentity)User.Identity;

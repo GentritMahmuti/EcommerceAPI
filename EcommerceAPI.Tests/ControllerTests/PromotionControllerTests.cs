@@ -15,7 +15,6 @@ namespace EcommerceAPI.Tests.ControllerTests
     public class PromotionControllerTests
     {
         private readonly Mock<IPromotionService> _promotionService;
-        private readonly Mock<IConfiguration> _configuration;
         private readonly Mock<IValidator<PromotionDto>> _promotionValidator;
         private readonly Mock<ILogger<PromotionController>> _logger;
 
@@ -24,10 +23,9 @@ namespace EcommerceAPI.Tests.ControllerTests
         public PromotionControllerTests()
         {
             _promotionService = new Mock<IPromotionService>();
-            _configuration = new Mock<IConfiguration>();
             _promotionValidator = new Mock<IValidator<PromotionDto>>();
             _logger = new Mock<ILogger<PromotionController>>();
-            promotionController = new PromotionController(_promotionService.Object, _configuration.Object, _promotionValidator.Object, _logger.Object);
+            promotionController = new PromotionController(_promotionService.Object,  _promotionValidator.Object, _logger.Object);
         }
 
         [Fact]
@@ -97,7 +95,7 @@ namespace EcommerceAPI.Tests.ControllerTests
                 EndDate = DateTime.Now.AddDays(2)
             };
 
-            var result = await promotionController.Post(promotionDto);
+            var result = await promotionController.CreatePromotion(promotionDto);
             Assert.IsType<OkObjectResult>(result);
         }
 

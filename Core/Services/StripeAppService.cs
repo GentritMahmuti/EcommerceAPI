@@ -1,15 +1,12 @@
-﻿using Persistence.UnitOfWork.IUnitOfWork;
-using Domain.Entities;
-using EcommerceAPI.Services.IServices;
+﻿using Domain.Entities;
 using Microsoft.Extensions.Logging;
-using Microsoft.Identity.Client;
+using Newtonsoft.Json;
+using Persistence.UnitOfWork.IUnitOfWork;
+using RabbitMQ.Client;
+using Services.DTOs.Order;
 using Services.DTOs.Stripe;
 using Services.Services.IServices;
-using StackExchange.Redis;
 using Stripe;
-using Services.DTOs.Order;
-using Newtonsoft.Json;
-using RabbitMQ.Client;
 using System.Text;
 
 namespace Services.Services
@@ -147,7 +144,7 @@ namespace Services.Services
                     return "Payment failed. Please try again.";
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError("There was an error while proccesing your request. Please try again!");
                 throw new Exception(ex.Message);
@@ -191,7 +188,7 @@ namespace Services.Services
                     return "Payment failed. Please try again.";
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError("There was an error while proccessing your request. Please try again!");
                 throw new Exception(ex.Message);
@@ -205,7 +202,7 @@ namespace Services.Services
             {
                 return _unitOfWork.Repository<PaymentMethodEntity>().GetByCondition(p => p.UserId == userId).ToList();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError("There was an error while retrieving your payment method. Please try again!");
                 throw new Exception(ex.Message);
@@ -224,7 +221,7 @@ namespace Services.Services
                 // Delete the payment method from the Stripe API
                 await _paymentMethodService.DetachAsync(paymentMethodId);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError("There was an error while deleting your payment method. Please try again!");
                 throw new Exception(ex.Message);
@@ -253,7 +250,7 @@ namespace Services.Services
 
                 await _paymentMethodService.UpdateAsync(paymentMethodId, updateOptions);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError("There was an error while updating your payment method. Please try again!");
                 throw new Exception(ex.Message);
@@ -298,7 +295,7 @@ namespace Services.Services
 
                 return paymentMethodEntity;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError("There was a problem while creating your payment method. Please try again!");
                 throw new Exception(ex.Message);
@@ -320,7 +317,7 @@ namespace Services.Services
 
                 await _paymentMethodService.AttachAsync(paymentMethodId, paymentMethodAttachOptions);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError("There was an error while attaching the payment to costumer");
                 throw new Exception(ex.Message);

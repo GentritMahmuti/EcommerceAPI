@@ -1,11 +1,8 @@
 ﻿
-using Persistence.UnitOfWork.IUnitOfWork;
 using Domain.Entities;
-using EcommerceAPI.Services.IServices;
-using Elasticsearch.Net;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Persistence.UnitOfWork.IUnitOfWork;
 using Services.Services.IServices;
 
 namespace Services.Services
@@ -28,7 +25,7 @@ namespace Services.Services
             if (string.IsNullOrEmpty(userId))
             {
                 _logger.LogError("UserId cannot be null or empty");
-                throw new ("UserId cannot be null or empty.");
+                throw new("UserId cannot be null or empty.");
             }
 
             try
@@ -47,7 +44,7 @@ namespace Services.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while getting the wishlist content for user");
-                throw new ($"An error happened: '{ex.Message}'");
+                throw new($"An error happened: '{ex.Message}'");
             }
         }
 
@@ -67,7 +64,7 @@ namespace Services.Services
                 {
                     var item = new WishListItem
                     {
-                        WishListItemId = Guid.NewGuid().ToString(), 
+                        WishListItemId = Guid.NewGuid().ToString(),
                         UserId = userId,
                         ProductId = productId,
                         DateCreated = DateTime.Now
@@ -152,10 +149,10 @@ namespace Services.Services
                     return null;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError("There was an error while retrieving the product from your wishlist");
-                throw new Exception ($"An error happened: '{ex.Message}'");
+                throw new Exception($"An error happened: '{ex.Message}'");
             }
         }
 

@@ -1,7 +1,5 @@
 ﻿using Domain.Entities;
-using EcommerceAPI.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.DTOs.Stripe;
 using Services.Services.IServices;
@@ -30,6 +28,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="customer">The customer details to be added to Stripe</param>
         /// <param name="ct">The cancellation token</param>
         /// <returns>The created Stripe customer</returns>
+        /// 
         [HttpPost("AddCustomer")]
         public async Task<ActionResult<StripeCustomer>> AddStripeCustomer([FromBody] AddStripeCustomer customer, CancellationToken ct)
         {

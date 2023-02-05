@@ -2,14 +2,13 @@
 using Amazon.S3;
 using Amazon.S3.Model;
 using AutoMapper;
-using Persistence.UnitOfWork.IUnitOfWork;
 using Domain.Entities;
-using EcommerceAPI.Services.IServices;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Nest;
+using Persistence.UnitOfWork.IUnitOfWork;
 using Services.DTOs.Product;
 using Services.Services.IServices;
 

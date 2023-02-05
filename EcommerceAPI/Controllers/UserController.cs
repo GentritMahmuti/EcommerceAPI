@@ -1,6 +1,4 @@
-﻿using EcommerceAPI.Services.IServices;
-using EcommerceAPI.Validators.EntityValidators;
-using FluentValidation;
+﻿using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.DTOs.User;
@@ -88,7 +86,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [Authorize(Roles = "LifeAdmin")]
-        [HttpPost("DeleteUser")]
+        [HttpDelete("DeleteUser")]
         public async Task<IActionResult> Delete(string id)
         {
             try

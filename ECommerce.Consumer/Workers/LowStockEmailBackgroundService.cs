@@ -29,7 +29,7 @@ namespace ECommerce.Consumer.Workers
             _channel.QueueDeclare("low-stock", exclusive: false, durable: true, autoDelete: false, arguments: null);
 
             var consumer = new EventingBasicConsumer(_channel);
-            consumer.Received += (model, args) =>
+            consumer.Received += (model, args) => 
             {
                 if (stoppingToken.IsCancellationRequested)
                     return;
@@ -52,7 +52,7 @@ namespace ECommerce.Consumer.Workers
             }
         }
 
-        private void SendEmail(LowStockDto data)
+        private async Task SendEmail(LowStockDto data)
         {
             var pathToFile = "Templates/lowStock.html";
 
@@ -69,7 +69,7 @@ namespace ECommerce.Consumer.Workers
             try
             {
                 _logger.LogInformation("Sending 'Low Stock' email!");
-                _emailSender.SendEmailAsync("jetonsllamniku@gmail.com", "Alert: Low Stock", content);
+                await _emailSender.SendEmailAsync("jetonsllamniku@gmail.com", "Alert: Low Stock", content);
             }
             catch (Exception ex)
             {

@@ -17,7 +17,6 @@ using Services.DTOs.Category;
 public class CategoryControllerTests
 {
     private readonly Mock<ICategoryService> _categoryService;
-    private readonly Mock<IConfiguration> _configuration;
     private readonly Mock<IValidator<CategoryDto>> _categoryValidator;
     private readonly Mock<IValidator<CategoryCreateDto>> _categoryCreateValidator;
     private readonly Mock<ILogger<CategoryController>> _logger;
@@ -26,11 +25,10 @@ public class CategoryControllerTests
     public CategoryControllerTests()
     {
         _categoryService = new Mock<ICategoryService>();
-        _configuration = new Mock<IConfiguration>();
         _categoryValidator = new Mock<IValidator<CategoryDto>>();
         _categoryCreateValidator = new Mock<IValidator<CategoryCreateDto>>();
         _logger = new Mock<ILogger<CategoryController>>();
-        categoryController = new CategoryController(_categoryService.Object, _configuration.Object, _categoryValidator.Object, _categoryCreateValidator.Object, _logger.Object);
+        categoryController = new CategoryController(_categoryService.Object,  _categoryValidator.Object, _categoryCreateValidator.Object, _logger.Object);
     }
 
     [Fact]
@@ -92,7 +90,7 @@ public class CategoryControllerTests
         var categoryCreateDto = new CategoryCreateDto { CategoryName = "Test category", DisplayOrder = 1 };
         _categoryService.Setup(x => x.CreateCategory(categoryCreateDto)).Returns(Task.CompletedTask);
         // Act
-        var result = await categoryController.Post(categoryCreateDto);
+        var result = await categoryController.CreateCategory(categoryCreateDto);
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
@@ -112,7 +110,7 @@ public class CategoryControllerTests
         };
 
         // Act
-        var result = await categoryController.Post(createCategoryDto);
+        var result = await categoryController.CreateCategory(createCategoryDto);
 
         // Assert
         Assert.IsType<BadRequestObjectResult>(result);

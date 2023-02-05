@@ -11,9 +11,17 @@
 
   <ItemGroup>
     <Compile Remove="Template\**" />
+    <Compile Remove="Validators\DtoValidators\ShoppingCard\**" />
+    <Compile Remove="Validators\DtoValidators\Stripe\**" />
     <Content Remove="Template\**" />
+    <Content Remove="Validators\DtoValidators\ShoppingCard\**" />
+    <Content Remove="Validators\DtoValidators\Stripe\**" />
     <EmbeddedResource Remove="Template\**" />
+    <EmbeddedResource Remove="Validators\DtoValidators\ShoppingCard\**" />
+    <EmbeddedResource Remove="Validators\DtoValidators\Stripe\**" />
     <None Remove="Template\**" />
+    <None Remove="Validators\DtoValidators\ShoppingCard\**" />
+    <None Remove="Validators\DtoValidators\Stripe\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -46,12 +54,6 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="System.Linq.Dynamic.Core" Version="1.2.24" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Validators\DtoValidators\Stripe\" />
-    <Folder Include="Validators\DtoValidators\ShoppingCard\" />
-
   </ItemGroup>
 
   <ItemGroup>

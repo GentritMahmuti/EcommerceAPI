@@ -1,5 +1,4 @@
-﻿using Nest;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Services.DTOs.Product
 {

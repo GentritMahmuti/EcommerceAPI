@@ -1,12 +1,10 @@
 ﻿
-using Persistence.UnitOfWork.IUnitOfWork;
 using Domain.Entities;
-using EcommerceAPI.Services.IServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Persistence.UnitOfWork.IUnitOfWork;
 using Services.DTOs.User;
 using Services.Services.IServices;
-using System.Linq.Expressions;
 
 namespace Services.Services
 {

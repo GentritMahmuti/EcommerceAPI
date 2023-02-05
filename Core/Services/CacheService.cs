@@ -1,6 +1,4 @@
-﻿
-using EcommerceAPI.Services.IServices;
-using Services.Services.IServices;
+﻿using Services.Services.IServices;
 using StackExchange.Redis;
 using System.Text.Json;
 
@@ -29,7 +27,7 @@ namespace Services.Services
         {
             var value = _cacheDb.SetMembers(key);
             List<T> list = new List<T>();
-            foreach (var item in value) 
+            foreach (var item in value)
             {
                 list.Add(JsonSerializer.Deserialize<T>(item));
             }

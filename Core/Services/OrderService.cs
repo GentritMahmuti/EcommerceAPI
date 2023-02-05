@@ -1,24 +1,21 @@
 ﻿using AutoMapper;
-using Persistence.UnitOfWork.IUnitOfWork;
+using Core.Constants;
+using Core.Hubs;
+using Core.Hubs.IHubs;
 using Domain.Entities;
-using ECommerce.Consumer.Entities;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using Nest;
 using Newtonsoft.Json;
+using Persistence.UnitOfWork.IUnitOfWork;
 using RabbitMQ.Client;
 using Services.DTOs.Order;
 using Services.DTOs.Product;
 using Services.DTOs.Promotion;
-using Services.Helpers;
 using Services.Services.IServices;
 using System.Text;
-using OrderConfirmationDto = Services.DTOs.Order.OrderConfirmationDto;
 using OrderStatusDto = Services.DTOs.Order.OrderStatusDto;
-using Microsoft.AspNetCore.SignalR;
-using Core.Hubs.IHubs;
-using Core.Hubs;
 
 namespace Services.Services
 {
@@ -51,7 +48,7 @@ namespace Services.Services
                 throw new ArgumentException("orderId cannot be null or empty");
             }
 
-            
+
             var orderData = await _unitOfWork.Repository<OrderData>().GetById(x => x.OrderId == orderId).FirstOrDefaultAsync();
 
 
@@ -94,7 +91,7 @@ namespace Services.Services
             }
 
             var carrier = string.Empty;
-            if (status == StaticDetails.Approved)
+            if (status == OrderStatus.Verified)
             {
                 carrier = Guid.NewGuid().ToString();
             }
@@ -104,16 +101,16 @@ namespace Services.Services
 
             var client = await _unitOfWork.Repository<User>().GetByCondition(x => x.Id == orderToUpdate.UserId).FirstOrDefaultAsync();
 
-            
+
             _unitOfWork.Repository<OrderData>().Update(orderToUpdate);
             await _unitOfWork.CompleteAsync();
-            
+
             var rabbitData = new OrderStatusDto { OrderId = orderToUpdate.OrderId, Name = client.FirsName, Status = status, Email = client.Email };
 
             PublishRabbit(rabbitData);
         }
 
-        
+
         /// <summary>
         /// Creates a order from shoppingCard and publishes message to rabbit queue for order confirmation.
         /// </summary>
@@ -178,10 +175,10 @@ namespace Services.Services
             _cacheService.RemoveData(key);
             _unitOfWork.Repository<CartItem>().DeleteRange(shoppingCardItems);
             _unitOfWork.Repository<ProductOrderData>().CreateRange(orderDetailsList);
-                
+
             await _unitOfWork.CompleteAsync();
 
-            await ChangeOrderStatus(order.OrderId, StaticDetails.Created);
+            await ChangeOrderStatus(order.OrderId, OrderStatus.Created);
         }
 
 
@@ -217,7 +214,7 @@ namespace Services.Services
                 PostalCode = addressDetails.PostalCode,
                 Name = addressDetails.Name,
                 TrackingId = trackingId,
-                OrderStatus = StaticDetails.Created,
+                OrderStatus = OrderStatus.Created,
                 UserId = userId
             };
             var orderCalculatedPrice = product.Price * count;
@@ -263,7 +260,7 @@ namespace Services.Services
 
             await _productService.UpdateSomeElastic(product.Id, product.Stock, product.TotalSold);
 
-            await ChangeOrderStatus(order.OrderId, StaticDetails.Created);
+            await ChangeOrderStatus(order.OrderId, OrderStatus.Created);
         }
 
         /// <summary>
@@ -375,7 +372,7 @@ namespace Services.Services
         /// Publishes the message to the "order-confirmations" queue when an order is done which then sends email to the user who has done that order to notify them that the order has been confirmed.
         /// </summary>
         /// <param name="rabbitData"></param>
-        
+
 
 
         /// <summary>

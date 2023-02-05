@@ -33,6 +33,7 @@ namespace EcommerceAPI.Controllers
         /// <remarks>
         /// This action requires authentication.
         /// </remarks>
+        [Authorize]
         [HttpGet("GetSavedItemContent")]
         public async Task<ActionResult<List<Product>>> GetSavedItemsContent()
         {
